@@ -11,10 +11,13 @@ import NoAccess from "../pages/NoAccess";
 import Home from "../pages/Home";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Contact from "../pages/Contact";
 
 const LayoutWithHeader = () => (
   <div className="flex flex-col min-h-screen">
-    <Header />
+    <div className="relative h-[90px]">
+      <Header />
+    </div>
     <main className="flex-grow">
       <Outlet />
     </main>
@@ -32,6 +35,7 @@ const Routes = () => {
       children: [
         // Example:
         { path: "/", element: <Home /> },
+        { path: "/contact", element: <Contact /> },
       ],
     },
     {
