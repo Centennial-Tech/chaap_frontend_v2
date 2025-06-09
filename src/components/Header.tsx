@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Button from "./Button";
 import { Link } from "react-router-dom";
 import MobileToggle from "./MobileToggle";
+import { useOverlay } from "../provider/overleyProvider";
 
 const Header = () => {
   const menuItems = [
@@ -21,6 +22,21 @@ const Header = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isAgentsOpen, setIsAgentsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { showOverlay } = useOverlay();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const { id } = e.target as any;
+      if (id?.length > 0 && id == "global_overlay") {
+        setIsAgentsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const getAgents = () => {
     return (
@@ -30,13 +46,17 @@ const Header = () => {
       >
         <span
           className="m-auto md:mr-10 px-4 py-2 md:px-0 md:py-0 md:m-[unset] font-semibold text-[18px] flex items-center dropdown w-max cursor-pointer"
-          onClick={() => setIsAgentsOpen((prev) => !prev)}
+          onClick={() => {
+            setIsAgentsOpen((prev) => !prev);
+            showOverlay();
+          }}
         >
           CHAAP Agents
         </span>
         <ul
-          className={`shadow-md mx-auto bg-white max-w-[538px] static md:absolute top-[83.55px] rounded-b-[15px] rounded-t-none shadow-[0px_4px_0px_rgba(0,0,0,0.16)] overflow-hidden transition-[max-height] duration-500 ease-in-out p-0 ${
-            isAgentsOpen ? "" : "max-h-0"
+          ref={dropdownRef as any}
+          className={`shadow-md mx-auto bg-white max-w-[538px] static md:absolute top-[83.55px] rounded-b-[15px] rounded-t-none overflow-hidden transition-[max-height] duration-500 ease-in-out p-0 ${
+            isAgentsOpen ? "mb-[10px]" : "max-h-0"
           }`}
         >
           {agents.map(({ label, href }) => (
@@ -51,7 +71,7 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 w-full
+      className={`fixed top-0 left-0 right-0 z-[51] w-full
     bg-white flex flex-col items-center
     pt-[8px] pb-[20px]        
     transition-[max-height]   

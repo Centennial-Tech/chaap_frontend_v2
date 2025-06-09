@@ -1,12 +1,15 @@
 import React from "react";
 import AuthProvider from "./provider/authProvider";
 import Routes from "./routes";
+import { OverlayProvider } from "./provider/overleyProvider";
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Routes />
-    </AuthProvider>
+    <OverlayProvider>
+      <AuthProvider>
+        <Routes />
+      </AuthProvider>
+    </OverlayProvider>
   );
 };
 
