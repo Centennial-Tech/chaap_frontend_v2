@@ -9,7 +9,7 @@ const Button = ({ href, name, onClick = () => {}, notNav = false }: any) => {
   return (
     <NavLink
       onClick={onClick}
-      className={`py-1.5 px-1.5 text-[#000000] hover:text-[#f37021] hover:bg-primary text-base rounded font-extrabold transition-all duration-300 ease-in-out ${
+      className={`py-1.5 px-1.5 w-max text-[#000000] hover:text-[#f37021] hover:bg-primary text-base rounded font-extrabold transition-all duration-300 ease-in-out ${
         isActive && !notNav ? "!text-[#f37021]" : ""
       }`}
       to={href}

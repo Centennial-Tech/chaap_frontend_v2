@@ -4,6 +4,8 @@ import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import type { Engine } from "tsparticles-engine";
 import { Link } from "react-router-dom";
+import BgCustomGrid from "../components/BgCustomGrid";
+import ChatBot from "../components/ChatBot";
 
 interface IFeature {
   icon: string;
@@ -64,7 +66,7 @@ const Home = () => {
     {
       name: "Pre-submission Strategy Agent",
       desc: "Substantial reduction in consultation-related expenses",
-      link: "",
+      link: "/agents/presubmission",
     },
     {
       name: "Regulatory Document Preparation Agent",
@@ -116,6 +118,56 @@ const Home = () => {
     },
   ];
 
+  interface IBgCustomSize {
+    sm: string;
+    md: string;
+    lg: string;
+  }
+
+  interface IBgCustom {
+    size?: keyof IBgCustomSize;
+  }
+
+  const BgCustomCard = ({ size = "sm" }: IBgCustom) => {
+    const top = Math.floor(Math.random() * 80); // up to 80% vertically
+    const left = Math.floor(Math.random() * 80);
+    const BG_CUSTOM_SIZE: IBgCustomSize = {
+      sm: "50",
+      md: "150",
+      lg: "250",
+    };
+    return (
+      <div
+        className="flex gap-1 absolute z-[-1]"
+        style={{
+          top: `${top}%`,
+          left: `${left}%`,
+          width: `${BG_CUSTOM_SIZE[size]}px`,
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <div
+          className="w-full animate-pulse shadow-2xl bg-[#f37021] top-[-10%] left-[50%]  [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 overflow-hidden bg-neutral-15 text-pureWhite transition-all duration-300 rounded-bl-lg"
+          style={{
+            zIndex: -1,
+            aspectRatio: 1 /* Helps with responsiveness */,
+            // clipPath: "polygon(0% 24%, 0% 100%, 100% -30%)",
+          }}
+        ></div>
+        <div className="animate-pulse">
+          <div
+            className="w-full rotate-180 shadow-2xl bg-[#034da2] [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 overflow-hidden bg-neutral-15 text-pureWhite transition-all duration-300 rounded-bl-lg"
+            style={{
+              zIndex: -1,
+              aspectRatio: 1 /* Helps with responsiveness */,
+              // clipPath: "polygon(0% 24%, 0% 100%, 100% -30%)",
+            }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
+
   const FeatureCard = ({ title, icon, description }: IFeature) => {
     return (
       <div className="flex flex-col flex-grow gap-4 max-w-[302px] w-full overflow-hidden">
@@ -131,16 +183,16 @@ const Home = () => {
       <div className="flex-grow max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 glass">
         <div className="p-5 flex flex-col justify-between h-full">
           <Link to={link}>
-            <h5 className="mb-2 text-2xl font-bold tracking-tight hover:opacity-70 text-white">
+            <h5 className="mb-2 text-2xl font-bold tracking-tight hover:opacity-70 text-black">
               {name}
             </h5>
           </Link>
-          <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 text-white">
+          <p className="mb-3 font-normal dark:text-gray-400 text-black">
             {desc}
           </p>
           <Link
             to={link}
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-[#034da2] rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-orange-500 rounded-lg hover:bg-orange-400 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Read more
             <svg
@@ -152,9 +204,9 @@ const Home = () => {
             >
               <path
                 stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M1 5h12m0 0L9 1m4 4L9 9"
               />
             </svg>
@@ -177,9 +229,9 @@ const Home = () => {
           >
             <path
               stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
             />
           </svg>
@@ -195,9 +247,9 @@ const Home = () => {
           >
             <path
               stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               d="M1 5.917 5.724 10.5 15 1.5"
             />
           </svg>
@@ -209,6 +261,7 @@ const Home = () => {
 
   return (
     <div className="flex w-full h-full flex-col">
+      <ChatBot />
       <div className="w-full h-screen overflow-hidden">
         <div className="w-full h-full relative flex justify-center items-center md:items-start">
           <Particles
@@ -278,24 +331,19 @@ const Home = () => {
       {/* Section 3 - Agents */}
       <div
         id="agents"
-        className="w-full scroll-m-[60px] text-white relative 2xl:h-[calc(100vh-59px)] bg-[#000] bg-opacity-90 z-0"
+        className="w-full scroll-m-[60px] text-black bg-white relative border-t 2xl:h-[calc(100vh-59px)] bg-opacity-90 z-0"
       >
+        <BgCustomGrid />
         <div className="flex flex-col w-full items-center justify-center max-w-7xl px-3 mx-auto py-6 md:py-10 gap-16">
-          <div className="text-2xl md:text-4xl ">Meet Our Smart Agents </div>
+          <div className="text-2xl md:text-4xl font-bold">
+            Meet Our Smart Agents{" "}
+          </div>
           <div className="flex flex-col justify-center md:flex-row flex-wrap gap-1 ">
             {agents.map(({ name, link, desc }) => (
-              <Agent name={name} link={link} desc={desc} />
+              <Agent key={name} name={name} link={link} desc={desc} />
             ))}
           </div>
         </div>
-        <div
-          className="w-full md:h-[calc(100vh-59px)] shadow-2xl bg-[#f37021] absolute top-0 rounded"
-          style={{
-            zIndex: -1,
-            aspectRatio: 1 /* Helps with responsiveness */,
-            clipPath: "polygon(0% 24%, 0% 100%, 100% -30%)",
-          }}
-        ></div>
       </div>
       <div className="relative my-16 z-0">
         <div className="max-w-2xl mx-auto flex items-center justify-center flex-col gap-16 p-5 h-full">
@@ -310,7 +358,7 @@ const Home = () => {
                 <div>With CHAAP</div>
               </div>
               {whyChaap.map(({ yes, no }) => (
-                <WhyChaapItem yes={yes} no={no} />
+                <WhyChaapItem key={yes} yes={yes} no={no} />
               ))}
             </div>
           </div>
