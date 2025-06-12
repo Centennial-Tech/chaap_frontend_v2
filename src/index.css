@@ -2,26 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 body {
-    background: linear-gradient(180deg,rgba(223,239,240,1) 0%,rgba(255,255,255,1) 100%)
+  /* background: linear-gradient(180deg,rgba(223,239,240,1) 0%,rgba(255,255,255,1) 100%) */
 }
-html, body {
-    font-family: Inter, sans-serif!important;
-    color: rgb(33, 37, 41)
+html,
+body {
+  font-family: Inter, sans-serif !important;
+  color: rgba(0, 0, 0, 0.8);
 }
-
 
 .dropdown::after {
-    display: inline-block;
-    margin-left: .255em;
-    vertical-align: .255em;
-    content: "";
-    border-top: .3em solid;
-    border-right: .3em solid transparent;
-    border-bottom: 0;
-    border-left: .3em solid transparent;
+  display: inline-block;
+  margin-left: 0.255em;
+  vertical-align: 0.255em;
+  content: "";
+  border-top: 0.3em solid;
+  border-right: 0.3em solid transparent;
+  border-bottom: 0;
+  border-left: 0.3em solid transparent;
 }
 
 .required:after {
-    content:" *";
-    color: red;
+  content: " *";
+  color: red;
+}
+
+.glass {
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px #00000050;
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(3.4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }

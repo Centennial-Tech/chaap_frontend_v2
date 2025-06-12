@@ -12,7 +12,7 @@ const Header = () => {
   ];
 
   const agents = [
-    { label: "Pre-Submission Strategy Agent", href: "#agent" },
+    { label: "Pre-Submission Strategy Agent", href: "/presubmission" },
     { label: "Regulatory Document Preparation Agent", href: "#agent2" },
     { label: "FDA Meeting Prep Agent", href: "#agent3" },
     { label: "Regulatory Knowledge Agent", href: "#agent4" },
@@ -60,8 +60,13 @@ const Header = () => {
           }`}
         >
           {agents.map(({ label, href }) => (
-            <li className="font-medium p-[12px] hover:text-[#212529] hover:bg-[#f8f9fa] text-center">
-              <Link to={href}>{label}</Link>
+            <li
+              key={label}
+              className="font-medium p-[12px] hover:text-[#212529] hover:bg-[#f8f9fa] text-center"
+            >
+              <Link to={href} onClick={() => setIsAgentsOpen(false)}>
+                {label}
+              </Link>
             </li>
           ))}
         </ul>

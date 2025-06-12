@@ -1,5 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Input from "../components/Input";
+import { DEER } from "../constants/animation_config";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
+import type { Engine } from "tsparticles-engine";
 
 interface ContactFormData {
   first_name: string;
@@ -21,6 +25,8 @@ const defaultForm: ContactFormData = {
 
 const Contact: React.FC = () => {
   const [form, setForm] = useState<ContactFormData>(defaultForm);
+  const icon = new URL("../assets/handshake-icon.png", import.meta.url).href;
+  const [init, setInit] = useState(false);
 
   const handleChange = (key: keyof ContactFormData, value: string): void => {
     setForm((prev) => ({
@@ -35,44 +41,24 @@ const Contact: React.FC = () => {
     // TODO: Send `form` to your API...
   };
 
-  return (
-    <div className="bg-red">
-      <div className="flex flex-col gap-[16px] px-[20px] py-[30px] md:py-[48px] w-full flex-grow max-w-[1260px] overflow-hidden justify-center mx-auto">
-        <p className="text-3xl md:text-4xl font-medium">Reach Us</p>
-        <div
-          className="border-t w-1/5"
-          style={{ borderColor: "oklch(87.2% .01 258.338)" }}
-        ></div>
-        <div className="flex justify-center md:justify-between flex-col md:flex-row gap-5">
-          <div className="flex gap-5">
-            <div className="flex flex-col flex-wrap">
-              <span className="text-lg font-medium">Address:</span>
-              <p>161 Fort Evans Rd NE, Suite 230, Leesburg, VA 20176</p>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-medium">Email:</span>
-              <p>
-                For any Inquiry, please reach us at{" "}
-                <a
-                  href="mailto:sales@centennialtechnologies.com"
-                  className="underline text-blue-600"
-                >
-                  sales@centennialtechnologies.com
-                </a>
-              </p>
-            </div>
-          </div>
+  const particlesInit = (engine: Engine) => {
+    loadFull(engine);
+  };
 
+  return (
+    <div className="mt-[54px]">
+      <div className="flex flex-col gap-[16px] px-[20px] py-[10px] w-full flex-grow max-w-[1260px] overflow-hidden justify-center mx-auto">
+        <div className="flex justify-center md:justify-between flex-col md:flex-row gap-5">
           {/* Form */}
 
-          <div className="w-full max-w-xl p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+          <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 rounded-lg">
             <form className="space-y-3" onSubmit={handleSubmit}>
               <h5 className="text-xl font-medium text-gray-900 dark:text-white">
-                Submit your query here!
+                Submit your <span className="text-[#f37021]">query</span> here!
               </h5>
               <div
                 className="border-t border-dotted mx-auto"
-                style={{ borderColor: "oklch(87.2% .01 258.338)" }}
+                style={{ borderColor: "#f37021" }}
               ></div>
 
               <div className="flex flex-wrap justify-between">
@@ -101,32 +87,33 @@ const Contact: React.FC = () => {
                   }}
                 />
               </div>
-              <Input
-                label="Email"
-                name="email"
-                id="email"
-                placeholder="Email..."
-                type="email"
-                required
-                onChange={(
-                  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                ) => {
-                  handleChange("email", e.target.value);
-                }}
-              />
-              <Input
-                label="Company Name"
-                name="company"
-                id="company"
-                placeholder="Company Name..."
-                type="text"
-                onChange={(
-                  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                ) => {
-                  handleChange("company_name", e.target.value);
-                }}
-              />
-
+              <div className="flex flex-wrap justify-between">
+                <Input
+                  label="Email"
+                  name="email"
+                  id="email"
+                  placeholder="Email..."
+                  type="email"
+                  required
+                  onChange={(
+                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                  ) => {
+                    handleChange("email", e.target.value);
+                  }}
+                />
+                <Input
+                  label="Company Name"
+                  name="company"
+                  id="company"
+                  placeholder="Company Name..."
+                  type="text"
+                  onChange={(
+                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                  ) => {
+                    handleChange("company_name", e.target.value);
+                  }}
+                />
+              </div>
               <Input
                 label="Subject"
                 name="subject"
@@ -161,6 +148,43 @@ const Contact: React.FC = () => {
                 Send Message
               </button>
             </form>
+          </div>
+          {/* divider */}
+          <div className="border-r"></div>
+          {/* contact info */}
+          <div className="flex flex-col gap-5 p-4 sm:p-6 md:p-8">
+            <Particles
+              init={particlesInit as any}
+              options={DEER as any}
+              className="h-[460px]"
+            />
+            <div className="flex flex-col flex-wrap">
+              <span className="text-lg font-medium text-[#f37021]">
+                ADDRESS
+              </span>
+              <div
+                className="border-t border-dotted mt-3 mx-auto w-full"
+                style={{ borderColor: "#f37021" }}
+              ></div>
+              <p>161 Fort Evans Rd NE, Suite 230, Leesburg, VA 20176</p>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-medium text-[#f37021]">EMAIL</span>
+              <div
+                className="border-t border-dotted mt-3 mx-auto w-full"
+                style={{ borderColor: "#f37021" }}
+              ></div>
+              <p>
+                For any Inquiry, please reach us at{" "}
+                <a
+                  href="mailto:sales@centennialtechnologies.com"
+                  className="underline text-blue-600"
+                >
+                  sales@centennialtechnologies.com
+                </a>
+              </p>
+            </div>
+            {/* <img src={icon} alt="" /> */}
           </div>
         </div>
       </div>

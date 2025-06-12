@@ -4,11 +4,8 @@ const Footer = () => {
   const footerLogo = new URL("../assets/logo2-svg.svg", import.meta.url).href;
   const linkedInImg = new URL("../assets/linkedin.svg", import.meta.url).href;
   return (
-    <footer
-      className="flex justify-between md:h-[90px] bg-white w-full border-t"
-      style={{ borderColor: "#28303d3d" }}
-    >
-      <div className="flex flex-col md:flex-row gap-2.5 justify-between items-center w-full max-w-[1260px] mx-auto px-[20px]">
+    <footer className="flex justify-between bg-white w-full shadow-sm py-5">
+      <div className="flex flex-col md:flex-row gap-2.5 justify-between items-center w-full max-w-7xl mx-auto">
         <div className="flex items-center text-[#666] text-lg font-medium">
           <span>A</span>
           <img
