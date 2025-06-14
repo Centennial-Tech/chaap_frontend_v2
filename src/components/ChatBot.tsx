@@ -1,14 +1,20 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
+import ChatLoader from "./ChatLoader";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [request, setRequest] = useState<string>("");
+  const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
+  const emily_agent = new URL("../assets/emily.png", import.meta.url).href;
+  const [loading, setLoading] = useState<boolean>(false);
 
   interface response {
     content: string;
+    loading?: boolean;
+    ref?: any;
   }
 
   interface IConversation {
@@ -25,19 +31,11 @@ const ChatBot = () => {
       who: "AI",
       what: "Hi, how can I help you today?",
     },
-    {
-      who: "User",
-      what: "hwvhisf",
-    },
-    {
-      who: "AI",
-      what: "Sorry, I couldn't find any information in the documentation about that. Expect answer to be less accurateI could not find the answer to this in the verified sources.",
-    },
   ]);
 
-  const AI = ({ content }: response) => {
+  const AI = ({ content, loading = false, ref = () => {} }: response) => {
     return (
-      <div className="flex gap-3 my-4 text-gray-600 text-sm">
+      <div ref={ref} className="flex gap-3 my-4 text-gray-600 text-sm">
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
           <div className="rounded-full bg-gray-100 border p-1">
             <svg
@@ -58,19 +56,26 @@ const ChatBot = () => {
             </svg>
           </div>
         </span>
+
         <p className="leading-relaxed">
-          <span className="block font-bold text-gray-700">Chop </span>
-          {content}
+          <span className="block font-bold text-gray-700">Emily </span>
+          {loading ? <ChatLoader /> : content}
         </p>
       </div>
     );
   };
 
   useEffect(() => {
+    if (lastRef.current) {
+      lastRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [conversations]);
+
+  useEffect(() => {
     if (convRef.current) {
       convRef.current.scrollTop = convRef.current.scrollHeight;
     }
-  }, [request, conversations]);
+  }, [request]);
 
   const User = ({ content }: response) => {
     return (
@@ -104,6 +109,7 @@ const ChatBot = () => {
   };
 
   const askBot = async (message: string) => {
+    setLoading(true);
     const res = await axios.post(`${Config.API}/agent/live`, {
       request: message,
     });
@@ -111,6 +117,7 @@ const ChatBot = () => {
       who: type.ai,
       what: res.data.message,
     };
+    setLoading(false);
     setConversations((prev: any) => [...prev, newMessage]);
   };
 
@@ -127,77 +134,43 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="z-50 fixed bottom-0 right-0">
+    <div className="z-50 fixed bottom-0 right-0 font-mono">
       <div
-        style={{
-          boxShadow: "0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05)",
-        }}
-        className={`w-full max-w-[70%] md:max-w-[30%] max-h-[70%] transition-all duration-1000 ${
-          isOpen ? "p-6 border" : "max-h-[0%] max-w-[0%]"
-        } flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white rounded-lg border-[#e5e7eb]`}
+        className={`${
+          isOpen ? "max-h-[70%]" : "max-h-0"
+        } transition-all duration-500 rounded-3xl text-white w-full max-w-[80%] md:max-w-[40%] lg:max-w-[30%] 2xl:max-w-[25%] shadow-2xl h-full flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white border-[#e5e7eb]`}
       >
-        {
+        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-[#034da2] items-center shadow-xl">
           <div
-            className={`flex justify-between items-start  ${
-              isOpen ? "" : "hidden"
-            }`}
-          >
-            <div className={`flex flex-col space-y-1.5 pb-6`}>
-              <h2 className="font-semibold text-lg tracking-tight text-[#034da2]">
-                Ask Chopper
-              </h2>
-              <p className="text-sm text-[#6b7280] leading-3">
-                Ask me anything!
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setIsOpen(false);
-              }}
-              type="button"
-              className="inline-flex items-center cursor-pointer p-2 text-sm text-gray-500 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-              aria-controls="navbar-default"
-              aria-expanded="false"
-              data-collapse-toggle="navbar-default"
-            >
-              <span className="sr-only">Open main menu</span>
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke="red"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        }
+            className="w-10 h-10 rounded-full"
+            style={{
+              background: "linear-gradient(to right, #ffffff, #ed6c02)",
+            }}
+          ></div>
+          <span>Emily</span>
+        </div>
 
         <div
           ref={convRef}
-          className={`flex-grow items-start relative ${
+          className={`flex-grow h-[90%] items-start relative ${
             isOpen ? "" : "hidden"
-          } pr-4 overflow-y-scroll flex flex-col`}
+          } p-4 overflow-y-auto flex flex-col`}
           style={{ minWidth: "100%" }}
         >
           {conversations.map(({ who, what }) => (
             <Conversation who={who} what={what} />
           ))}
+          {loading ? <AI ref={lastRef} content="" loading /> : ""}
         </div>
-        <div className="flex items-center pt-0">
+
+        <div className="flex items-center pt-0 p-4">
           <form
             className="flex items-center justify-center w-full space-x-2"
             onSubmit={handleSubmit}
           >
             <input
               autoFocus
-              className="flex h-10 w-full rounded-md border border-[#e5e7eb] px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+              className="flex h-9 md:h-10 w-full rounded-md border border-[#e5e7eb] px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
               placeholder="Type your message"
               value={request}
               onChange={(e) => {
@@ -205,37 +178,63 @@ const ChatBot = () => {
                 setRequest(e.target.value);
               }}
             />
-            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-[#f9fafb] disabled:pointer-events-none disabled:opacity-50 bg-[#034da2] hover:bg-[#111827E6] h-10 px-4 py-2">
+            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-[#f9fafb] disabled:pointer-events-none disabled:opacity-50 bg-[#034da2] hover:bg-[#111827E6] h-9 md:h-10 px-4 py-2">
               Ask
             </button>
           </form>
         </div>
       </div>
       <button
-        className="fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-16 h-16 bg-black hover:bg-gray-700 m-0 cursor-pointer border-gray-200 bg-none p-0 normal-case leading-5 hover:text-gray-900"
+        className="fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-[#034da2] hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900"
         type="button"
         aria-haspopup="dialog"
         aria-expanded="false"
         data-state="closed"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        <svg
-          xmlns=" http://www.w3.org/2000/svg"
-          width="30"
-          height="40"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          className="text-white block border-gray-200 align-middle"
+        <span
+          className={`opacity-100 ${
+            !isOpen ? "" : "!opacity-0"
+          } transition-all duration-500 absolute`}
         >
-          <path
-            d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"
-            className="border-gray-200"
-          ></path>
-        </svg>
+          <svg
+            xmlns=" http://www.w3.org/2000/svg"
+            width="30"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            className="text-white block border-gray-200 align-middle"
+          >
+            <path
+              d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"
+              className="border-gray-200"
+            ></path>
+          </svg>
+        </span>
+        <span
+          className={`opacity-100 ${
+            isOpen ? "" : "!opacity-0"
+          } transition-all duration-500 absolute`}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke="white"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></path>
+          </svg>
+        </span>
       </button>
     </div>
   );
