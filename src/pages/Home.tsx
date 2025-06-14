@@ -281,12 +281,13 @@ const Home = () => {
               <p className="text-4xl">So You Don't Have To.</p>
             </div>
 
-            <button
+            <Link
+              to="/contact"
               type="submit"
               className="text-white max-w-[136px] bg-[#f37021] hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-md text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
               Book A Demo!
-            </button>
+            </Link>
           </div>
         </div>
       </div>
