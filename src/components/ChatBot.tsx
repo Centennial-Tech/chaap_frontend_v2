@@ -1,4 +1,6 @@
+import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
+import { Config } from "../constants";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -68,7 +70,7 @@ const ChatBot = () => {
     if (convRef.current) {
       convRef.current.scrollTop = convRef.current.scrollHeight;
     }
-  }, [request]);
+  }, [request, conversations]);
 
   const User = ({ content }: response) => {
     return (
@@ -101,6 +103,17 @@ const ChatBot = () => {
     else return <User content={what} />;
   };
 
+  const askBot = async (message: string) => {
+    const res = await axios.post(`${Config.API}/agent/live`, {
+      request: message,
+    });
+    const newMessage = {
+      who: type.ai,
+      what: res.data.message,
+    };
+    setConversations((prev: any) => [...prev, newMessage]);
+  };
+
   const handleSubmit = (e: any) => {
     e?.preventDefault();
     const newMessage = {
@@ -109,6 +122,7 @@ const ChatBot = () => {
     };
 
     setConversations((prev: any) => [...prev, newMessage]);
+    askBot(request);
     setRequest("");
   };
 
@@ -118,7 +132,7 @@ const ChatBot = () => {
         style={{
           boxShadow: "0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05)",
         }}
-        className={`w-full h-full max-w-[70%] md:max-w-[30%] max-h-[70%] transition-all duration-1000 ${
+        className={`w-full max-w-[70%] md:max-w-[30%] max-h-[70%] transition-all duration-1000 ${
           isOpen ? "p-6 border" : "max-h-[0%] max-w-[0%]"
         } flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white rounded-lg border-[#e5e7eb]`}
       >
@@ -186,10 +200,13 @@ const ChatBot = () => {
               className="flex h-10 w-full rounded-md border border-[#e5e7eb] px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
               placeholder="Type your message"
               value={request}
-              onChange={(e) => setRequest(e.target.value)}
+              onChange={(e) => {
+                if (!isOpen) setIsOpen(true);
+                setRequest(e.target.value);
+              }}
             />
             <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-[#f9fafb] disabled:pointer-events-none disabled:opacity-50 bg-[#034da2] hover:bg-[#111827E6] h-10 px-4 py-2">
-              Send
+              Ask
             </button>
           </form>
         </div>
