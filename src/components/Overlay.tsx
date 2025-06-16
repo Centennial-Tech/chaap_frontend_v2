@@ -19,10 +19,10 @@ const Overlay: React.FC = () => {
       onClick={hideOverlay}
       id="global_overlay"
       className="
-        fixed inset-0        
-        z-50                  
-        flex items-center justify-center
-      "
+          fixed inset-0
+          z-1
+          flex items-center justify-center
+        "
     ></div>
   );
 };

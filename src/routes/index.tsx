@@ -12,18 +12,25 @@ import Home from "../pages/Home";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Contact from "../pages/Contact";
+import Presubmission from "../pages/agents/Presubmission";
+import Header2 from "../components/Header2";
+import ScrollToHash from "../components/ScrollToHash";
+import Login from "../pages/Login";
 
-const LayoutWithHeader = () => (
-  <div className="flex flex-col min-h-screen">
-    <div className="relative h-[90px]">
-      <Header />
+const LayoutWithHeader = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <ScrollToHash />
+      <div className="relative z-50">
+        <Header2 />
+      </div>
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      <Footer />
     </div>
-    <main className="flex-grow">
-      <Outlet />
-    </main>
-    <Footer />
-  </div>
-);
+  );
+};
 
 const Routes = () => {
   const { token } = useAuth();
@@ -36,6 +43,15 @@ const Routes = () => {
         // Example:
         { path: "/", element: <Home /> },
         { path: "/contact", element: <Contact /> },
+        {
+          path: "/agents/",
+          children: [
+            {
+              path: "presubmission",
+              element: <Presubmission />,
+            },
+          ],
+        },
       ],
     },
     {
@@ -61,7 +77,7 @@ const Routes = () => {
 
   // Routes for not-logged-in users
   const routesForNotAuthenticatedOnly: RouteObject[] = [
-    // { path: "/login", element: <Login /> },
+    { path: "/login", element: <Login /> },
     // { path: "/signup", element: <SignUp /> },
   ];
 

@@ -23,6 +23,7 @@ interface AuthContextType {
   logout: () => void;
   setUser: (user: User | null) => void;
   user: User | null;
+  login: () => void;
 }
 
 // Create the context with a default value of undefined
@@ -41,7 +42,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const setToken = (newToken: string | null) => {
     setToken_(newToken);
+    axios.defaults.headers.common["Authorization"] = "Bearer " + newToken;
+    localStorage.setItem("token", newToken as any);
   };
+
+  const login = useCallback((token: string) => {
+    setToken(token);
+  }, []);
 
   const logout = useCallback(() => {
     setToken(null);
@@ -65,14 +72,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       logout,
       setUser,
       user,
+      login,
     }),
-    [token, logout, user]
+    [token, logout, user, login]
   );
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
