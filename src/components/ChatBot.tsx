@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
 
@@ -8,7 +8,6 @@ const ChatBot = () => {
   const [request, setRequest] = useState<string>("");
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
-  const emily_agent = new URL("../assets/emily.png", import.meta.url).href;
   const [loading, setLoading] = useState<boolean>(false);
 
   interface response {

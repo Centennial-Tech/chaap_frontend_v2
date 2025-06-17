@@ -1,5 +1,3 @@
-import React from "react";
-
 const Input = ({
   label = "",
   type = "text",
@@ -8,7 +6,7 @@ const Input = ({
   placeholder = "",
   required = false,
   textarea = false,
-  onChange = (e: any) => {},
+  onChange = () => {},
 }) => {
   return (
     <div>

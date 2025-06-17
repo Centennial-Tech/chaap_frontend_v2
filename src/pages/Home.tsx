@@ -1,4 +1,3 @@
-import React, { useEffect, useRef } from "react";
 import { ATTACT_LINES } from "../constants/animation_config";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
@@ -117,56 +116,6 @@ const Home = () => {
       no: "Costly consulting fees",
     },
   ];
-
-  interface IBgCustomSize {
-    sm: string;
-    md: string;
-    lg: string;
-  }
-
-  interface IBgCustom {
-    size?: keyof IBgCustomSize;
-  }
-
-  const BgCustomCard = ({ size = "sm" }: IBgCustom) => {
-    const top = Math.floor(Math.random() * 80); // up to 80% vertically
-    const left = Math.floor(Math.random() * 80);
-    const BG_CUSTOM_SIZE: IBgCustomSize = {
-      sm: "50",
-      md: "150",
-      lg: "250",
-    };
-    return (
-      <div
-        className="flex gap-1 absolute z-[-1]"
-        style={{
-          top: `${top}%`,
-          left: `${left}%`,
-          width: `${BG_CUSTOM_SIZE[size]}px`,
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        <div
-          className="w-full animate-pulse shadow-2xl bg-[#f37021] top-[-10%] left-[50%]  [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 overflow-hidden bg-neutral-15 text-pureWhite transition-all duration-300 rounded-bl-lg"
-          style={{
-            zIndex: -1,
-            aspectRatio: 1 /* Helps with responsiveness */,
-            // clipPath: "polygon(0% 24%, 0% 100%, 100% -30%)",
-          }}
-        ></div>
-        <div className="animate-pulse">
-          <div
-            className="w-full rotate-180 shadow-2xl bg-[#034da2] [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 overflow-hidden bg-neutral-15 text-pureWhite transition-all duration-300 rounded-bl-lg"
-            style={{
-              zIndex: -1,
-              aspectRatio: 1 /* Helps with responsiveness */,
-              // clipPath: "polygon(0% 24%, 0% 100%, 100% -30%)",
-            }}
-          ></div>
-        </div>
-      </div>
-    );
-  };
 
   const FeatureCard = ({ title, icon, description }: IFeature) => {
     return (

@@ -1,5 +1,3 @@
-import React from "react";
-
 const Presubmission = () => {
   const rightArrow = new URL("../../assets/arrow-right.svg", import.meta.url)
     .href;

@@ -1,5 +1,3 @@
-import React from "react";
-
 const Footer = () => {
   const footerLogo = new URL("../assets/logo2-svg.svg", import.meta.url).href;
   const linkedInImg = new URL("../assets/linkedin.svg", import.meta.url).href;

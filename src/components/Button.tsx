@@ -1,6 +1,4 @@
-import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-
 const Button = ({ href, name, onClick = () => {}, notNav = false }: any) => {
   const location = useLocation();
 

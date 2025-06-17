@@ -40,7 +40,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
   const [user, setUser] = useState<User | null>(null);
 
-  const setToken = (newToken: string | null) => {
+  const setToken: any = (newToken: string | null) => {
     setToken_(newToken);
     axios.defaults.headers.common["Authorization"] = "Bearer " + newToken;
     localStorage.setItem("token", newToken as any);
@@ -65,7 +65,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [token]);
 
-  const contextValue: AuthContextType = useMemo(
+  const contextValue: any = useMemo(
     () => ({
       token,
       setToken,

@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CustomButton from "../components/Button";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useOverlay } from "../provider/overleyProvider";
 import { Button, useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
 
 const Header2 = () => {
-  const navigate = useNavigate();
-  const { login, logout, token } = useAuth();
+  const { token } = useAuth();
   const theme = useTheme();
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
   const menuItems = [
     { name: "Home", path: "/" },
@@ -119,7 +118,7 @@ const Header2 = () => {
 
           <Button
             LinkComponent={NavLink}
-            to={token ? "/logout" : "/login"}
+            // to={token ? "/logout" : "/login"}
             variant="outlined"
             size={
               useMediaQuery(theme.breakpoints.down("sm")) ? "small" : "medium"

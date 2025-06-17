@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Input from "../components/Input";
 import { DEER } from "../constants/animation_config";
 import Particles from "react-tsparticles";
@@ -25,8 +25,6 @@ const defaultForm: ContactFormData = {
 
 const Contact: React.FC = () => {
   const [form, setForm] = useState<ContactFormData>(defaultForm);
-  const icon = new URL("../assets/handshake-icon.png", import.meta.url).href;
-  const [init, setInit] = useState(false);
 
   const handleChange = (key: keyof ContactFormData, value: string): void => {
     setForm((prev) => ({
@@ -43,6 +41,12 @@ const Contact: React.FC = () => {
 
   const particlesInit = (engine: Engine) => {
     loadFull(engine);
+  };
+
+  const handleMessage = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    handleChange("message", e.target.value);
   };
 
   return (
@@ -68,11 +72,15 @@ const Contact: React.FC = () => {
                   id="first_name"
                   placeholder="First Name..."
                   required
-                  onChange={(
-                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                  ) => {
-                    handleChange("first_name", e.target.value);
-                  }}
+                  onChange={
+                    ((
+                      e: React.ChangeEvent<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >
+                    ) => {
+                      handleChange("first_name", e.target.value);
+                    }) as any
+                  }
                 />
                 <Input
                   label="Last Name"
@@ -80,11 +88,15 @@ const Contact: React.FC = () => {
                   id="last_name"
                   placeholder="Last Name..."
                   required
-                  onChange={(
-                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                  ) => {
-                    handleChange("last_name", e.target.value);
-                  }}
+                  onChange={
+                    ((
+                      e: React.ChangeEvent<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >
+                    ) => {
+                      handleChange("last_name", e.target.value);
+                    }) as any
+                  }
                 />
               </div>
               <div className="flex flex-wrap justify-between">
@@ -95,11 +107,15 @@ const Contact: React.FC = () => {
                   placeholder="Email..."
                   type="email"
                   required
-                  onChange={(
-                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                  ) => {
-                    handleChange("email", e.target.value);
-                  }}
+                  onChange={
+                    ((
+                      e: React.ChangeEvent<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >
+                    ) => {
+                      handleChange("email", e.target.value);
+                    }) as any
+                  }
                 />
                 <Input
                   label="Company Name"
@@ -107,11 +123,15 @@ const Contact: React.FC = () => {
                   id="company"
                   placeholder="Company Name..."
                   type="text"
-                  onChange={(
-                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                  ) => {
-                    handleChange("company_name", e.target.value);
-                  }}
+                  onChange={
+                    ((
+                      e: React.ChangeEvent<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >
+                    ) => {
+                      handleChange("company_name", e.target.value);
+                    }) as any
+                  }
                 />
               </div>
               <Input
@@ -121,11 +141,13 @@ const Contact: React.FC = () => {
                 placeholder="Subject..."
                 type="text"
                 required
-                onChange={(
-                  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                ) => {
-                  handleChange("subject", e.target.value);
-                }}
+                onChange={
+                  ((
+                    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                  ) => {
+                    handleChange("subject", e.target.value);
+                  }) as any
+                }
               />
 
               <Input
@@ -134,11 +156,7 @@ const Contact: React.FC = () => {
                 id="message"
                 placeholder="Message..."
                 textarea
-                onChange={(
-                  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                ) => {
-                  handleChange("message", e.target.value);
-                }}
+                onChange={handleMessage as any}
               />
 
               <button

@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
 import Particles from "react-tsparticles";
@@ -40,12 +40,7 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
   const [copied, setCopied] = useState<boolean>(false);
   const [liked, setLiked] = useState<boolean>(false);
   const [unliked, setUnliked] = useState<boolean>(false);
-  const {
-    start,
-    stop,
-    speechStatus,
-    Text: SpeechText,
-  } = useCustomSpeech({ content });
+  const { start, stop, speechStatus } = useCustomSpeech({ content });
 
   return (
     <div
@@ -163,7 +158,6 @@ const KnowledgeAgent = () => {
   const [request, setRequest] = useState<string>("");
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
-  const emily_agent = new URL("../assets/emily.png", import.meta.url).href;
   const [loading, setLoading] = useState<boolean>(false);
 
   const [conversations, setConversations] = useState<IConversation[]>([
