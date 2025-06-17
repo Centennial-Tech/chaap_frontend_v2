@@ -288,7 +288,7 @@ const Home = () => {
           <div className="text-2xl md:text-4xl font-bold">
             Meet Our Smart Agents{" "}
           </div>
-          <div className="flex flex-col justify-center md:flex-row flex-wrap gap-1 ">
+          <div className="flex flex-col justify-center md:flex-row flex-wrap gap-3 ">
             {agents.map(({ name, link, desc }) => (
               <Agent key={name} name={name} link={link} desc={desc} />
             ))}
