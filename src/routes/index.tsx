@@ -16,6 +16,7 @@ import Presubmission from "../pages/agents/Presubmission";
 import Header2 from "../components/Header2";
 import ScrollToHash from "../components/ScrollToHash";
 import Login from "../pages/Login";
+import KnowledgeAgent from "../components/KnowledgeAgent";
 
 const LayoutWithHeader = () => {
   return (
@@ -49,6 +50,15 @@ const Routes = () => {
             {
               path: "presubmission",
               element: <Presubmission />,
+            },
+          ],
+        },
+        {
+          path: "/agents/",
+          children: [
+            {
+              path: "knowledge",
+              element: <KnowledgeAgent />,
             },
           ],
         },

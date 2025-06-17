@@ -81,7 +81,7 @@ const Home = () => {
     {
       name: "Regulatory Knowledge Agent",
       desc: "High reviewer satisfaction with well-structured submissions",
-      link: "",
+      link: "/agents/knowledge",
     },
     {
       name: "Post Market Surveillance Agent",
