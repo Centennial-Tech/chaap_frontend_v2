@@ -19,6 +19,10 @@ import {
 import { Tooltip } from "@mui/material";
 import useCustomSpeech from "../hooks/useCustomSpeech";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import supersub from "remark-supersub";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface response {
   content: string;
@@ -34,6 +38,27 @@ interface IConversation {
 const type = {
   ai: "AI",
   user: "User",
+};
+
+const components: any = {
+  code({ node, ...props }: { node: any; [key: string]: any }) {
+    let language;
+    if (props.className) {
+      const match = props.className.match(/language-(\w+)/);
+      language = match ? match[1] : undefined;
+    }
+    const codeString = node.children[0].value ?? "";
+    return (
+      <SyntaxHighlighter
+        style={nord}
+        language={language}
+        PreTag="div"
+        {...props}
+      >
+        {codeString}
+      </SyntaxHighlighter>
+    );
+  },
 };
 
 const AI = ({ content, loading = false, ref = () => {} }: response) => {
@@ -72,7 +97,9 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
       <div className="leading-relaxed flex flex-col gap-2">
         {/* import ContentCopyIcon from '@mui/icons-material/ContentCopy'; */}
         <div className="flex justify-between">
-          <span className="block font-bold text-gray-700">Agent-K </span>
+          <span className="block font-bold text-gray-700">
+            Regulatory Agent
+          </span>
           <div
             className={`mr-5 flex items-center gap-3 ${
               loading ? "hidden" : ""
@@ -147,7 +174,15 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
             </Tooltip>
           </div>
         </div>
-        {loading ? <ChatLoader /> : <ReactMarkdown>{content}</ReactMarkdown>}
+        {loading ? (
+          <ChatLoader />
+        ) : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, supersub]}
+            children={content}
+            components={components}
+          />
+        )}
       </div>
     </div>
   );
