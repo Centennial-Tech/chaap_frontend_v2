@@ -7,12 +7,12 @@ const getRandomPrefix = () => {
 };
 
 const useCustomSpeech = ({ content }: { content: string }) => {
-  const friendlyText = useMemo(
-    () => `${getRandomPrefix()} ${content}`,
-    [content]
-  );
+  //   const friendlyText = useMemo(
+  //     () => `${getRandomPrefix()} ${content}`,
+  //     [content]
+  //   );
   return useSpeech({
-    text: friendlyText,
+    text: content,
     pitch: 1.2, // Slightly higher pitch for friendliness
     rate: 0.92, // Slightly slower rate for clarity
     volume: 1, // Full volume

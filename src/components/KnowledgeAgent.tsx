@@ -216,10 +216,12 @@ const KnowledgeAgent = () => {
 
   const User = ({ content }: response) => {
     return (
-      <div className="flex gap-3 my-4 text-gray-600 text-sm self-end max-w-[50%]">
-        <p className="leading-relaxed">
-          <span className="block font-bold text-gray-700">You </span>
-          {content}
+      <div className="flex gap-3 my-4 text-gray-600 text-sm self-end">
+        <p className="leading-relaxed flex flex-col gap-2">
+          <span className="block font-bold text-gray-700 float-right self-end">
+            You{" "}
+          </span>
+          <span className="break-all">{content}</span>
         </p>
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
           <div className="rounded-full bg-gray-100 border p-1">
@@ -317,7 +319,7 @@ const KnowledgeAgent = () => {
 
           <div
             ref={convRef}
-            className={`flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
+            className={`pb-[100px] flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
             style={{ minWidth: "100%" }}
           >
             {conversations.map(({ who, what }) => (
@@ -326,14 +328,14 @@ const KnowledgeAgent = () => {
             {loading ? <AI ref={lastRef} content="" loading /> : ""}
           </div>
 
-          <div className="flex items-center pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[50%] w-full mx-auto">
+          <div className="absolute bottom-0 left-[50%] translate-x-[-50%] flex items-center pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[50%] w-full mx-auto">
             <form
               className="flex items-center justify-center w-full space-x-2"
               onSubmit={handleSubmit}
             >
               <input
                 autoFocus
-                className="flex h-9 md:h-10 w-full rounded-md border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+                className="opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
                 placeholder="Type your message"
                 value={request}
                 onChange={(e) => {
