@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+// import { useMemo } from "react";
 import { useSpeech } from "react-text-to-speech";
 
-const getRandomPrefix = () => {
-  const prefixes = ["Hmm.", "Alright.", "Okay.", "Well.", "Sure.", "You know."];
-  return prefixes[Math.floor(Math.random() * prefixes.length)];
-};
+// const getRandomPrefix = () => {
+//   const prefixes = ["Hmm.", "Alright.", "Okay.", "Well.", "Sure.", "You know."];
+//   return prefixes[Math.floor(Math.random() * prefixes.length)];
+// };
 
 const useCustomSpeech = ({ content }: { content: string }) => {
   //   const friendlyText = useMemo(
