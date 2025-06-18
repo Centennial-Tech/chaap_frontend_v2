@@ -211,16 +211,25 @@ const KnowledgeAgent = () => {
   };
 
   const askBot = async (message: string) => {
-    setLoading(true);
-    const res = await axios.post(`${Config.API}/agent/regulatory`, {
-      request: message,
-    });
-    const newMessage = {
-      who: type.ai,
-      what: res.data.message,
-    };
-    setLoading(false);
-    setConversations((prev: any) => [...prev, newMessage]);
+    try {
+      setLoading(true);
+      const res = await axios.post(`${Config.API}/agent/regulatory`, {
+        request: message,
+      });
+      const newMessage = {
+        who: type.ai,
+        what: res.data.message,
+      };
+      setLoading(false);
+      setConversations((prev: any) => [...prev, newMessage]);
+    } catch (error) {
+      const newMessage = {
+        who: type.ai,
+        what: "Token limit reached. Please try again in a few seconds.",
+      };
+      setLoading(false);
+      setConversations((prev: any) => [...prev, newMessage]);
+    }
   };
 
   const handleSubmit = (e: any) => {
