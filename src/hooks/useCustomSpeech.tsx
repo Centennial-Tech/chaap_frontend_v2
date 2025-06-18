@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useSpeech } from "react-text-to-speech";
 
 const getRandomPrefix = () => {
-  const prefixes = ["Hmm,", "Alright,", "Okay,", "Well,", "Sure,", "You know,"];
+  const prefixes = ["Hmm.", "Alright.", "Okay.", "Well.", "Sure.", "You know."];
   return prefixes[Math.floor(Math.random() * prefixes.length)];
 };
 
