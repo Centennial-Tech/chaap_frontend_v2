@@ -46,7 +46,7 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
     <div
       ref={ref}
       onClick={() => navigator.clipboard.writeText(content)}
-      className="flex gap-3 my-4 text-gray-600 text-sm max-w-[50%]"
+      className="flex gap-3 my-4 text-gray-600 text-sm"
     >
       <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
         <div className="rounded-full bg-gray-100 border p-1">

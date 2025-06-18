@@ -68,7 +68,7 @@ const Home = () => {
       link: "/agents/presubmission",
     },
     {
-      name: "Regulatory Document Preparation Agent",
+      name: "Document Preparation Agent",
       desc: "Fewer iterations with accelerated submission process",
       link: "",
     },
@@ -78,18 +78,13 @@ const Home = () => {
       link: "",
     },
     {
-      name: "Regulatory Knowledge Agent",
+      name: "Regulatory Agent",
       desc: "High reviewer satisfaction with well-structured submissions",
-      link: "/agents/knowledge",
+      link: "/agents/regulatory",
     },
     {
       name: "Post Market Surveillance Agent",
       desc: "Significantly reduced resubmission risk",
-      link: "",
-    },
-    {
-      name: "Regulatory AI Assistant​",
-      desc: "Embedded directly into the CHAAP platform",
       link: "",
     },
   ];

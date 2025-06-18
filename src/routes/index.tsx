@@ -55,7 +55,7 @@ const Routes = () => {
           path: "/agents/",
           children: [
             {
-              path: "knowledge",
+              path: "regulatory",
               element: <KnowledgeAgent />,
             },
           ],
