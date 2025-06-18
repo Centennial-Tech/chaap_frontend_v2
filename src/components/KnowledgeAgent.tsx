@@ -97,7 +97,7 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
       <div className="leading-relaxed flex flex-col gap-2">
         {/* import ContentCopyIcon from '@mui/icons-material/ContentCopy'; */}
         <div className="flex justify-between">
-          <span className="block font-bold text-gray-700">
+          <span className="block font-bold text-gray-700 mr-3">
             Regulatory Agent
           </span>
           <div
@@ -295,19 +295,20 @@ const KnowledgeAgent = () => {
       <div className="relative w-full h-[80%] font-mono md:max-w-[80%] lg:max-w-[60%] m-5">
         <div
           style={{
-            backdropFilter: "blur(10px)",
+            // backdropFilter: "blur(10px)",
+            background: "white",
           }}
-          className={`max-h-[90%s] transition-all duration-500 rounded-3xl border-[#034da2] border text-white w-full h-full flex flex-col bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 shadow-md`}
+          className={`max-h-[90%s] transition-all duration-500 rounded-3xl shadow-md text-white w-full h-full flex flex-col bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4`}
         >
           <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-[#034da2] px-5 items-center justify-between shadow-xl">
             <div className="flex gap-5 items-center">
-              <div
+              {/* <div
                 className="w-10 h-10 rounded-full"
                 style={{
                   background: "linear-gradient(to right, #ffffff, #034da2)",
                 }}
-              ></div>
-              <span>Agent-K</span>
+              ></div> */}
+              <span>Regulatory Agent</span>
             </div>
             <Tooltip title="This is a Knowledge Agent.">
               <InfoOutlineIcon />
