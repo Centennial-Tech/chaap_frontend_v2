@@ -16,7 +16,7 @@ import {
   ThumbUpAltOutlined,
   VolumeUpOutlined,
 } from "@mui/icons-material";
-import { Tooltip } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import useCustomSpeech from "../hooks/useCustomSpeech";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -271,6 +271,7 @@ const KnowledgeAgent = () => {
 
   const handleSubmit = (e: any) => {
     e?.preventDefault();
+    if (loading || request.length === 0) return;
     const newMessage = {
       who: type.user,
       what: request,
@@ -335,7 +336,7 @@ const KnowledgeAgent = () => {
             >
               <input
                 autoFocus
-                className="opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
                 placeholder="Type your message"
                 value={request}
                 onChange={(e) => {
@@ -343,9 +344,20 @@ const KnowledgeAgent = () => {
                   setRequest(e.target.value);
                 }}
               />
-              <button className="inline-flex items-center justify-center rounded-md shadow-lg text-sm font-medium text-[#f9fafb] disabled:pointer-events-none disabled:opacity-50 bg-[#034da2] hover:bg-[#111827E6] h-9 md:h-10 px-4 py-2">
-                Ask
-              </button>
+              <Button
+                disabled={loading}
+                className={`${
+                  request.length > 0
+                    ? "opacity-100"
+                    : "opacity-0 !max-w-0 !max-h-0 !p-0"
+                } !rounded-full !transition-all !duration-300`}
+                variant="contained"
+                size="medium"
+                draggable={false}
+                type="submit"
+              >
+                Send
+              </Button>
             </form>
           </div>
         </div>
