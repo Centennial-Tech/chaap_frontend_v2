@@ -347,9 +347,7 @@ const KnowledgeAgent = () => {
               <Button
                 disabled={loading}
                 className={`${
-                  request.length > 0
-                    ? "opacity-100"
-                    : "opacity-0 !max-w-0 !max-h-0 !p-0"
+                  request.length > 0 ? "opacity-100" : "opacity-0"
                 } !rounded-full !transition-all !duration-300`}
                 variant="contained"
                 size="medium"
