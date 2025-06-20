@@ -329,7 +329,7 @@ const KnowledgeAgent = () => {
             {loading ? <AI ref={lastRef} content="" loading /> : ""}
           </div>
 
-          <div className="absolute bottom-0 left-[50%] translate-x-[-45%] flex items-center pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
+          <div className="absolute bottom-0 left-[50%] translate-x-[-50%] md:translate-x-[-45%] flex items-center pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
             <form
               className="flex items-center justify-center w-full space-x-2"
               onSubmit={handleSubmit}
@@ -348,7 +348,7 @@ const KnowledgeAgent = () => {
                 disabled={loading}
                 className={`${
                   request.length > 0 ? "opacity-100" : "opacity-0"
-                } !rounded-full !transition-all !duration-300`}
+                } !absolute right-4 !rounded-full !transition-all !duration-300`}
                 variant="contained"
                 size="medium"
                 draggable={false}
