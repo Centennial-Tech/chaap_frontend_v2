@@ -195,6 +195,11 @@ const KnowledgeAgent = () => {
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const suggestions = [
+    "What is a predicate device in the 510(k) pathway?",
+    "How can you help me?",
+  ];
+
   const [conversations, setConversations] = useState<IConversation[]>([
     {
       who: "AI",
@@ -320,7 +325,7 @@ const KnowledgeAgent = () => {
 
           <div
             ref={convRef}
-            className={`pb-[100px] flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
+            className={`pb-[150px] flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
             style={{ minWidth: "100%" }}
           >
             {conversations.map(({ who, what }) => (
@@ -329,7 +334,21 @@ const KnowledgeAgent = () => {
             {loading ? <AI ref={lastRef} content="" loading /> : ""}
           </div>
 
-          <div className="absolute bottom-0 left-[50%] translate-x-[-50%] md:translate-x-[-45%] flex items-center pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
+          <div className="absolute bottom-0 left-[50%] translate-x-[-50%] md:translate-x-[-45%] flex items-center flex-col gap-3 pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
+            <div className="opacity-50 hover:opacity-100 flex-wrap flex gap-2 w-full justify-start">
+              {suggestions.map((suggestion) => (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  className="!border-dotted !rounded-full !normal-case"
+                  onClick={() => {
+                    setRequest(suggestion);
+                  }}
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </div>
             <form
               className="flex items-center justify-center w-full space-x-2"
               onSubmit={handleSubmit}
