@@ -6,7 +6,7 @@ import { Button, useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
 
 const Header2 = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
@@ -117,16 +117,15 @@ const Header2 = () => {
           </span>
 
           <Button
-            LinkComponent={NavLink}
-            // to={token ? "/logout" : "/login"}
+            href={user ? "/logout" : "/login"}
             variant="outlined"
             size={
               useMediaQuery(theme.breakpoints.down("sm")) ? "small" : "medium"
             }
-            color={token ? "error" : "warning"}
+            color={user ? "error" : "warning"}
             className="!font-extrabold hidden md:inline-flex"
           >
-            {token ? "Logout" : "Login"}
+            {user ? "Logout" : "Login"}
           </Button>
         </span>
         <div

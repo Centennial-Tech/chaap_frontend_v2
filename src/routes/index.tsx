@@ -15,6 +15,8 @@ import Header2 from "../components/Header2";
 import ScrollToHash from "../components/ScrollToHash";
 import Login from "../pages/Login";
 import KnowledgeAgent from "../components/KnowledgeAgent";
+import Logout from "../pages/Logout";
+import Dashboard from "../pages/Dashboard";
 
 const LayoutWithHeader = () => {
   return (
@@ -32,7 +34,7 @@ const LayoutWithHeader = () => {
 };
 
 const Routes = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   // Public routes accessible to all
   const routesForPublic: RouteObject[] = [
@@ -73,12 +75,16 @@ const Routes = () => {
     {
       element: <ProtectedRoute />,
       children: [
-        // {
-        //   element: <LayoutWithHeader />,
-        //   children: [
-        //     { path: "/upload", element: <Upload /> },
-        //   ],
-        // },
+        {
+          element: <LayoutWithHeader />,
+          children: [
+            { path: "/logout", element: <Logout /> },
+            {
+              path: "/dashboard",
+              element: <Dashboard />,
+            },
+          ],
+        },
       ],
     },
   ];
@@ -92,7 +98,7 @@ const Routes = () => {
   // Merge routes based on auth status
   const router = createBrowserRouter([
     ...routesForPublic,
-    ...(!token ? routesForNotAuthenticatedOnly : []),
+    ...(!user ? routesForNotAuthenticatedOnly : []),
     ...routesForAuthenticatedOnly,
   ]);
 
