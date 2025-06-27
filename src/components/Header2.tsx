@@ -49,6 +49,7 @@ const Header2 = () => {
       }`}
     >
       <div className="max-w-7xl flex justify-between items-center w-full mx-auto">
+        THis is -- {import.meta.env.VITE_API_URL} ##
         <div className="flex gap-7 items-center w-full max-w-[500px]">
           {/* Mobile hamburger */}
           <div className="md:hidden flex items-center">
@@ -108,7 +109,6 @@ const Header2 = () => {
             <img src={logo} alt="Logo" />
           </Link>
         </div>
-
         <span className="inline-flex gap-3">
           <span className="hidden md:flex gap-2 items-center">
             {menuItems.map(({ name, path }) => (
