@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import CustomButton from "../components/Button";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useOverlay } from "../provider/overleyProvider";
 import { Button, useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
