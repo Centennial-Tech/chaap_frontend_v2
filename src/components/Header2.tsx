@@ -49,7 +49,6 @@ const Header2 = () => {
       }`}
     >
       <div className="max-w-7xl flex justify-between items-center w-full mx-auto">
-        THis is -- {process.env.VITE_API_URL} ##
         <div className="flex gap-7 items-center w-full max-w-[500px]">
           {/* Mobile hamburger */}
           <div className="md:hidden flex items-center">
