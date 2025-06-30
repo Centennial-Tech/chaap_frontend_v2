@@ -14,6 +14,7 @@ import { Card, CardContent } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Link } from "react-router-dom";
 import Progress from "../components/ui/Progress";
+import React from "react";
 
 const Dashboard = () => {
   const stats = {
@@ -23,7 +24,16 @@ const Dashboard = () => {
     approvalRate: 66,
   };
 
-  const submissions = [
+  const [open, setOpen] = React.useState(false);
+
+  // State for modal form fields
+  const [projectTitle, setProjectTitle] = React.useState("");
+  const [type, setType] = React.useState("");
+  const [submissionType, setSubmissionType] = React.useState("");
+  const [targetSubmission, setTargetSubmission] = React.useState("");
+
+  // Make submissions stateful so new submissions can be added
+  const [submissions, setSubmissions] = React.useState([
     {
       id: 1,
       deviceName: "CardioSense Monitor",
@@ -69,11 +79,10 @@ const Dashboard = () => {
       progress: 60,
       updatedAt: "2024-06-04T11:05:00Z",
     },
-  ];
+  ]);
 
   const handleDeleteSubmission = (id: number) => {
-    // Logic to delete submission
-    console.log(`Deleting submission with id: ${id}`);
+    setSubmissions((prev) => prev.filter((s) => s.id !== id));
   };
 
   const getStatusColor = (status: string) => {
@@ -105,6 +114,34 @@ const Dashboard = () => {
         return status;
     }
   };
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    setProjectTitle("");
+    setType("");
+    setSubmissionType("");
+    setTargetSubmission("");
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Add new submission to the list
+    setSubmissions((prev) => [
+      {
+        id: prev.length ? Math.max(...prev.map((s) => s.id)) + 1 : 1,
+        deviceName: projectTitle,
+        kNumber: "",
+        deviceType: type,
+        status: "draft",
+        progress: 0,
+        updatedAt: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+    handleClose();
+  };
+
   return (
     <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen bg-gray-100">
       <div className="flex items-center justify-between">
@@ -114,26 +151,141 @@ const Dashboard = () => {
             Manage your 510(k) submissions and compliance documentation
           </p>
         </div>
-        <a href="/form-builder">
-          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#2094f3] hover:bg-blue-800 text-white font-medium">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4 mr-2"
-            >
-              <path d="M5 12h14"></path>
-              <path d="M12 5v14"></path>
-            </svg>
-            New 510(k) Submission
-          </button>
-        </a>
+        <button
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#2094f3] hover:bg-blue-800 text-white font-medium"
+          onClick={handleOpen}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-4 h-4 mr-2"
+          >
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          New 510(k) Submission
+        </button>
+        {open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4">
+              <div className="border-b px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  New 510(k) Submission
+                </h2>
+                <button
+                  className="text-gray-400 hover:text-gray-700"
+                  onClick={handleClose}
+                  aria-label="Close"
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+              <form onSubmit={handleFormSubmit}>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label
+                      htmlFor="projectTitle"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Project Title
+                    </label>
+                    <input
+                      id="projectTitle"
+                      type="text"
+                      value={projectTitle}
+                      onChange={(e) => setProjectTitle(e.target.value)}
+                      required
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      placeholder="Enter project title: "
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="type"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Type
+                    </label>
+                    <select
+                      id="type"
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      required
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="" disabled>
+                        Select type
+                      </option>
+                      <option value="Class I">Class I</option>
+                      <option value="Class II">Class II</option>
+                      <option value="Class III">Class III</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="submissionType"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Submission Type
+                    </label>
+                    <select
+                      id="submissionType"
+                      value={submissionType}
+                      onChange={(e) => setSubmissionType(e.target.value)}
+                      required
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="" disabled>
+                        Select submission type
+                      </option>
+                      <option value="Traditional">Traditional</option>
+                      <option value="Abbreviated">Abbreviated</option>
+                      <option value="Special">Special</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="targetSubmission"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Target Submission Date
+                    </label>
+                    <input
+                      id="targetSubmission"
+                      type="date"
+                      value={targetSubmission}
+                      onChange={(e) => setTargetSubmission(e.target.value)}
+                      required
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 px-6 py-4 border-t">
+                  <button
+                    type="button"
+                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    onClick={handleClose}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-md bg-[#2094f3] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
