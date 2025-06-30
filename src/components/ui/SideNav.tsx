@@ -72,19 +72,29 @@ export default function Sidebar() {
               key={item.path} 
               to={item.path}
               className={
-                location.pathname === item.path 
-                  ? "flex items-center px-3 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600" 
-                  : "flex items-center px-3 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
+              location.pathname === item.path && !shouldShowFull
+              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+              : location.pathname === item.path
+              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+              : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
               }
               title={!shouldShowFull ? item.label : undefined}
             >
+              <span
+              className={
+                location.pathname === item.path && !shouldShowFull
+                ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+                : "p-1.5"
+              }
+              >
               <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+              </span>
               <span className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                shouldShowFull 
-                  ? 'opacity-100 translate-x-0 max-w-xs' 
-                  : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
+              shouldShowFull 
+                ? 'opacity-100 translate-x-0 max-w-xs' 
+                : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
               }`}>
-                {item.label}
+              {item.label}
               </span>
             </Link>
           ))}
@@ -122,7 +132,7 @@ export default function Sidebar() {
               <a 
                 key={item.label}
                 href="#" 
-                className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-300 ease-in-out"
+                className="flex items-center px-2.5 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-300 ease-in-out"
                 title={!shouldShowFull ? item.label : undefined}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
