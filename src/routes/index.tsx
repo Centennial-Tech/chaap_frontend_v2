@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Outlet,
   RouterProvider,
@@ -17,18 +18,32 @@ import Login from "../pages/Login";
 import KnowledgeAgent from "../components/KnowledgeAgent";
 import Logout from "../pages/Logout";
 import Dashboard from "../pages/Dashboard";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/ui/SideNav";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const LayoutWithHeader = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && location.pathname === "/") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, location.pathname, navigate]);
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen ${user ? "bg-[#f4f5f6]" : ""}`}>
       <ScrollToHash />
-      <div className="relative z-50">
-        <Header2 />
-      </div>
-      <main className="flex-grow">
-        <Outlet />
+      <div className="relative z-50">{!user ? <Header2 /> : <Navbar />}</div>
+      <main className="flex-grow flex">
+        {user ? <Sidebar /> : ""}
+        <div className="flex-grow mt-[60px] p-4 md:p-6 lg:p-8">
+          <Outlet />
+        </div>
       </main>
-      <Footer />
+      {user ? "" : <Footer />}
     </div>
   );
 };
@@ -44,6 +59,7 @@ const Routes = () => {
         // Example:
         { path: "/", element: <Home /> },
         { path: "/contact", element: <Contact /> },
+
         {
           path: "/agents/",
           children: [

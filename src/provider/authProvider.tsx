@@ -10,9 +10,25 @@ import type { ReactNode } from "react";
 import api from "../api";
 
 interface User {
-  id: string;
-  name: string;
+  _attachments: string;
+  _etag: string;
+  _rid: string;
+  _self: string;
+  _ts: number;
+  active: number;
+  created_at: string;
+  date_of_birth: string | null;
   email: string;
+  first_name: string;
+  id: string;
+  last_login: string | null;
+  last_name: string;
+  organization_Id: string | null;
+  organization_name: string | null;
+  phone_number: string | null;
+  updated_at: string | null;
+  user_id: number;
+  username: string;
 }
 
 interface AuthContextType {
