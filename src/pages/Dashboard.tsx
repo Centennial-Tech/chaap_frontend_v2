@@ -1,5 +1,4 @@
 import {
-  ArrowUp,
   Badge,
   CheckCircle,
   Clock,
@@ -7,7 +6,6 @@ import {
   Edit,
   Eye,
   FileText,
-  Shield,
   Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/Card";

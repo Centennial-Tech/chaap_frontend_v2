@@ -36,7 +36,7 @@ const securityItems = [
 
 export default function Sidebar() {
   const location = useLocation();
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true); // Changed from false to true
   const [isHovered, setIsHovered] = useState(false);
 
   const shouldShowFull = !isMinimized || isHovered;
