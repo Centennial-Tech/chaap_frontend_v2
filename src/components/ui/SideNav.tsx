@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BarChart3, 
   Edit, 
@@ -41,9 +41,28 @@ export default function Sidebar() {
 
   const shouldShowFull = !isMinimized || isHovered;
 
+  // Adjust main content margin instead of body margin
+  useEffect(() => {
+    const mainContent = document.querySelector('[data-main-content]') || document.querySelector('main');
+    if (mainContent) {
+      const marginLeft = shouldShowFull ? '16rem' : '4rem';
+      (mainContent as HTMLElement).style.marginLeft = marginLeft;
+      (mainContent as HTMLElement).style.transition = 'margin-left 410ms ease-in-out';
+    }
+    
+    // Cleanup function
+    return () => {
+      const mainContent = document.querySelector('[data-main-content]') || document.querySelector('main');
+      if (mainContent) {
+        (mainContent as HTMLElement).style.marginLeft = '';
+        (mainContent as HTMLElement).style.transition = '';
+      }
+    };
+  }, [shouldShowFull]);
+
   return (
     <aside 
-      className={`${shouldShowFull ? 'w-64' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out relative overflow-hidden h-screen left-0 top-0 z-40`}
+      className={`${shouldShowFull ? 'w-64' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out fixed overflow-hidden h-screen left-0 top-0 z-40`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -65,7 +84,7 @@ export default function Sidebar() {
         )}
       </button>
 
-      <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out">
+      <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto">
         <div className="space-y-1">
           {mainNavItems.map((item) => (
             <Link 

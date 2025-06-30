@@ -45,7 +45,29 @@ interface AuthProviderProps {
 }
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const dummyUser: User = {
+    _attachments: "",
+    _etag: "",
+    _rid: "",
+    _self: "",
+    _ts: 0,
+    active: 1,
+    created_at: "",
+    date_of_birth: null,
+    email: "dummy@example.com",
+    first_name: "Dummy",
+    id: "dummy-id",
+    last_login: null,
+    last_name: "User",
+    organization_Id: null,
+    organization_name: null,
+    phone_number: null,
+    updated_at: null,
+    user_id: 1,
+    username: "dummyuser",
+  };
+
+  const [user, setUser] = useState<User | null>(dummyUser);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check session on app load
