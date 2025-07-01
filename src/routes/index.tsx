@@ -23,9 +23,12 @@ import Sidebar from "../components/ui/SideNav";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const LayoutWithHeader = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const user = {
+    something: "dummy", // Replace with actual user data from context or state
+  }
 
   useEffect(() => {
     if (user && location.pathname === "/") {
@@ -59,6 +62,11 @@ const Routes = () => {
         // Example:
         { path: "/", element: <Home /> },
         { path: "/contact", element: <Contact /> },
+         {
+              path: "/dashboard",
+              element: <Dashboard />,
+            },
+
         {
           path: "/agents/",
           children: [
@@ -95,10 +103,10 @@ const Routes = () => {
           element: <LayoutWithHeader />,
           children: [
             { path: "/logout", element: <Logout /> },
-            {
-              path: "/dashboard",
-              element: <Dashboard />,
-            },
+            // {
+            //   path: "/dashboard",
+            //   element: <Dashboard />,
+            // },
           ],
         },
       ],
