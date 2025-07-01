@@ -19,19 +19,13 @@ const mainNavItems = [
   { path: "/pdf-generator", label: "PDF Generator", icon: FileText },
 ];
 
-// const sectionItems = [
-//   "Device Description",
-//   "Predicate Device", 
-//   "Substantial Equivalence",
-//   "Performance Testing",
-//   "Labeling",
-//   "Risk Analysis",
-// ];
-
-const securityItems = [
-  { label: "Access Control", icon: Shield },
-  { label: "Audit Logs", icon: Activity },
-  { label: "Data Encryption", icon: Lock },
+const sectionItems = [
+  "Device Description",
+  "Predicate Device", 
+  "Substantial Equivalence",
+  "Performance Testing",
+  "Labeling",
+  "Risk Analysis",
 ];
 
 export default function Sidebar() {
@@ -84,7 +78,7 @@ export default function Sidebar() {
         )}
       </button>
 
-      <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto">
+      <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
         <div className="space-y-1">
           {mainNavItems.map((item) => (
             <Link 
@@ -119,50 +113,31 @@ export default function Sidebar() {
           ))}
         </div>
         
-        {/* {shouldShowFull && (
-          <div className="mt-8">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
-              510(k) Sections
-            </h3>
-            <div className="space-y-1 text-sm">
-              {sectionItems.map((section) => (
-                <Link 
-                  key={section} 
-                  to={`/form-builder?section=${section.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                  {section}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )} */}
-        
-        <div className="mt-8 transition-all duration-300 ease-in-out">
+        {/* 510(k) Sections - moved below Security */}
+        <div className="mt-8 ml-4 transition-all duration-300 ease-in-out">
           <h3 className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
             shouldShowFull 
               ? 'opacity-100 translate-x-0 max-w-xs' 
               : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
           }`}>
-            Security & Compliance
+            510(k) Sections
           </h3>
           <div className="space-y-1 text-sm">
-            {securityItems.map((item) => (
-              <a 
-                key={item.label}
-                href="#" 
+            {sectionItems.map((section) => (
+              <Link 
+                key={section} 
+                to={`/form-builder?section=${section.toLowerCase().replace(/\s+/g, '-')}`}
                 className="flex items-center px-2.5 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-300 ease-in-out"
-                title={!shouldShowFull ? item.label : undefined}
+                title={!shouldShowFull ? section : undefined}
               >
-                <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
-                <span className={`ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                <span className={`transition-all duration-500 ease-in-out whitespace-nowrap ${
                   shouldShowFull 
                     ? 'opacity-100 translate-x-0 max-w-xs' 
                     : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
                 }`}>
-                  {item.label}
+                  {section}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
