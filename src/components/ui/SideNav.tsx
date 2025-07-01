@@ -134,7 +134,7 @@ export default function Sidebar() {
         {/* Agent Hub Sections */}
         <div className="mt-8 transition-all duration-300 ease-in-out">
           <h3
-            className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+            className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 ml-2 transition-all duration-500 ease-in-out whitespace-nowrap ${
               shouldShowFull
                 ? "opacity-100 translate-x-0 max-w-xs"
                 : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
