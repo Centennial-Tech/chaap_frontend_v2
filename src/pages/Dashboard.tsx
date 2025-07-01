@@ -273,55 +273,6 @@ const Dashboard = () => {
         />
       </Card>
 
-      {/* Security & Compliance Panel */}
-      <Card>
-        <div className="px-6 py-4 border-b border-ms-gray-300">
-          <h3 className="text-lg font-medium text-ms-gray-900">Security & Compliance</h3>
-          <p className="text-sm text-ms-gray-700 mt-1">Enterprise-grade security features and compliance monitoring</p>
-        </div>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* SSO Status */}
-            <div className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">SSO Authentication</h4>
-                <p className="text-sm text-green-600">Active & Secured</p>
-                <p className="text-xs text-gray-700 mt-1">Azure AD Integration</p>
-              </div>
-            </div>
-
-            {/* Data Encryption */}
-            <div className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Lock className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Data Encryption</h4>
-                <p className="text-sm text-blue-600">AES-256 Enabled</p>
-                <p className="text-xs text-gray-700 mt-1">End-to-end encrypted</p>
-              </div>
-            </div>
-
-            {/* Audit Logging */}
-            <div className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Audit Logging</h4>
-                <p className="text-sm text-orange-600">All Actions Logged</p>
-                <p className="text-xs text-gray-700 mt-1">
-                  Last entry: N/A
-                </p>
-              </div>
-            </div>
-          </div>
-
-        </CardContent>
-      </Card>
 
       {/* Modal */}
       <SubmissionModal
