@@ -18,17 +18,15 @@ import Login from "../pages/Login";
 import KnowledgeAgent from "../components/KnowledgeAgent";
 import Logout from "../pages/Logout";
 import Dashboard from "../pages/Dashboard";
+import RegulatoryDocPrepAgent from "../pages/RegulatoryDocPrepAgent"; // Add this import
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/ui/SideNav";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const LayoutWithHeader = () => {
-  // const { user } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const user = {
-    something: "dummy", // Replace with actual user data from context or state
-  }
 
   useEffect(() => {
     if (user && location.pathname === "/") {
@@ -62,11 +60,6 @@ const Routes = () => {
         // Example:
         { path: "/", element: <Home /> },
         { path: "/contact", element: <Contact /> },
-         {
-              path: "/dashboard",
-              element: <Dashboard />,
-            },
-
         {
           path: "/agents/",
           children: [
@@ -91,7 +84,6 @@ const Routes = () => {
       path: "*",
       element: <NoAccess />,
     },
-
   ];
 
   // Routes for logged-in users

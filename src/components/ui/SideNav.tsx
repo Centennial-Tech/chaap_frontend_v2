@@ -10,27 +10,27 @@ const mainNavItems = [
 const sectionItems = [
   { 
     label: "Pre-submission Strategy Agent", 
-    path: "pre-submission-strategy-agent",
+    path: "/pre-submission-strategy-agent",
     icon: Bot 
   },
   { 
     label: "Regulatory Doc Prep Agent", 
-    path: "regulatory-doc-prep-agent",
+    path: "/regulatory-doc-prep-agent",
     icon: Cpu 
   },
   { 
     label: "FDA Meeting Prep Agent", 
-    path: "fda-meeting-prep-agent",
+    path: "/fda-meeting-prep-agent",
     icon: Zap 
   },
   { 
     label: "Regulatory Knowledge Agent", 
-    path: "regulatory-knowledge-agent",
+    path: "/regulatory-knowledge-agent",
     icon: Brain 
   },
   { 
     label: "Post Market Surveillance Agent", 
-    path: "post-market-surveillance-agent",
+    path: "/post-market-surveillance-agent",
     icon: Shield 
   },
 ];
@@ -144,13 +144,12 @@ export default function Sidebar() {
           </h3>
           <div className="space-y-1 text-sm">
             {sectionItems.map((section) => {
-              const currentPath = `/form-builder?section=${section.path}`;
-              const isActive = location.pathname + location.search === currentPath;
+              const isActive = location.pathname === section.path; // Updated active check
               
               return (
                 <Link
                   key={section.label}
-                  to={currentPath}
+                  to={section.path} // Direct path instead of query parameter
                   className={
                     isActive && !shouldShowFull
                       ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
