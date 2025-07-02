@@ -1,8 +1,72 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "../components/ui/Card";
-import { FileText, Upload, CheckCircle, Clock } from "lucide-react";
+
+// Mock data for submissions
+const mockSubmissions = [
+  { id: 1, submissionName: "Cardiac Monitoring Device 2024" },
+  { id: 2, submissionName: "Orthopedic Implant v2.1" },
+  { id: 3, submissionName: "Diagnostic Kit Alpha" },
+  { id: 4, submissionName: "Surgical Instrument Pro" },
+];
+
+const attachmentTypes = [
+  "Device Description",
+  "Predicate Comparison",
+  "Performance Testing",
+  "Risk Analysis",
+  "Clinical Data",
+  "Labeling",
+  "Manufacturing Information",
+  "Quality System",
+  "Biocompatibility",
+  "Software Documentation"
+];
 
 const RegulatoryDocPrepAgent = () => {
+  const [selectedSubmission, setSelectedSubmission] = useState("");
+  const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
+  const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [formResponses, setFormResponses] = useState({
+    deviceName: "",
+    intendedUse: "",
+    targetPopulation: "",
+    riskClass: "",
+    regulatoryPathway: ""
+  });
+
+  const isFormValid = selectedSubmission && selectedAttachmentType;
+
+  const handleValidate = () => {
+    setIsValidateModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+    }
+  };
+
+  const handleModalValidate = () => {
+    setIsValidateModalOpen(false);
+    // Add validation logic here
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormResponses(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleModalCreate = () => {
+    setIsCreateModalOpen(false);
+    // Add creation logic here
+  };
+
   return (
     <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen bg-gray-100">
       <div className="flex items-center justify-between">
@@ -12,160 +76,163 @@ const RegulatoryDocPrepAgent = () => {
             AI-powered assistance for preparing regulatory documentation
           </p>
         </div>
-        <button
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#2094f3] hover:bg-blue-800 text-white font-medium"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4 mr-2"
-          >
-            <path d="M5 12h14"></path>
-            <path d="M12 5v14"></path>
-          </svg>
-          New Document
-        </button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-md font-medium text-gray-700">
-                  Documents Generated
-                </p>
-                <p className="text-2xl font-semibold text-blue-600">
-                  24
-                </p>
+      {/* Document Preparation Interface */}
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <Card className="w-full max-w-2xl">
+          <div className="px-6 py-4 border-b border-ms-gray-300">
+            <h3 className="text-xl font-semibold text-ms-gray-900 text-center">Document Preparation Agent</h3>
+            <p className="text-gray-600 text-center mt-1">Configure document generation parameters</p>
+          </div>
+          
+          <CardContent className="space-y-8 p-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="submission-select" className="text-sm font-medium text-gray-700">
+                  1. Submission Name
+                </label>
+                <select 
+                  id="submission-select" 
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedSubmission} 
+                  onChange={(e) => setSelectedSubmission(e.target.value)}
+                >
+                  <option value="">Select a recent submission</option>
+                  {mockSubmissions.map((submission) => (
+                    <option key={submission.id} value={submission.id.toString()}>
+                      {submission.submissionName}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-blue-600" />
+
+              <div className="space-y-2">
+                <label htmlFor="attachment-select" className="text-sm font-medium text-gray-700">
+                  2. Attachment Type
+                </label>
+                <select 
+                  id="attachment-select" 
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedAttachmentType} 
+                  onChange={(e) => setSelectedAttachmentType(e.target.value)}
+                >
+                  <option value="">Select document type to generate</option>
+                  {attachmentTypes.map((type) => (
+                    <option key={type} value={type.toLowerCase().replace(/\s+/g, '-')}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-md font-medium text-gray-700">
-                  In Progress
-                </p>
-                <p className="text-2xl font-semibold text-orange-500">
-                  7
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-md font-medium text-gray-700">
-                  Completed
-                </p>
-                <p className="text-2xl font-semibold text-green-600">
-                  17
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-md font-medium text-gray-700">
-                  Templates Used
-                </p>
-                <p className="text-2xl font-semibold text-purple-600">
-                  12
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Upload className="w-6 h-6 text-purple-600" />
-              </div>
+            <div className="flex justify-center space-x-6 pt-6">
+              <button
+                onClick={handleValidate}
+                disabled={!isFormValid}
+                className="px-8 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-300 transition-colors"
+              >
+                Validate
+              </button>
+              
+              <button
+                onClick={handleCreate}
+                disabled={!isFormValid}
+                className="px-8 py-3 bg-[#2094f3] hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
+              >
+                Create
+              </button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Area */}
-      <Card>
-        <div className="px-6 py-4 border-b border-ms-gray-300">
-          <h3 className="text-lg font-medium text-ms-gray-900">
-            Document Preparation Tools
-          </h3>
-        </div>
-        <CardContent className="p-6">
-          <div className="text-center py-12">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              AI-Powered Document Generation
-            </h3>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Use our AI assistant to help prepare regulatory documents, generate templates, and ensure compliance requirements are met.
-            </p>
-            <button className="bg-[#2094f3] hover:bg-blue-800 text-white px-6 py-2 rounded-md font-medium">
-              Start Document Preparation
-            </button>
+      {/* Modals would go here - simplified for now */}
+      {isValidateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Upload Document for Validation</h3>
+            <p className="text-gray-600 mb-4">Please upload the document you want to validate.</p>
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              accept=".pdf,.doc,.docx,.txt"
+              className="w-full p-2 border border-gray-300 rounded mb-4"
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setIsValidateModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalValidate}
+                disabled={!uploadedFile}
+                className="px-4 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                Validate
+              </button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* Recent Documents */}
-      <Card>
-        <div className="px-6 py-4 border-b border-ms-gray-300">
-          <h3 className="text-lg font-medium text-ms-gray-900">
-            Recent Documents
-          </h3>
-        </div>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {[
-              { name: "510(k) Premarket Notification", type: "Device", status: "Completed", date: "2024-06-03" },
-              { name: "Clinical Study Report", type: "Drug", status: "In Progress", date: "2024-06-02" },
-              { name: "Risk Management Plan", type: "Device", status: "Draft", date: "2024-06-01" },
-            ].map((doc, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900">{doc.name}</p>
-                    <p className="text-sm text-gray-500">{doc.type} • {doc.date}</p>
-                  </div>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  doc.status === "Completed" ? "bg-green-100 text-green-700" :
-                  doc.status === "In Progress" ? "bg-orange-100 text-orange-700" :
-                  "bg-blue-100 text-blue-700"
-                }`}>
-                  {doc.status}
-                </span>
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4">Create New Document</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Device Name</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  value={formResponses.deviceName}
+                  onChange={(e) => handleFormChange('deviceName', e.target.value)}
+                />
               </div>
-            ))}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Intended Use</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  value={formResponses.intendedUse}
+                  onChange={(e) => handleFormChange('intendedUse', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Risk Classification</label>
+                <select
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  value={formResponses.riskClass}
+                  onChange={(e) => handleFormChange('riskClass', e.target.value)}
+                >
+                  <option value="">Select risk class</option>
+                  <option value="class-i">Class I</option>
+                  <option value="class-ii">Class II</option>
+                  <option value="class-iii">Class III</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalCreate}
+                className="px-4 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700"
+              >
+                Submit & Create
+              </button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 };
