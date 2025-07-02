@@ -150,7 +150,13 @@ const Dashboard = () => {
     targetSubmission: "",
   });
 
-  // Derived state
+  // Derived state - Sort submissions by last updated (most recent first)
+  const sortedSubmissions = React.useMemo(() => {
+    return [...submissions].sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }, [submissions]);
+
   const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
 
   // Event handlers
@@ -261,11 +267,11 @@ const Dashboard = () => {
       <Card>
         <div className="px-6 py-4 border-b border-ms-gray-300">
           <h3 className="text-lg font-medium text-ms-gray-900">
-            Recent Submissions
+            Your Submissions
           </h3>
         </div>
         <SubmissionTable
-          submissions={submissions}
+          submissions={sortedSubmissions}
           onDelete={handleDeleteSubmission}
           getStatusConfig={getStatusConfig}
         />
