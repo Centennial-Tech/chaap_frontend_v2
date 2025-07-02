@@ -1,3 +1,4 @@
+import { CheckCircle } from "lucide-react";
 import React from "react";
 
 interface SubmissionTypeOption {
@@ -150,7 +151,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 required
                 rows={3}
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm resize-none"
-                placeholder="Explain your product in a few lines..."
+                placeholder="Explain your product in a few lines... (e.g. 'This is a drug for hypertension', 'This is a wearable device for heart rate monitoring')"
               />
             </div>
             {/* Render questions if present and not hidden or forced hidden by error */}
@@ -182,9 +183,26 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
             {(showSubmissionType || suggestionError) && (
               <div className="pt-4">
                 {formSuggestion && !suggestionError && (
-                  <div className="mb-2 p-2 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm font-medium">
-                    Our suggestion:{" "}
-                    <span className="font-semibold">{formSuggestion}</span>
+                  // <div className="mb-2 p-2 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm font-medium">
+                  //   Our suggestion:{" "}
+                  //   <span className="font-semibold">{}</span>
+                  // </div>
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-2">
+                    <div className="flex items-start space-x-2">
+                      <div className="flex-shrink-0">
+                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-900">
+                          Recommended Form Type
+                        </h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          <b>{formSuggestion}</b> - Typically required for
+                          products in this category based on their
+                          characteristics and stage of development.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 <label
