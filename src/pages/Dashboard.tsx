@@ -151,9 +151,7 @@ const Dashboard = () => {
   const [submissions, setSubmissions] = React.useState<Submission[]>([]);
   const { user } = useAuth();
 
-  useEffect(() => {
-    console.log("Fetching submissions for user:", user?.id);
-    const fetchSubmissions = async () => {
+  const fetchSubmissions = async () => {
       try {
         const response = await api.get(
           `/applications/userId?user_id=${user?.id}`
@@ -164,6 +162,9 @@ const Dashboard = () => {
         console.error("Error fetching submissions:", error);
       }
     };
+  useEffect(() => {
+    console.log("Fetching submissions for user:", user?.id);
+    
     fetchSubmissions();
   }, []);
 
@@ -304,9 +305,9 @@ const Dashboard = () => {
       // await api.post('/your/endpoint', { ... });
       // await api.post('/another/endpoint', { ... });
       // Add your API logic below this comment
-      const newSubmission: Submission = {
-        id: generateNewId(submissions),
-        project: formData.projectTitle,
+      const newSubmission: any = {
+        // id: generateNewId(submissions),
+        name: formData.projectTitle,
         type: formData.type as "Device" | "Drug",
         submissionType: formData.submissionType,
         targetSubmission: "",
@@ -314,10 +315,14 @@ const Dashboard = () => {
         progress: 0,
         updatedAt: new Date().toISOString(),
         productDescription: formData.productDescription,
+        screening_responses: JSON.stringify(questionAnswersRef.current),
       };
-      setSubmissions((prev) => [newSubmission, ...prev]);
+
+      // console.log("Creating new submission:", newSubmission);
+      await api.post("/applications", newSubmission);
+      await fetchSubmissions();
+      // setSubmissions((prev) => [newSubmission, ...prev]);
       setQuestions([]);
-      debugger;
       setQuestionAnswers({});
       setFormSuggestion("");
       setReadyToCreate(false);
