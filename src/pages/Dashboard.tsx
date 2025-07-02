@@ -2,8 +2,6 @@ import {
   CheckCircle,
   Clock,
   FileText,
-  Lock,
-  Shield,
 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/Card";
 import React from "react";
@@ -54,10 +52,10 @@ const SUBMISSION_TYPES = {
 };
 
 const STATUS_CONFIG = {
-  draft: { text: "Draft", color: "bg-blue-100 text-blue-800" },
-  pending: { text: "Pending", color: "bg-orange-100 text-orange-800" },
-  approved: { text: "Approved", color: "bg-green-100 text-green-800" },
-  rejected: { text: "Rejected", color: "bg-red-100 text-red-800" },
+  draft: { text: "Draft", color: "bg-blue-500" },
+  pending: { text: "Pending", color: "bg-orange-500" },
+  approved: { text: "Approved", color: "bg-green-500" },
+  rejected: { text: "Rejected", color: "bg-red-500" },
 } as const;
 
 
@@ -68,7 +66,7 @@ const getSubmissionTypesForType = (selectedType: string): SubmissionTypeOption[]
 
 const getStatusConfig = (status: string) => {
   return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || 
-    { text: status, color: "bg-gray-100 text-gray-800" };
+    { text: status, color: "bg-gray-500" };
 };
 
 const calculateStats = (submissions: Submission[]): Stats => {

@@ -26,10 +26,10 @@ const StatsCard: React.FC<StatsCardProps> = ({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-md font-medium text-gray-700">
               {title}
             </p>
-            <p className="text-2xl font-semibold text-gray-900">
+            <p className={`text-3xl pt-2 font-semibold ${iconColor}`}>
               {value}
             </p>
           </div>
@@ -47,4 +47,4 @@ const StatsCard: React.FC<StatsCardProps> = ({
   );
 };
 
-export default StatsCard; 
+export default StatsCard;

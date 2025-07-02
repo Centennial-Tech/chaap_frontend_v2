@@ -1,9 +1,8 @@
 import React from "react";
-import { Badge } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Link } from "react-router-dom";
 import Progress from "./ui/Progress";
-import { Edit, Eye, Download, Trash2 } from "lucide-react";
+import { Edit, Download, Trash2 } from "lucide-react";
 
 interface Submission {
   id: number;
@@ -33,12 +32,12 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
         <thead className="bg-ms-gray-100">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
-              Project Name
+              Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
               Submission Type
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
               Status
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
@@ -64,9 +63,11 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                 {submission.submissionType}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <Badge className={getStatusConfig(submission.status).color}>
-                  {getStatusConfig(submission.status).text}
-                </Badge>
+                <div
+                  className={`w-8 h-8 rounded-full ${
+                    getStatusConfig(submission.status).color
+                  }`}
+                ></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="w-full">
@@ -86,7 +87,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   </Button>
                 </Link> */}
                 <Button variant="ghost" size="icon">
-                  <Eye className="w-4 h-4 text-ms-gray-700" />
+                  <Edit className="w-4 h-4 text-ms-gray-700" />
                 </Button>
                 <Button variant="ghost" size="icon">
                   <Download className="w-4 h-4 text-ms-gray-700" />
@@ -109,4 +110,4 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   );
 };
 
-export default SubmissionTable; 
+export default SubmissionTable;
