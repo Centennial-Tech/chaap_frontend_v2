@@ -95,10 +95,10 @@ const Routes = () => {
           element: <LayoutWithHeader />,
           children: [
             { path: "/logout", element: <Logout /> },
-            // {
-            //   path: "/dashboard",
-            //   element: <Dashboard />,
-            // },
+            {
+              path: "/dashboard",
+              element: <Dashboard />,
+            },
           ],
         },
       ],
