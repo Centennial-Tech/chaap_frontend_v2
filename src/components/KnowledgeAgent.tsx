@@ -308,7 +308,7 @@ const KnowledgeAgent = () => {
           }}
           className={`max-h-[90%s] transition-all duration-500 rounded-xl rounded-b-md shadow-md text-white w-full h-full flex flex-col bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4`}
         >
-          <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-[#034da2] px-5 items-center justify-between shadow-xl">
+          <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 px-5 items-center justify-between shadow-xl">
             <div className="flex gap-5 items-center">
               {/* <div
                 className="w-10 h-10 rounded-full"
@@ -355,7 +355,7 @@ const KnowledgeAgent = () => {
             >
               <input
                 autoFocus
-                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
                 placeholder="Type your message"
                 value={request}
                 onChange={(e) => {

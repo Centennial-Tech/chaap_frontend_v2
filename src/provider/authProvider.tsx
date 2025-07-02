@@ -45,41 +45,54 @@ interface AuthProviderProps {
 }
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const dummyUser: User = {
-    _attachments: "",
-    _etag: "",
-    _rid: "",
-    _self: "",
-    _ts: 0,
-    active: 1,
-    created_at: "",
-    date_of_birth: null,
-    email: "dummy@example.com",
-    first_name: "Dummy",
-    id: "dummy-id",
-    last_login: null,
-    last_name: "User",
-    organization_Id: null,
-    organization_name: null,
-    phone_number: null,
-    updated_at: null,
-    user_id: 1,
-    username: "dummyuser",
-  };
-
-  const [user, setUser] = useState<User | null>(dummyUser);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check session on app load
-  useEffect(() => {
-    api
-      .get("/auth/me")
-      .then((res) => setUser(res.data))
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
-  }, []);
+  
 
-  const login = useCallback(
+  
+    // Check session on app load
+    useEffect(() => {
+      // TEMPORARY: Dummy user for development
+      const dummyUser: User = {
+        _attachments: "",
+        _etag: "",
+        _rid: "",
+        _self: "",
+        _ts: Date.now(),
+        active: 1,
+        created_at: new Date().toISOString(),
+        date_of_birth: null,
+        email: "dummy@example.com",
+        first_name: "John",
+        id: "dummy-id-123",
+        last_login: new Date().toISOString(),
+        last_name: "Doe",
+        organization_Id: null,
+        organization_name: null,
+        phone_number: null,
+        updated_at: null,
+        user_id: 123,
+        username: "johndoe"
+      };
+      
+      // Simulate API delay
+      setTimeout(() => {
+        setUser(dummyUser);
+        setIsLoading(false);
+      }, 500);
+      
+      // ORIGINAL CODE (commented out):
+      // api
+      //   .get("/auth/me")
+      //   .then((res) => setUser(res.data))
+      //   .catch(() => setUser(null))
+      //   .finally(() => setIsLoading(false));
+    }, []);
+  
+
+
+  const login = useCallback(  
     async (credentials: { username: string; password: string }) => {
       await api.post("/auth/login", credentials);
       const res = await api.get("/auth/me");

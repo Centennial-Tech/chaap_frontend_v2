@@ -58,11 +58,11 @@ const Contact: React.FC = () => {
           <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 rounded-lg">
             <form className="space-y-3" onSubmit={handleSubmit}>
               <h5 className="text-xl font-medium text-gray-900 dark:text-white">
-                Submit your <span className="text-[#f37021]">query</span> here!
+                Submit your <span className="text-gray-600">query</span> here!
               </h5>
               <div
                 className="border-t border-dotted mx-auto"
-                style={{ borderColor: "#f37021" }}
+                style={{ borderColor: "#3b82f6" }}
               ></div>
 
               <div className="flex flex-wrap justify-between">
@@ -161,7 +161,7 @@ const Contact: React.FC = () => {
 
               <button
                 type="submit"
-                className="text-white bg-[#f37021] hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-md text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:outline-none focus:ring-blue-500 font-medium rounded-md text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Send Message
               </button>
@@ -177,20 +177,20 @@ const Contact: React.FC = () => {
               className="h-[460px]"
             />
             <div className="flex flex-col flex-wrap">
-              <span className="text-lg font-medium text-[#f37021]">
+              <span className="text-lg font-medium text-gray-600">
                 ADDRESS
               </span>
               <div
                 className="border-t border-dotted mt-3 mx-auto w-full"
-                style={{ borderColor: "#f37021" }}
+                style={{ borderColor: "#3b82f6" }}
               ></div>
               <p>161 Fort Evans Rd NE, Suite 230, Leesburg, VA 20176</p>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-medium text-[#f37021]">EMAIL</span>
+              <span className="text-lg font-medium text-gray-600">EMAIL</span>
               <div
                 className="border-t border-dotted mt-3 mx-auto w-full"
-                style={{ borderColor: "#f37021" }}
+                style={{ borderColor: "#3b82f6" }}
               ></div>
               <p>
                 For any Inquiry, please reach us at{" "}

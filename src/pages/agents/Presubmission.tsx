@@ -70,7 +70,7 @@ const Presubmission = () => {
         </div>
       </div>
       {/* 2nd screen */}
-      <div className="h-screen bg-white">
+      <div className="h-screen">
         <div className="pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
           {/* wdhschywdsv */}
         </div>

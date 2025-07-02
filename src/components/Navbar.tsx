@@ -43,13 +43,13 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="fixed top-0 w-full bg-white border-b border-gray-300 px-6 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-6">
+    <nav className="fixed top-0 w-full bg-white border-b border-gray-300 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-6 pl-3">
           <div className="flex items-center space-x-3">
             <Link
               to={"/"}
-              className="w-[150px]  items-center justify-center flex"
+              className="w-[150px] items-center justify-center flex"
             >
               <img src={logo} alt="Logo" />
             </Link>
@@ -63,7 +63,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 pr-6">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5 text-gray-600" />

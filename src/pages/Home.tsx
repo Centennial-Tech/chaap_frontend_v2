@@ -45,7 +45,7 @@ const Home = () => {
       icon: "https://chaap.ai/assets/icons19-5716fb44.png",
       title: "Modular Flexibility",
       description:
-        "Whether you need support for a single submission element or end-to-end compliance, CHAAP adapts to your team’s structure and needs with composable agents.",
+        "Whether you need support for a single submission element or end-to-end compliance, CHAAP adapts to your team's structure and needs with composable agents.",
     },
     {
       icon: "https://chaap.ai/assets/icons122-a8165614.png",
@@ -136,7 +136,7 @@ const Home = () => {
           </p>
           <Link
             to={link}
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-orange-500 rounded-lg hover:bg-orange-400 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-2 focus:outline-none focus:ring-gray-500 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
           >
             Explore more
             <svg
@@ -165,7 +165,7 @@ const Home = () => {
       <div className="grid grid-cols-2 px-4 py-5 text-sm text-gray-600 border-b border-gray-200 gap-x-16 dark:border-gray-700">
         <div className="flex gap-2 items-center justify-center">
           <svg
-            className="w-3 h-3 text-red-500"
+            className="w-3 h-3 text-gray-500"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -228,7 +228,7 @@ const Home = () => {
             <Link
               to="/contact"
               type="submit"
-              className="text-white max-w-[136px] bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 text-center"
+              className="text-white max-w-[136px] bg-gray-600 hover:bg-gray-700 focus:ring-2 focus:outline-none focus:ring-gray-500 font-medium rounded-md text-sm px-5 py-2.5 text-center"
             >
               Book A Demo!
             </Link>
@@ -241,8 +241,8 @@ const Home = () => {
           {/* Head */}
           <div className="flex flex-col gap-2">
             <p className="text-2xl md:text-4xl font-semibold">
-              <span className="text-[#f37021]">Centennial</span>{" "}
-              <span className="text-[#034da2]">Healthcare</span> AgenticAI
+              <span>Centennial</span>{" "}
+              <span>Healthcare</span> AgenticAI
               Platform
             </p>
             <p className="text-sm md:text-[16px]">
@@ -276,7 +276,7 @@ const Home = () => {
       {/* Section 3 - Agents */}
       <div
         id="agents"
-        className="w-full scroll-m-[60px] text-black bg-white relative border-t 2xl:h-[calc(100vh-59px)] bg-opacity-90 z-0"
+        className="w-full scroll-m-[60px] text-black relative border-t 2xl:h-[calc(100vh-59px)] z-0"
       >
         <BgCustomGrid />
         <div className="flex flex-col w-full items-center justify-center max-w-7xl px-3 mx-auto py-6 md:py-10 gap-16">
@@ -298,7 +298,7 @@ const Home = () => {
             className="w-full overflow-x-auto shadow-lg"
           >
             <div className="overflow-hidden min-w-max">
-              <div className="grid grid-cols-2 place-items-center p-4 text-sm text-white font-bold bg-orange-500 border-t border-b border-gray-200 gap-x-16 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+              <div className="grid grid-cols-2 place-items-center p-4 text-sm text-white font-bold bg-gray-600 border-t border-b border-gray-200 gap-x-16 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                 <div>Before</div>
                 <div>With CHAAP</div>
               </div>
