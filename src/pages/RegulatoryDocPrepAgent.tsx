@@ -520,7 +520,7 @@ const RegulatoryDocPrepAgent = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">
-            Regulatory Doc Prep Agent
+            Document Prepration Agent
           </h2>
           <p className="text-gray-700 mt-1">
             AI-powered assistance for preparing regulatory documentation

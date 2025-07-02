@@ -13,7 +13,7 @@ interface Submission {
   type: "Device" | "Drug";
   submissionType: string;
   targetSubmission: string;
-  status: "draft" | "pending" | "approved" | "rejected";
+  status: "draft" | "pending" | "approved";
   progress: number;
   updatedAt: string;
   productDescription: string;
@@ -53,7 +53,6 @@ const STATUS_CONFIG = {
   draft: { text: "Draft", color: "bg-blue-500" },
   pending: { text: "Pending", color: "bg-orange-500" },
   approved: { text: "Approved", color: "bg-green-500" },
-  rejected: { text: "Rejected", color: "bg-red-500" },
 } as const;
 
 // Utility functions
@@ -405,7 +404,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         <StatsCard
-          title="Active Submissions"
+          title="Draft Submissions"
           value={stats?.drafts || 0}
           icon={FileText}
           iconBgColor="bg-blue-100"

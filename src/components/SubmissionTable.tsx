@@ -10,7 +10,7 @@ interface Submission {
   type: "Device" | "Drug";
   submissionType: string;
   targetSubmission: string;
-  status: "draft" | "pending" | "approved" | "rejected";
+  status: "draft" | "pending" | "approved";
   progress: number;
   updatedAt: string;
 }
@@ -26,6 +26,35 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   onDelete,
   getStatusConfig,
 }) => {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "draft":
+        return (
+          <div className="px-3 py-1 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+            <span className="text-blue-700 font-medium text-xs leading-none uppercase tracking-wide">
+              Draft
+            </span>
+          </div>
+        );
+      case "pending":
+        return (
+          <div className="px-3 py-1 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center">
+            <span className="text-orange-700 font-medium text-xs leading-none uppercase tracking-wide">
+              Pending
+            </span>
+          </div>
+        );
+      case "approved":
+        return (
+          <div className="px-3 py-1 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center">
+            <span className="text-green-700 font-medium text-xs leading-none uppercase tracking-wide">
+              Approved
+            </span>
+          </div>
+        );
+      }
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -37,7 +66,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
               Submission Type
             </th>
-            <th className="px-5 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
               Status
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
@@ -63,11 +92,9 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                 {submission.submissionType}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div
-                  className={`w-8 h-8 rounded-full ${
-                    getStatusConfig(submission.status).color
-                  }`}
-                ></div>
+                <div className="flex justify-start">
+                  {getStatusIcon(submission.status)}
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="w-full">
@@ -81,11 +108,6 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                 {new Date(submission.updatedAt).toLocaleDateString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                {/* <Link to={`/form-builder/${submission.id}`}>
-                  <Button variant="ghost" size="icon">
-                    <Edit className="w-4 h-4 ms-blue" />
-                  </Button>
-                </Link> */}
                 <Button variant="ghost" size="icon">
                   <Edit className="w-4 h-4 text-ms-gray-700" />
                 </Button>
