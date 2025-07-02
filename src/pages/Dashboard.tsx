@@ -1,10 +1,11 @@
 import { CheckCircle, Clock, FileText } from "lucide-react";
 import { Card, CardContent } from "../components/ui/Card";
-import React from "react";
+import React, { useEffect } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
 import api from "../api";
+import { useAuth } from "../provider/authProvider";
 
 // Types
 interface Submission {
@@ -86,69 +87,85 @@ const generateNewId = (submissions: Submission[]): number => {
 };
 
 // Initial data
-const INITIAL_SUBMISSIONS: Submission[] = [
-  {
-    id: 1,
-    project: "CardioSense Monitor",
-    type: "Device",
-    submissionType: "PMA (Premarket Approval)",
-    targetSubmission: "2024-06-01T10:30:00Z",
-    status: "approved",
-    progress: 100,
-    updatedAt: "2024-06-01T10:30:00Z",
-    productDescription: "A monitor for cardiovascular health.",
-  },
-  {
-    id: 2,
-    project: "ThermoScan Pro",
-    type: "Device",
-    submissionType: "510k (Premarket Notification)",
-    targetSubmission: "2024-06-30T14:45:00Z",
-    status: "pending",
-    progress: 80,
-    updatedAt: "2024-06-02T14:45:00Z",
-    productDescription: "A professional-grade thermometer.",
-  },
-  {
-    id: 3,
-    project: "Adestunore",
-    type: "Drug",
-    submissionType: "NDA (New Drug Application)",
-    targetSubmission: "2024-05-28T16:10:00Z",
-    status: "approved",
-    progress: 100,
-    updatedAt: "2024-05-28T16:10:00Z",
-    productDescription: "A new drug for treating conditions.",
-  },
-  {
-    id: 4,
-    project: "PulseOx 2000",
-    type: "Device",
-    submissionType: "510k (Premarket Notification)",
-    targetSubmission: "2024-07-15T09:20:00Z",
-    status: "draft",
-    progress: 40,
-    updatedAt: "2024-06-03T09:20:00Z",
-    productDescription: "A pulse oximeter for measuring blood oxygen.",
-  },
-  {
-    id: 5,
-    project: "Hicesterol",
-    type: "Drug",
-    submissionType: "IND (Investigational New Drug)",
-    targetSubmission: "2024-05-28T16:10:00Z",
-    status: "draft",
-    progress: 0,
-    updatedAt: "2024-05-28T16:10:00Z",
-    productDescription: "An investigational drug for high cholesterol.",
-  },
-];
+// const INITIAL_SUBMISSIONS: Submission[] = [
+//   {
+//     id: 1,
+//     project: "CardioSense Monitor",
+//     type: "Device",
+//     submissionType: "PMA (Premarket Approval)",
+//     targetSubmission: "2024-06-01T10:30:00Z",
+//     status: "approved",
+//     progress: 100,
+//     updatedAt: "2024-06-01T10:30:00Z",
+//     productDescription: "A monitor for cardiovascular health.",
+//   },
+//   {
+//     id: 2,
+//     project: "ThermoScan Pro",
+//     type: "Device",
+//     submissionType: "510k (Premarket Notification)",
+//     targetSubmission: "2024-06-30T14:45:00Z",
+//     status: "pending",
+//     progress: 80,
+//     updatedAt: "2024-06-02T14:45:00Z",
+//     productDescription: "A professional-grade thermometer.",
+//   },
+//   {
+//     id: 3,
+//     project: "Adestunore",
+//     type: "Drug",
+//     submissionType: "NDA (New Drug Application)",
+//     targetSubmission: "2024-05-28T16:10:00Z",
+//     status: "approved",
+//     progress: 100,
+//     updatedAt: "2024-05-28T16:10:00Z",
+//     productDescription: "A new drug for treating conditions.",
+//   },
+//   {
+//     id: 4,
+//     project: "PulseOx 2000",
+//     type: "Device",
+//     submissionType: "510k (Premarket Notification)",
+//     targetSubmission: "2024-07-15T09:20:00Z",
+//     status: "draft",
+//     progress: 40,
+//     updatedAt: "2024-06-03T09:20:00Z",
+//     productDescription: "A pulse oximeter for measuring blood oxygen.",
+//   },
+//   {
+//     id: 5,
+//     project: "Hicesterol",
+//     type: "Drug",
+//     submissionType: "IND (Investigational New Drug)",
+//     targetSubmission: "2024-05-28T16:10:00Z",
+//     status: "draft",
+//     progress: 0,
+//     updatedAt: "2024-05-28T16:10:00Z",
+//     productDescription: "An investigational drug for high cholesterol.",
+//   },
+// ];
 
 const Dashboard = () => {
   // State management
   const [open, setOpen] = React.useState(false);
-  const [submissions, setSubmissions] =
-    React.useState<Submission[]>(INITIAL_SUBMISSIONS);
+  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    console.log("Fetching submissions for user:", user?.id);
+    const fetchSubmissions = async () => {
+      try {
+        const response = await api.get(
+          `/applications/userId?user_id=${user?.id}`
+        );
+        const data: Submission[] = response.data;
+        setSubmissions(data);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+      }
+    };
+    fetchSubmissions();
+  }, []);
 
   // Form state (update type to match new fields)
   type FormData = {
