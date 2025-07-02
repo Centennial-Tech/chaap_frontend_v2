@@ -99,6 +99,15 @@ const Routes = () => {
               path: "/dashboard",
               element: <Dashboard />,
             },
+            {
+              path: "/agents/",
+              children: [
+                {
+                  path: "document-preparation",
+                  element: <RegulatoryDocPrepAgent />,
+                },
+              ],
+            },
           ],
         },
       ],

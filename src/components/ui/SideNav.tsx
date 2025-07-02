@@ -1,6 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { BarChart3, FolderOpen, Bot, Cpu, Zap, Brain, Shield } from "lucide-react";
+import {
+  BarChart3,
+  FolderOpen,
+  Bot,
+  Cpu,
+  Zap,
+  Brain,
+  Shield,
+} from "lucide-react";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
@@ -8,30 +16,30 @@ const mainNavItems = [
 ];
 
 const sectionItems = [
-  { 
-    label: "Pre-submission Strategy Agent", 
+  {
+    label: "Pre-submission Strategy Agent",
     path: "/pre-submission-strategy-agent",
-    icon: Bot 
+    icon: Bot,
   },
-  { 
-    label: "Regulatory Doc Prep Agent", 
-    path: "/regulatory-doc-prep-agent",
-    icon: Cpu 
+  {
+    label: "Regulatory Doc Prep Agent",
+    path: "/agents/document-preparation",
+    icon: Cpu,
   },
-  { 
-    label: "FDA Meeting Prep Agent", 
+  {
+    label: "FDA Meeting Prep Agent",
     path: "/fda-meeting-prep-agent",
-    icon: Zap 
+    icon: Zap,
   },
-  { 
-    label: "Regulatory Knowledge Agent", 
+  {
+    label: "Regulatory Knowledge Agent",
     path: "/regulatory-knowledge-agent",
-    icon: Brain 
+    icon: Brain,
   },
-  { 
-    label: "Post Market Surveillance Agent", 
+  {
+    label: "Post Market Surveillance Agent",
     path: "/post-market-surveillance-agent",
-    icon: Shield 
+    icon: Shield,
   },
 ];
 
@@ -145,7 +153,7 @@ export default function Sidebar() {
           <div className="space-y-1 text-sm">
             {sectionItems.map((section) => {
               const isActive = location.pathname === section.path; // Updated active check
-              
+
               return (
                 <Link
                   key={section.label}
