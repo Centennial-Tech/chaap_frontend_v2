@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "../components/ui/Card";
-import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Download } from "lucide-react";
+import Modal from "../components/ui/Modal";
 
 // Mock data for submissions
 const mockSubmissions = [
@@ -22,6 +23,60 @@ const attachmentTypes = [
   "Biocompatibility",
   "Software Documentation",
 ];
+
+// Simplified mock API response for form questions
+const mockFormQuestions = {
+  "device-description": [
+    { id: "deviceName", label: "Device Name", type: "text", required: true },
+    { id: "intendedUse", label: "Intended Use", type: "textarea", required: true },
+    { id: "riskClass", label: "Risk Classification", type: "select", required: true, options: ["Class I", "Class II", "Class III"] },
+  ],
+  "predicate-comparison": [
+    { id: "deviceName", label: "Device Name", type: "text", required: true },
+    { id: "predicateDevice", label: "Predicate Device", type: "text", required: true },
+    { id: "similarities", label: "Key Similarities", type: "textarea", required: true },
+  ],
+  "performance-testing": [
+    { id: "testingOverview", label: "Testing Overview", type: "textarea", required: true },
+    { id: "testStandards", label: "Standards Followed", type: "text", required: true },
+    { id: "testResults", label: "Summary of Test Results", type: "textarea", required: true },
+  ],
+  "risk-analysis": [
+    { id: "riskAnalysisStandard", label: "Risk Analysis Standard", type: "select", required: true, options: ["ISO 14971", "IEC 62304", "ISO 13485"] },
+    { id: "hazardIdentification", label: "Hazard Identification Process", type: "textarea", required: true },
+    { id: "riskControl", label: "Risk Control Measures", type: "textarea", required: true },
+  ],
+  "clinical-data": [
+    { id: "clinicalStrategy", label: "Clinical Evaluation Strategy", type: "textarea", required: true },
+    { id: "literatureReview", label: "Literature Review Summary", type: "textarea", required: true },
+    { id: "clinicalOutcomes", label: "Clinical Outcomes", type: "textarea", required: true },
+  ],
+  labeling: [
+    { id: "labelingStandards", label: "Labeling Standards", type: "select", required: true, options: ["21 CFR 801", "21 CFR 820", "ISO 15223"] },
+    { id: "intendedUse", label: "Intended Use Statement", type: "textarea", required: true },
+    { id: "contraindications", label: "Contraindications", type: "textarea", required: true },
+  ],
+  "manufacturing-information": [
+    { id: "manufacturingSite", label: "Manufacturing Site", type: "text", required: true },
+    { id: "qualitySystem", label: "Quality System Standard", type: "select", required: true, options: ["ISO 13485", "21 CFR 820", "ISO 9001"] },
+    { id: "manufacturingProcess", label: "Manufacturing Process Description", type: "textarea", required: true },
+  ],
+  "quality-system": [
+    { id: "qmsStandard", label: "QMS Standard", type: "select", required: true, options: ["ISO 13485:2016", "21 CFR Part 820", "ISO 9001:2015"] },
+    { id: "designControls", label: "Design Controls", type: "textarea", required: true },
+    { id: "riskManagement", label: "Risk Management Process", type: "textarea", required: true },
+  ],
+  biocompatibility: [
+    { id: "biocompatibilityStandard", label: "Biocompatibility Standard", type: "select", required: true, options: ["ISO 10993", "USP Class VI", "FDA Blue Book"] },
+    { id: "biologicalEvaluation", label: "Biological Evaluation Plan", type: "textarea", required: true },
+    { id: "contactType", label: "Contact Type", type: "select", required: true, options: ["Surface Device", "External Communicating", "Implant"] },
+  ],
+  "software-documentation": [
+    { id: "softwareClass", label: "Software Classification", type: "select", required: true, options: ["Class A", "Class B", "Class C"] },
+    { id: "softwareStandard", label: "Software Standard", type: "select", required: true, options: ["IEC 62304", "ISO 14971", "FDA Guidance"] },
+    { id: "softwareLifecycle", label: "Software Lifecycle Process", type: "textarea", required: true },
+  ],
+};
 
 // Mock validation results object structure
 const mockValidationResults = {
@@ -62,8 +117,7 @@ const mockValidationResults = {
       status: "fail",
       score: 60,
       title: "Incomplete Risk Analysis",
-      description:
-        "Risk analysis section lacks comprehensive hazard identification",
+      description: "Risk analysis section lacks comprehensive hazard identification",
       recommendation: "Conduct thorough risk assessment following ISO 14971",
     },
   ],
@@ -88,23 +142,48 @@ const RegulatoryDocPrepAgent = () => {
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [validationResults, setValidationResults] = useState(null);
-  const [formResponses, setFormResponses] = useState({
-    deviceName: "",
-    intendedUse: "",
-    targetPopulation: "",
-    riskClass: "",
-    regulatoryPathway: "",
-  });
+  const [validationResults, setValidationResults] = useState<any>(null);
+  const [formQuestions, setFormQuestions] = useState<any[]>([]);
+  const [formResponses, setFormResponses] = useState<Record<string, string>>(
+    {}
+  );
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isDocumentGenerated, setIsDocumentGenerated] = useState(false);
 
   const isFormValid = selectedSubmission && selectedAttachmentType;
+
+  // Simulate API call to fetch form questions
+  const fetchFormQuestions = async (attachmentType: string) => {
+    setIsLoadingQuestions(true);
+    try {
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const questions = (mockFormQuestions as any)[attachmentType] || [];
+      setFormQuestions(questions);
+
+      // Initialize form responses
+      const initialResponses: Record<string, string> = {};
+      questions.forEach((question: any) => {
+        initialResponses[question.id] = "";
+      });
+      setFormResponses(initialResponses);
+    } catch (error) {
+      console.error("Error fetching form questions:", error);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
 
   const handleValidate = () => {
     setIsValidateModalOpen(true);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     setIsCreateModalOpen(true);
+    setIsDocumentGenerated(false);
+    await fetchFormQuestions(selectedAttachmentType);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,9 +205,94 @@ const RegulatoryDocPrepAgent = () => {
     setFormResponses((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleModalCreate = () => {
+  const handleModalCreate = async () => {
+    setIsGenerating(true);
+
+    try {
+      // Simulate document generation API call
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setIsDocumentGenerated(true);
+    } catch (error) {
+      console.error("Error generating document:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = () => {
+    // Implement actual download logic here
+    console.log("Downloading document...");
+    // For now, just close the modal
     setIsCreateModalOpen(false);
-    // Add creation logic here
+    setIsDocumentGenerated(false);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setIsDocumentGenerated(false);
+    setIsGenerating(false);
+    setFormQuestions([]);
+    setFormResponses({});
+  };
+
+  const isCreateFormValid = () => {
+    return formQuestions.every((question: any) => {
+      if (question.required) {
+        return (
+          formResponses[question.id] && formResponses[question.id].trim() !== ""
+        );
+      }
+      return true;
+    });
+  };
+
+  const renderFormField = (question: any) => {
+    const isDisabled = isDocumentGenerated || isGenerating;
+    const fieldClasses = `w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 ${
+      isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+    }`;
+
+    switch (question.type) {
+      case "textarea":
+        return (
+          <textarea
+            className={`${fieldClasses} min-h-[80px]`}
+            value={formResponses[question.id] || ""}
+            onChange={(e) => handleFormChange(question.id, e.target.value)}
+            disabled={isDisabled}
+            rows={3}
+          />
+        );
+      case "select":
+        return (
+          <select
+            className={fieldClasses}
+            value={formResponses[question.id] || ""}
+            onChange={(e) => handleFormChange(question.id, e.target.value)}
+            disabled={isDisabled}
+          >
+            <option value="">Select {question.label.toLowerCase()}</option>
+            {question.options?.map((option: any) => (
+              <option
+                key={option}
+                value={option.toLowerCase().replace(/\s+/g, "-")}
+              >
+                {option}
+              </option>
+            ))}
+          </select>
+        );
+      default:
+        return (
+          <input
+            type="text"
+            className={fieldClasses}
+            value={formResponses[question.id] || ""}
+            onChange={(e) => handleFormChange(question.id, e.target.value)}
+            disabled={isDisabled}
+          />
+        );
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -149,6 +313,207 @@ const RegulatoryDocPrepAgent = () => {
     if (score >= 70) return "text-orange-500";
     return "text-red-500";
   };
+
+  // Modal content renderers
+  const renderUploadModalContent = () => (
+    <>
+      <p className="text-gray-600 mb-4 text-sm">
+        Please upload the document you want to validate for compliance and
+        structure.
+      </p>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select File
+        </label>
+
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            accept=".pdf,.doc,.docx,.txt"
+            className="hidden"
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="cursor-pointer">
+            <div className="text-gray-400 mb-2">
+              <svg
+                className="w-8 h-8 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+            </div>
+            <p className="text-gray-600 text-sm mb-1">
+              Click to upload or drag and drop
+            </p>
+            <p className="text-gray-400 text-xs">
+              PDF, DOC, DOCX, TXT files supported
+            </p>
+          </label>
+        </div>
+
+        {uploadedFile && (
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
+            <svg
+              className="w-5 h-5 text-green-600 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="text-sm text-green-700">{uploadedFile.name}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={() => setIsValidateModalOpen(false)}
+          className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleModalValidate}
+          disabled={!uploadedFile}
+          className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          Validate Document
+        </button>
+      </div>
+    </>
+  );
+
+  const renderValidationResultsContent = () => {
+    // Add dummy validation results if none exist
+    const results = validationResults || {
+      overallScore: 92,
+      reviewPoints: [
+        {
+          id: 1,
+          status: "pass",
+          title: "Sample Validation Check",
+        },
+      ],
+    };
+
+    return (
+      <>
+        <div className="text-center mb-6">
+          <div
+            className={`text-4xl font-bold mb-2 ${getScoreColor(
+              results.overallScore
+            )}`}
+          >
+            {results.overallScore}%
+          </div>
+          <div className="text-lg text-gray-600">Overall Compliance Score</div>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          {results.reviewPoints.map((point: any) => (
+            <div
+              key={point.id}
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
+            >
+              {getStatusIcon(point.status)}
+              <span className="font-medium">{point.title}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={() => setIsValidationResultsOpen(false)}
+            className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700"
+          >
+            Close
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  const renderCreateModalContent = () => (
+    <>
+      {isLoadingQuestions ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Loading form questions...</span>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4 mb-6">
+            {formQuestions.map((question: any) => (
+              <div key={question.id}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {question.label}
+                  {question.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+                {renderFormField(question)}
+              </div>
+            ))}
+          </div>
+
+          {isGenerating && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span>Generating document...</span>
+                <span>Please wait</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full animate-pulse"
+                  style={{ width: "100%" }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={handleCloseCreateModal}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              disabled={isGenerating}
+            >
+              Cancel
+            </button>
+
+            {!isDocumentGenerated ? (
+              <button
+                onClick={handleModalCreate}
+                disabled={!isCreateFormValid() || isGenerating}
+                className="px-4 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? "Generating..." : "Submit"}
+              </button>
+            ) : (
+              <button
+                onClick={handleDownload}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download Document
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </>
+  );
 
   return (
     <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen bg-gray-100">
@@ -249,194 +614,33 @@ const RegulatoryDocPrepAgent = () => {
         </Card>
       </div>
 
-      {/* Upload Modal */}
-      {isValidateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
-            {/* Close button */}
-            <button
-              onClick={() => setIsValidateModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
-            >
-              ×
-            </button>
+      {/* Modals */}
+      <Modal
+        isOpen={isValidateModalOpen}
+        onClose={() => setIsValidateModalOpen(false)}
+        title="Upload Document for Validation"
+      >
+        {renderUploadModalContent()}
+      </Modal>
 
-            <h3 className="text-lg font-semibold mb-2">Upload Document for Validation</h3>
-            <p className="text-gray-600 mb-4 text-sm">
-              Please upload the document you want to validate for compliance and structure.
-            </p>
+      <Modal
+        isOpen={isValidationResultsOpen && validationResults}
+        onClose={() => setIsValidationResultsOpen(false)}
+        title="Validation Results"
+        maxWidth="max-w-2xl"
+      >
+        {renderValidationResultsContent()}
+      </Modal>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select File
-              </label>
-              
-              {/* File upload area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <input
-                  type="file"
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.txt"
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <div className="text-gray-400 mb-2">
-                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-1">Click to upload or drag and drop</p>
-                  <p className="text-gray-400 text-xs">PDF, DOC, DOCX, TXT files supported</p>
-                </label>
-              </div>
-
-              {/* Show uploaded file */}
-              {uploadedFile && (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
-                  <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-sm text-green-700">{uploadedFile.name}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setIsValidateModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleModalValidate}
-                disabled={!uploadedFile}
-                className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Validate Document
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Validation Results Modal */}
-      {isValidationResultsOpen && validationResults && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Validation Results</h3>
-              <button
-                onClick={() => setIsValidationResultsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Overall Score */}
-            <div className="text-center mb-6">
-              <div className={`text-4xl font-bold mb-2 ${getScoreColor(validationResults.overallScore)}`}>
-                {validationResults.overallScore}%
-              </div>
-              <div className="text-lg text-gray-600">Overall Compliance Score</div>
-            </div>
-
-            {/* Review Points */}
-            <div className="space-y-3 mb-6">
-              {validationResults.reviewPoints.map((point) => (
-                <div key={point.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(point.status)}
-                    <span className="font-medium">{point.title}</span>
-                  </div>
-                  <span className={`font-medium ${getScoreColor(point.score)}`}>
-                    {point.score}%
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsValidationResultsOpen(false)}
-                className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Create New Document</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Device Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  value={formResponses.deviceName}
-                  onChange={(e) =>
-                    handleFormChange("deviceName", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Intended Use
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  value={formResponses.intendedUse}
-                  onChange={(e) =>
-                    handleFormChange("intendedUse", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Risk Classification
-                </label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  value={formResponses.riskClass}
-                  onChange={(e) =>
-                    handleFormChange("riskClass", e.target.value)
-                  }
-                >
-                  <option value="">Select risk class</option>
-                  <option value="class-i">Class I</option>
-                  <option value="class-ii">Class II</option>
-                  <option value="class-iii">Class III</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleModalCreate}
-                className="px-4 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700"
-              >
-                Submit & Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={handleCloseCreateModal}
+        title="Create New Document"
+        maxWidth="max-w-lg"
+        showCloseButton={!isGenerating}
+      >
+        {renderCreateModalContent()}
+      </Modal>
     </div>
   );
 };
