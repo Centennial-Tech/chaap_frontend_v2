@@ -18,6 +18,7 @@ import Login from "../pages/Login";
 import KnowledgeAgent from "../components/KnowledgeAgent";
 import Logout from "../pages/Logout";
 import Dashboard from "../pages/Dashboard";
+import RegulatoryDocPrepAgent from "../pages/RegulatoryDocPrepAgent";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/ui/SideNav";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -83,7 +84,6 @@ const Routes = () => {
       path: "*",
       element: <NoAccess />,
     },
-
   ];
 
   // Routes for logged-in users
@@ -95,10 +95,10 @@ const Routes = () => {
           element: <LayoutWithHeader />,
           children: [
             { path: "/logout", element: <Logout /> },
-            {
-              path: "/dashboard",
-              element: <Dashboard />,
-            },
+            // {
+            //   path: "/dashboard",
+            //   element: <Dashboard />,
+            // },
           ],
         },
       ],

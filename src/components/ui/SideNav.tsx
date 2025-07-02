@@ -1,31 +1,38 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { 
-  BarChart3, 
-  Edit, 
-  FolderOpen, 
-  TrendingUp, 
-  FileText, 
-  Shield, 
-  Activity,
-  Lock
-} from "lucide-react";
+import { BarChart3, FolderOpen, Bot, Cpu, Zap, Brain, Shield } from "lucide-react";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { path: "/form-builder", label: "Form Builder", icon: Edit },
   { path: "/documents", label: "Document Manager", icon: FolderOpen },
-  { path: "/tracking", label: "Submission Tracking", icon: TrendingUp },
-  { path: "/pdf-generator", label: "PDF Generator", icon: FileText },
 ];
 
 const sectionItems = [
-  "Device Description",
-  "Predicate Device", 
-  "Substantial Equivalence",
-  "Performance Testing",
-  "Labeling",
-  "Risk Analysis",
+  { 
+    label: "Pre-submission Strategy Agent", 
+    path: "/pre-submission-strategy-agent",
+    icon: Bot 
+  },
+  { 
+    label: "Regulatory Doc Prep Agent", 
+    path: "/regulatory-doc-prep-agent",
+    icon: Cpu 
+  },
+  { 
+    label: "FDA Meeting Prep Agent", 
+    path: "/fda-meeting-prep-agent",
+    icon: Zap 
+  },
+  { 
+    label: "Regulatory Knowledge Agent", 
+    path: "/regulatory-knowledge-agent",
+    icon: Brain 
+  },
+  { 
+    label: "Post Market Surveillance Agent", 
+    path: "/post-market-surveillance-agent",
+    icon: Shield 
+  },
 ];
 
 export default function Sidebar() {
@@ -37,26 +44,33 @@ export default function Sidebar() {
 
   // Adjust main content margin instead of body margin
   useEffect(() => {
-    const mainContent = document.querySelector('[data-main-content]') || document.querySelector('main');
+    const mainContent =
+      document.querySelector("[data-main-content]") ||
+      document.querySelector("main");
     if (mainContent) {
-      const marginLeft = shouldShowFull ? '16rem' : '4rem';
+      const marginLeft = shouldShowFull ? "16rem" : "4rem";
       (mainContent as HTMLElement).style.marginLeft = marginLeft;
-      (mainContent as HTMLElement).style.transition = 'margin-left 410ms ease-in-out';
+      (mainContent as HTMLElement).style.transition =
+        "margin-left 410ms ease-in-out";
     }
-    
+
     // Cleanup function
     return () => {
-      const mainContent = document.querySelector('[data-main-content]') || document.querySelector('main');
+      const mainContent =
+        document.querySelector("[data-main-content]") ||
+        document.querySelector("main");
       if (mainContent) {
-        (mainContent as HTMLElement).style.marginLeft = '';
-        (mainContent as HTMLElement).style.transition = '';
+        (mainContent as HTMLElement).style.marginLeft = "";
+        (mainContent as HTMLElement).style.transition = "";
       }
     };
   }, [shouldShowFull]);
 
   return (
-    <aside 
-      className={`${shouldShowFull ? 'w-64' : 'w-16'} bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out fixed overflow-hidden h-screen left-0 top-0 z-40`}
+    <aside
+      className={`${
+        shouldShowFull ? "w-72" : "w-16"
+      } bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out fixed overflow-hidden h-screen left-0 top-0 z-40`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -64,7 +78,9 @@ export default function Sidebar() {
       <button
         onClick={() => setIsMinimized(!isMinimized)}
         className={`absolute top-[88px] right-2 p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-300 ease-in-out z-10 ${
-          shouldShowFull ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+          shouldShowFull
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-95 pointer-events-none"
         }`}
       >
         {isMinimized ? (
@@ -81,64 +97,89 @@ export default function Sidebar() {
       <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
         <div className="space-y-1">
           {mainNavItems.map((item) => (
-            <Link 
-              key={item.path} 
+            <Link
+              key={item.path}
               to={item.path}
               className={
-              location.pathname === item.path && !shouldShowFull
-              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600 hover:text-blue-700"
-              : location.pathname === item.path
-              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600 hover:text-blue-700"
-              : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-600 hover:bg-gray-100 hover:text-gray-700"
+                location.pathname === item.path && !shouldShowFull
+                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+                  : location.pathname === item.path
+                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+                  : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
               }
               title={!shouldShowFull ? item.label : undefined}
             >
               <span
-              className={
-                location.pathname === item.path && !shouldShowFull
-                ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
-                : "p-1.5"
-              }
+                className={
+                  location.pathname === item.path && !shouldShowFull
+                    ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+                    : "p-1.5"
+                }
               >
-              <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+                <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
               </span>
-              <span className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-              shouldShowFull 
-                ? 'opacity-100 translate-x-0 max-w-xs' 
-                : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
-              }`}>
-              {item.label}
+              <span
+                className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                  shouldShowFull
+                    ? "opacity-100 translate-x-0 max-w-xs"
+                    : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+                }`}
+              >
+                {item.label}
               </span>
             </Link>
           ))}
         </div>
-        
-        {/* 510(k) Sections - moved below Security */}
-        <div className="mt-8 ml-4 transition-all duration-300 ease-in-out">
-          <h3 className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-            shouldShowFull 
-              ? 'opacity-100 translate-x-0 max-w-xs' 
-              : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
-          }`}>
-            510(k) Sections
+
+        {/* Agent Hub Sections */}
+        <div className="mt-8 transition-all duration-300 ease-in-out">
+          <h3
+            className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 ml-2 transition-all duration-500 ease-in-out whitespace-nowrap ${
+              shouldShowFull
+                ? "opacity-100 translate-x-0 max-w-xs"
+                : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+            }`}
+          >
+            Agent Hub
           </h3>
           <div className="space-y-1 text-sm">
-            {sectionItems.map((section) => (
-              <Link 
-                key={section} 
-                to={`/form-builder?section=${section.toLowerCase().replace(/\s+/g, '-')}`}
-                className="flex items-center px-2.5 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-700 rounded-md transition-all duration-300 ease-in-out"
-                title={!shouldShowFull ? section : undefined}
-              >
-                <span className={`transition-all duration-500 ease-in-out whitespace-nowrap ${
-                  shouldShowFull 
-                    ? 'opacity-100 translate-x-0 max-w-xs' 
-                    : 'opacity-0 -translate-x-4 max-w-0 overflow-hidden'
-                }`}>
-                  {section}
-                </span>
-              </Link>
-            ))}
+            {sectionItems.map((section) => {
+              const isActive = location.pathname === section.path; // Updated active check
+              
+              return (
+                <Link
+                  key={section.label}
+                  to={section.path} // Direct path instead of query parameter
+                  className={
+                    isActive && !shouldShowFull
+                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+                      : isActive
+                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+                      : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
+                  }
+                  title={!shouldShowFull ? section.label : undefined}
+                >
+                  <span
+                    className={
+                      isActive && !shouldShowFull
+                        ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+                        : "p-1.5"
+                    }
+                  >
+                    <section.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+                  </span>
+                  <span
+                    className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                      shouldShowFull
+                        ? "opacity-100 translate-x-0 max-w-xs"
+                        : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+                    }`}
+                  >
+                    {section.label}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
