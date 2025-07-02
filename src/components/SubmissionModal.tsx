@@ -1,5 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import React from "react";
+import { useOverlay } from "../provider/overleyProvider";
 
 interface SubmissionTypeOption {
   value: string;
@@ -53,6 +54,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   suggestionError = "",
   allowManualCreate = false,
 }) => {
+  const { showOverlay, hideOverlay } = useOverlay();
   const [hideQuestions, setHideQuestions] = React.useState(false);
   // Add local state to control hiding of questions after suggestion error
   const [forceHideQuestions, setForceHideQuestions] = React.useState(false);
@@ -74,10 +76,19 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     }
   }, [suggestionError]);
 
+  // Show/hide overlay when modal opens/closes
+  React.useEffect(() => {
+    if (open) {
+      showOverlay();
+    } else {
+      hideOverlay();
+    }
+  }, [open, showOverlay, hideOverlay]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-x-0 top-[60px] bottom-0 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
         <div className="border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
