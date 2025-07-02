@@ -71,7 +71,7 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
     <div
       ref={ref}
       onClick={() => navigator.clipboard.writeText(content)}
-      className="flex gap-3 my-4 text-gray-600 text-sm"
+      className="flex gap-3 my-4 text-gray-700 text-sm"
     >
       <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
         <div className="rounded-full bg-gray-100 border p-1">
@@ -221,7 +221,7 @@ const KnowledgeAgent = () => {
 
   const User = ({ content }: response) => {
     return (
-      <div className="flex gap-3 my-4 text-gray-600 text-sm self-end">
+      <div className="flex gap-3 my-4 text-gray-700 text-sm self-end">
         <p className="leading-relaxed flex flex-col gap-2">
           <span className="block font-bold text-gray-700 float-right self-end">
             You{" "}
@@ -308,7 +308,7 @@ const KnowledgeAgent = () => {
           }}
           className={`max-h-[90%s] transition-all duration-500 rounded-xl rounded-b-md shadow-md text-white w-full h-full flex flex-col bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4`}
         >
-          <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-[#034da2] px-5 items-center justify-between shadow-xl">
+          <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 px-5 items-center justify-between shadow-xl">
             <div className="flex gap-5 items-center">
               {/* <div
                 className="w-10 h-10 rounded-full"
@@ -355,7 +355,7 @@ const KnowledgeAgent = () => {
             >
               <input
                 autoFocus
-                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
                 placeholder="Type your message"
                 value={request}
                 onChange={(e) => {

@@ -56,7 +56,7 @@ const Login = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-sm/6 font-medium text-gray-600"
             >
               Email address
             </label>
@@ -68,7 +68,7 @@ const Login = () => {
                 required
                 autoFocus
                 autoComplete="username"
-                className="block w-full rounded-md border bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block w-full rounded-md border bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-gray-500 sm:text-sm/6"
               />
             </div>
           </div>
@@ -77,14 +77,14 @@ const Login = () => {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="block text-sm/6 font-medium text-gray-900"
+                className="block text-sm/6 font-medium text-gray-600"
               >
                 Password
               </label>
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-semibold text-orange-500 hover:text-orange-400"
+                  className="font-semibold text-gray-600 hover:text-gray-700 transition-colors duration-200"
                 >
                   Forgot password?
                 </a>
@@ -97,7 +97,7 @@ const Login = () => {
                 id="password"
                 required
                 autoComplete="current-password"
-                className="block border w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block border w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-gray-500 sm:text-sm/6"
               />
             </div>
           </div>
@@ -105,10 +105,9 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex w-full justify-center rounded-md bg-orange-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-orange-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+              className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
             >
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              Sign in
             </button>
           </div>
         </form>
@@ -117,7 +116,7 @@ const Login = () => {
           Not a member?{" "}
           <a
             href="#"
-            className="font-semibold text-orange-500 hover:text-orange-400"
+            className="font-semibold text-gray-600 hover:text-gray-700 transition-colors duration-200"
           >
             Start a 14 day free trial
           </a>

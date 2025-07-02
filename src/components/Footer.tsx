@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="flex justify-between bg-white w-full shadow-sm py-5">
       <div className="flex flex-col md:flex-row gap-2.5 justify-between items-center w-full max-w-7xl mx-auto">
-        <div className="flex items-center text-[#666] text-lg font-medium">
+        <div className="flex items-center text-gray-600 text-lg font-medium">
           <span>A</span>
           <img
             className="h-[57.8px] relative top-[3px]"
@@ -19,7 +19,7 @@ const Footer = () => {
           &copy; 2025. All rights reserved.
         </p>
 
-        <div className="font-normal text-sm min-w-[200px] flex gap-3 items-center text-[#034EA2]">
+        <div className="font-normal text-sm min-w-[200px] flex gap-3 items-center text-blue-600">
           <a href="" className="underline">
             Book a demo
           </a>

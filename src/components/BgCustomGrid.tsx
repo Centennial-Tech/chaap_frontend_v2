@@ -67,15 +67,15 @@ const BgCustomCard: React.FC<IBgCustom> = ({ size, top, left }) => {
       }}
     >
       <div
-        className="w-[50%] animate-bounce delay-1000 duration-1000 shadow-2xl bg-[#f37021] [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 text-white transition-all rounded-bl-lg"
+        className="w-[50%] delay-1000 duration-1000 shadow-2xl bg-gray-400 [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 text-white transition-all rounded-bl-lg"
         style={{
           zIndex: -1,
           aspectRatio: 1,
         }}
       ></div>
-      <div className="animate-bounce delay-1000">
+      <div className="delay-1000">
         <div
-          className="w-[50%] rotate-180 shadow-2xl bg-[#034da2] [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 text-white transition-all duration-300 rounded-bl-lg"
+          className="w-[50%] rotate-180 shadow-2xl bg-gray-400 [clip-path:polygon(100%_0,0_0,0_100%,100%_75%)] rounded-xl p-4 sm:p-6 text-white transition-all duration-300 rounded-bl-lg"
           style={{
             zIndex: -1,
             aspectRatio: 1,

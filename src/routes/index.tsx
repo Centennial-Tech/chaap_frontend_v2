@@ -35,7 +35,7 @@ const LayoutWithHeader = () => {
   }, [user, location.pathname, navigate]);
 
   return (
-    <div className={`flex flex-col min-h-screen ${user ? "bg-[#f4f5f6]" : ""}`}>
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <ScrollToHash />
       <div className="relative z-50">{!user ? <Header2 /> : <Navbar />}</div>
       <main className="flex-grow flex">

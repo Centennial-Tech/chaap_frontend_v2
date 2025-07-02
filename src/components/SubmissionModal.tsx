@@ -84,7 +84,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
             New Submission
           </h2>
           <button
-            className="text-gray-400 hover:text-gray-700"
+            className="text-gray-400 hover:text-gray-700 transition-colors duration-200"
             onClick={onClose}
             aria-label="Close"
           >
@@ -99,7 +99,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
             <div>
               <label
                 htmlFor="projectTitle"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-600 mb-1"
               >
                 Project Title
               </label>
@@ -109,14 +109,14 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 value={formData.projectTitle}
                 onChange={(e) => onInputChange("projectTitle", e.target.value)}
                 required
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 text-sm"
                 placeholder="Enter project title: "
               />
             </div>
             <div>
               <label
                 htmlFor="type"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-600 mb-1"
               >
                 Type
               </label>
@@ -125,7 +125,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 value={formData.type}
                 onChange={onTypeChange}
                 required
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 text-sm"
               >
                 <option value="" disabled>
                   Select type
@@ -150,7 +150,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 }
                 required
                 rows={3}
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm resize-none"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 text-sm resize-none"
                 placeholder="Explain your product in a few lines... (e.g. 'This is a drug for hypertension', 'This is a wearable device for heart rate monitoring')"
               />
             </div>
@@ -172,7 +172,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                         onQuestionAnswerChange &&
                         onQuestionAnswerChange(q, e.target.value)
                       }
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 text-sm"
                       placeholder="Your answer..."
                     />
                   </div>
@@ -222,7 +222,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                   className={`block w-full rounded-md border px-3 py-2 text-sm ${
                     !formData.type
                       ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
-                      : "border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                      : "border-gray-300 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                   }`}
                 >
                   <option value="" disabled>
@@ -263,7 +263,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                     onInputChange("targetSubmission", e.target.value)
                   }
                   required
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 text-sm"
                 />
               </div>
             )}
@@ -271,14 +271,14 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
           <div className="flex justify-end gap-2 px-6 py-4 border-t">
             <button
               type="button"
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
               onClick={onClose}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-md bg-[#2094f3] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 flex items-center justify-center min-w-[90px]"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 flex items-center justify-center min-w-[90px]"
               disabled={loading}
             >
               {loading ? (

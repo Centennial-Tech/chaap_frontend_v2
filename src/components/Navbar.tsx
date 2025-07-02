@@ -14,36 +14,42 @@ export default function Navbar() {
   const pathSegments = location.pathname.split("/").filter(Boolean);
   const formattedPath = pathSegments.length ? (
     <span className="flex items-center gap-1">
-      <span className="text-gray-400">/</span>
-      {pathSegments.map((seg, i) => (
-        <span key={i} className="flex items-center gap-1">
-          <span
-            className={
-              i === pathSegments.length - 1
-                ? "text-blue-600 font-semibold"
-                : "text-gray-700"
-            }
-          >
-            {seg.charAt(0).toUpperCase() + seg.slice(1)}
+      <span className="text-gray-400"> &gt; </span>
+      {pathSegments.map((seg, i) => {
+        const isLast = i === pathSegments.length - 1;
+        const path = "/" + pathSegments.slice(0, i + 1).join("/");
+        
+        return (
+          <span key={i} className="flex items-center gap-1">
+            <Link
+              to={path}
+              className={
+                isLast 
+                  ? "text-gray-900 font-semibold hover:text-gray-700 transition-colors duration-200" 
+                  : "text-gray-600 hover:text-gray-700 transition-colors duration-200"
+              }
+            >
+              {seg.charAt(0).toUpperCase() + seg.slice(1)}
+            </Link>
+            {i < pathSegments.length - 1 && (
+              <span className="text-gray-400">&gt;</span>
+            )}
           </span>
-          {i < pathSegments.length - 1 && (
-            <span className="text-gray-400">/</span>
-          )}
-        </span>
-      ))}
+        );
+      })}
     </span>
   ) : (
     <span className="text-blue-600 font-semibold">/ Dashboard</span>
   );
 
   return (
-    <nav className="fixed top-0 w-full bg-white border-b border-gray-300 px-6 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-6">
+    <nav className="fixed top-0 w-full bg-white border-b border-gray-300 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-6 pl-3">
           <div className="flex items-center space-x-3">
             <Link
               to={"/"}
-              className="w-[150px]  items-center justify-center flex"
+              className="w-[150px] items-center justify-center flex"
             >
               <img src={logo} alt="Logo" />
             </Link>
@@ -52,15 +58,15 @@ export default function Navbar() {
               MedDevice Compliance Suite
             </h1> */}
           </div>
-          <div className="hidden md:flex items-center space-x-1 text-sm text-gray-700">
+          <div className="hidden md:flex items-center space-x-1 text-sm text-gray-600">
             {formattedPath}
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 pr-6">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5 text-gray-700" />
+            <Bell className="w-5 h-5 text-gray-600" />
             <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
             </span>
@@ -71,7 +77,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             <div className="text-right text-sm">
               <div className="font-bold text-gray-900">{userName}</div>
-              <div className="text-gray-700">
+              <div className="text-gray-600">
                 {user?.organization_name || "Centennial Technologies"}
               </div>
             </div>

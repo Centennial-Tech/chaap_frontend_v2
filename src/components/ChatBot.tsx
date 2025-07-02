@@ -34,7 +34,7 @@ const ChatBot = () => {
 
   const AI = ({ content, loading = false, ref = () => {} }: response) => {
     return (
-      <div ref={ref} className="flex gap-3 my-4 text-gray-600 text-sm">
+      <div ref={ref} className="flex gap-3 my-4 text-gray-700 text-sm">
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
           <div className="rounded-full bg-gray-100 border p-1">
             <svg
@@ -78,7 +78,7 @@ const ChatBot = () => {
 
   const User = ({ content }: response) => {
     return (
-      <div className="flex gap-3 my-4 text-gray-600 text-sm">
+      <div className="flex gap-3 my-4 text-gray-700 text-sm">
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
           <div className="rounded-full bg-gray-100 border p-1">
             <svg
@@ -139,7 +139,7 @@ const ChatBot = () => {
           isOpen ? "max-h-[70%]" : "max-h-0"
         } transition-all duration-500 rounded-3xl text-white w-full max-w-[80%] md:max-w-[40%] lg:max-w-[30%] 2xl:max-w-[25%] shadow-2xl h-full flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white border-[#e5e7eb]`}
       >
-        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-[#034da2] items-center shadow-xl">
+        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 items-center shadow-xl">
           <div
             className="w-10 h-10 rounded-full"
             style={{
@@ -169,7 +169,7 @@ const ChatBot = () => {
           >
             <input
               autoFocus
-              className="flex h-9 md:h-10 w-full rounded-md border border-[#e5e7eb] px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
+              className="flex h-9 md:h-10 w-full rounded-md border border-[#e5e7eb] px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
               placeholder="Type your message"
               value={request}
               onChange={(e) => {
@@ -177,7 +177,7 @@ const ChatBot = () => {
                 setRequest(e.target.value);
               }}
             />
-            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-[#f9fafb] disabled:pointer-events-none disabled:opacity-50 bg-[#034da2] hover:bg-[#111827E6] h-9 md:h-10 px-4 py-2">
+            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 h-9 md:h-10 px-4 py-2">
               Ask
             </button>
           </form>
@@ -186,7 +186,7 @@ const ChatBot = () => {
       <button
         className={`${
           isOpen ? "" : "animate-bounce"
-        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-[#034da2] hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
+        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-blue-600 hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
         type="button"
         aria-haspopup="dialog"
         aria-expanded="false"

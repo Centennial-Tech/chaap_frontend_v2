@@ -188,7 +188,7 @@ export const DEER = {
       },
     },
     color: {
-      value: "#f37021",
+      value: "#6b7280",
       animation: {
         h: {
           count: 0,
@@ -460,7 +460,7 @@ export const DEER = {
     links: {
       blink: false,
       color: {
-        value: "#f37021",
+        value: "#6b7280",
       },
       consent: false,
       distance: 30,
@@ -511,7 +511,7 @@ export const DEER = {
       enable: true,
       stroke: {
         color: {
-          value: "#f37021",
+          value: "#6b7280",
         },
         width: 1,
         opacity: 0.4,
@@ -571,7 +571,7 @@ export const ATTACT_LINES = {
     detectsOn: "window",
     events: {
       onClick: {
-        enable: true,
+        enable: false,
         mode: "push",
       },
       onDiv: {
@@ -581,10 +581,10 @@ export const ATTACT_LINES = {
         type: "circle",
       },
       onHover: {
-        enable: true,
+        enable: false,
         mode: "grab",
         parallax: {
-          enable: true,
+          enable: false,
           force: 60,
           smooth: 10,
         },
@@ -1000,7 +1000,7 @@ export const ATTACT_LINES = {
     links: {
       blink: false,
       color: {
-        value: "#000000",
+        value: "#6b7280",
       },
       consent: false,
       distance: 150,

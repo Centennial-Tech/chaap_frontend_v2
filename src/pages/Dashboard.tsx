@@ -372,16 +372,16 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen bg-gray-100">
+    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
-          <p className="text-gray-700 mt-1">
+          <p className="text-gray-600 mt-1">
             Manage your submissions and compliance documentation
           </p>
         </div>
         <button
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#2094f3] hover:bg-blue-800 text-white font-medium"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
           onClick={handleOpen}
         >
           <svg

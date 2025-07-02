@@ -248,7 +248,7 @@ const RegulatoryDocPrepAgent = () => {
 
   const renderFormField = (question: any) => {
     const isDisabled = isDocumentGenerated || isGenerating;
-    const fieldClasses = `w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 ${
+    const fieldClasses = `w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
       isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
     }`;
 
@@ -389,7 +389,7 @@ const RegulatoryDocPrepAgent = () => {
         <button
           onClick={handleModalValidate}
           disabled={!uploadedFile}
-          className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           Validate Document
         </button>
@@ -438,7 +438,7 @@ const RegulatoryDocPrepAgent = () => {
         <div className="flex justify-end">
           <button
             onClick={() => setIsValidationResultsOpen(false)}
-            className="px-6 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700"
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Close
           </button>
@@ -496,7 +496,7 @@ const RegulatoryDocPrepAgent = () => {
               <button
                 onClick={handleModalCreate}
                 disabled={!isCreateFormValid() || isGenerating}
-                className="px-4 py-2 bg-[#2094f3] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 {isGenerating ? "Generating..." : "Submit"}
               </button>
@@ -516,7 +516,7 @@ const RegulatoryDocPrepAgent = () => {
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen bg-gray-100">
+    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">
@@ -597,7 +597,7 @@ const RegulatoryDocPrepAgent = () => {
               <button
                 onClick={handleValidate}
                 disabled={!isFormValid}
-                className="px-8 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-300 transition-colors"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
               >
                 Validate
               </button>
@@ -605,7 +605,7 @@ const RegulatoryDocPrepAgent = () => {
               <button
                 onClick={handleCreate}
                 disabled={!isFormValid}
-                className="px-8 py-3 bg-[#2094f3] hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
               >
                 Create
               </button>

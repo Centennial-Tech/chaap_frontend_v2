@@ -62,7 +62,7 @@ const Header = () => {
           {agents.map(({ label, href }) => (
             <li
               key={label}
-              className="font-medium p-[12px] hover:text-[#212529] hover:bg-[#f8f9fa] text-center"
+              className="font-medium p-[12px] hover:text-gray-900 hover:bg-gray-100 text-center"
             >
               <Link to={href} onClick={() => setIsAgentsOpen(false)}>
                 {label}
