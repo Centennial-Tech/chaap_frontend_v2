@@ -68,7 +68,7 @@ const getSubmissionTypesForType = (selectedType: string): SubmissionTypeOption[]
 
 const getStatusConfig = (status: string) => {
   return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || 
-    { text: status, color: "bg-gray-100 text-gray-800" };
+    { text: status, color: "bg-gray-100 text-gray-700" };
 };
 
 const calculateStats = (submissions: Submission[]): Stats => {
@@ -208,7 +208,7 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
-          <p className="text-gray-700 mt-1">
+          <p className="text-gray-600 mt-1">
             Manage your submissions and compliance documentation
           </p>
         </div>

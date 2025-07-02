@@ -76,7 +76,7 @@ const Header2 = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    stroke="#f37021"
+                    stroke="#6b7280"
                     strokeWidth={2}
                     d="M1 1h15M1 7h15M1 13h15"
                     strokeLinecap="round"
@@ -91,7 +91,7 @@ const Header2 = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    stroke="#f37021"
+                    stroke="#6b7280"
                     strokeWidth={2}
                     d="M6 18L18 6M6 6l12 12"
                     strokeLinecap="round"

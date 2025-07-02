@@ -131,7 +131,7 @@ const Home = () => {
               {name}
             </h5>
           </Link>
-          <p className="mb-3 font-normal dark:text-gray-400 text-black">
+          <p className="mb-3 font-normal dark:text-gray-400 text-gray-700">
             {desc}
           </p>
           <Link
@@ -162,7 +162,7 @@ const Home = () => {
 
   const WhyChaapItem = ({ yes, no }: IWhyChaap) => {
     return (
-      <div className="grid grid-cols-2 px-4 py-5 text-sm text-gray-700 border-b border-gray-200 gap-x-16 dark:border-gray-700">
+      <div className="grid grid-cols-2 px-4 py-5 text-sm text-gray-600 border-b border-gray-200 gap-x-16 dark:border-gray-700">
         <div className="flex gap-2 items-center justify-center">
           <svg
             className="w-3 h-3 text-red-500"
@@ -219,7 +219,7 @@ const Home = () => {
           <div className="flex flex-col p-10 justify-center items-center gap-5 relative md:top-1/4">
             <div className="">
               <p className="text-5xl">
-                <span className="text-orange-400 font-bold">AI</span> That
+                <span className="text-gray-900 font-bold">AI</span> That
                 Understands Regulation
               </p>
               <p className="text-4xl">So You Don't Have To.</p>
@@ -228,7 +228,7 @@ const Home = () => {
             <Link
               to="/contact"
               type="submit"
-              className="text-white max-w-[136px] bg-[#f37021] hover:bg-orange-600 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-md text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              className="text-white max-w-[136px] bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 text-center"
             >
               Book A Demo!
             </Link>

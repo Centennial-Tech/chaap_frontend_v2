@@ -19,14 +19,14 @@ const StatsCard: React.FC<StatsCardProps> = ({
   iconBgColor,
   iconColor,
   subtitle,
-  subtitleColor = "text-gray-700",
+  subtitleColor = "text-gray-600",
 }) => {
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-sm font-medium text-gray-600">
               {title}
             </p>
             <p className="text-2xl font-semibold text-gray-900">

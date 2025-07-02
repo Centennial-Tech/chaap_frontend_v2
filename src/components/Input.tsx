@@ -11,7 +11,7 @@ const Input = ({
   return (
     <div>
       <label
-        className={`block mb-2 text-sm font-medium text-gray-900 dark:text-white ${
+        className={`block mb-2 text-sm font-medium text-gray-600 dark:text-white ${
           required ? "required" : ""
         }`}
       >
@@ -22,7 +22,7 @@ const Input = ({
           rows={4}
           name={name}
           id={id}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           placeholder={placeholder}
           required={required}
           onChange={onChange}
@@ -32,7 +32,7 @@ const Input = ({
           type={type}
           name={name}
           id={id}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           placeholder={placeholder}
           required={required}
           onChange={onChange}

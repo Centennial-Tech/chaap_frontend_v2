@@ -86,10 +86,10 @@ export default function Sidebar() {
               to={item.path}
               className={
               location.pathname === item.path && !shouldShowFull
-              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600 hover:text-blue-700"
               : location.pathname === item.path
-              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
-              : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
+              ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600 hover:text-blue-700"
+              : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-600 hover:bg-gray-100 hover:text-gray-700"
               }
               title={!shouldShowFull ? item.label : undefined}
             >
@@ -127,7 +127,7 @@ export default function Sidebar() {
               <Link 
                 key={section} 
                 to={`/form-builder?section=${section.toLowerCase().replace(/\s+/g, '-')}`}
-                className="flex items-center px-2.5 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-300 ease-in-out"
+                className="flex items-center px-2.5 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-700 rounded-md transition-all duration-300 ease-in-out"
                 title={!shouldShowFull ? section : undefined}
               >
                 <span className={`transition-all duration-500 ease-in-out whitespace-nowrap ${
