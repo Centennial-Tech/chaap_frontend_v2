@@ -152,19 +152,17 @@ const Dashboard = () => {
   const { user } = useAuth();
 
   const fetchSubmissions = async () => {
-      try {
-        const response = await api.get(
-          `/applications/userId?user_id=${user?.id}`
-        );
-        const data: Submission[] = response.data;
-        setSubmissions(data);
-      } catch (error) {
-        console.error("Error fetching submissions:", error);
-      }
-    };
+    try {
+      const response = await api.get(
+        `/applications/userId?user_id=${user?.id}`
+      );
+      const data: Submission[] = response.data;
+      setSubmissions(data);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+    }
+  };
   useEffect(() => {
-    console.log("Fetching submissions for user:", user?.id);
-    
     fetchSubmissions();
   }, []);
 
@@ -318,8 +316,7 @@ const Dashboard = () => {
         screening_responses: JSON.stringify(questionAnswersRef.current),
       };
 
-      // console.log("Creating new submission:", newSubmission);
-      await api.post("/applications", newSubmission);
+      await api.post("/applications/", newSubmission);
       await fetchSubmissions();
       // setSubmissions((prev) => [newSubmission, ...prev]);
       setQuestions([]);
