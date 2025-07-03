@@ -1,80 +1,221 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "../components/ui/Card";
 import { CheckCircle, AlertTriangle, XCircle, Download } from "lucide-react";
 import Modal from "../components/ui/Modal";
-
-// Mock data for submissions
-const mockSubmissions = [
-  { id: 1, submissionName: "Cardiac Monitoring Device 2024" },
-  { id: 2, submissionName: "Orthopedic Implant v2.1" },
-  { id: 3, submissionName: "Diagnostic Kit Alpha" },
-  { id: 4, submissionName: "Surgical Instrument Pro" },
-];
+import api from "../api";
+import { useAuth } from "../provider/authProvider";
 
 const attachmentTypes = [
-  "Device Description",
-  "Predicate Comparison",
-  "Performance Testing",
-  "Risk Analysis",
-  "Clinical Data",
-  "Labeling",
-  "Manufacturing Information",
-  "Quality System",
-  "Biocompatibility",
-  "Software Documentation",
+  {
+    id: "device-description",
+    label: "Device Description",
+  },
+  {
+    id: "cover-letter",
+    label: "Cover Letter",
+  },
 ];
 
 // Simplified mock API response for form questions
 const mockFormQuestions = {
   "device-description": [
     { id: "deviceName", label: "Device Name", type: "text", required: true },
-    { id: "intendedUse", label: "Intended Use", type: "textarea", required: true },
-    { id: "riskClass", label: "Risk Classification", type: "select", required: true, options: ["Class I", "Class II", "Class III"] },
+    {
+      id: "intendedUse",
+      label: "Intended Use",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "riskClass",
+      label: "Risk Classification",
+      type: "select",
+      required: true,
+      options: ["Class I", "Class II", "Class III"],
+    },
   ],
   "predicate-comparison": [
     { id: "deviceName", label: "Device Name", type: "text", required: true },
-    { id: "predicateDevice", label: "Predicate Device", type: "text", required: true },
-    { id: "similarities", label: "Key Similarities", type: "textarea", required: true },
+    {
+      id: "predicateDevice",
+      label: "Predicate Device",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "similarities",
+      label: "Key Similarities",
+      type: "textarea",
+      required: true,
+    },
   ],
   "performance-testing": [
-    { id: "testingOverview", label: "Testing Overview", type: "textarea", required: true },
-    { id: "testStandards", label: "Standards Followed", type: "text", required: true },
-    { id: "testResults", label: "Summary of Test Results", type: "textarea", required: true },
+    {
+      id: "testingOverview",
+      label: "Testing Overview",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "testStandards",
+      label: "Standards Followed",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "testResults",
+      label: "Summary of Test Results",
+      type: "textarea",
+      required: true,
+    },
   ],
   "risk-analysis": [
-    { id: "riskAnalysisStandard", label: "Risk Analysis Standard", type: "select", required: true, options: ["ISO 14971", "IEC 62304", "ISO 13485"] },
-    { id: "hazardIdentification", label: "Hazard Identification Process", type: "textarea", required: true },
-    { id: "riskControl", label: "Risk Control Measures", type: "textarea", required: true },
+    {
+      id: "riskAnalysisStandard",
+      label: "Risk Analysis Standard",
+      type: "select",
+      required: true,
+      options: ["ISO 14971", "IEC 62304", "ISO 13485"],
+    },
+    {
+      id: "hazardIdentification",
+      label: "Hazard Identification Process",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "riskControl",
+      label: "Risk Control Measures",
+      type: "textarea",
+      required: true,
+    },
   ],
   "clinical-data": [
-    { id: "clinicalStrategy", label: "Clinical Evaluation Strategy", type: "textarea", required: true },
-    { id: "literatureReview", label: "Literature Review Summary", type: "textarea", required: true },
-    { id: "clinicalOutcomes", label: "Clinical Outcomes", type: "textarea", required: true },
+    {
+      id: "clinicalStrategy",
+      label: "Clinical Evaluation Strategy",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "literatureReview",
+      label: "Literature Review Summary",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "clinicalOutcomes",
+      label: "Clinical Outcomes",
+      type: "textarea",
+      required: true,
+    },
   ],
   labeling: [
-    { id: "labelingStandards", label: "Labeling Standards", type: "select", required: true, options: ["21 CFR 801", "21 CFR 820", "ISO 15223"] },
-    { id: "intendedUse", label: "Intended Use Statement", type: "textarea", required: true },
-    { id: "contraindications", label: "Contraindications", type: "textarea", required: true },
+    {
+      id: "labelingStandards",
+      label: "Labeling Standards",
+      type: "select",
+      required: true,
+      options: ["21 CFR 801", "21 CFR 820", "ISO 15223"],
+    },
+    {
+      id: "intendedUse",
+      label: "Intended Use Statement",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "contraindications",
+      label: "Contraindications",
+      type: "textarea",
+      required: true,
+    },
   ],
   "manufacturing-information": [
-    { id: "manufacturingSite", label: "Manufacturing Site", type: "text", required: true },
-    { id: "qualitySystem", label: "Quality System Standard", type: "select", required: true, options: ["ISO 13485", "21 CFR 820", "ISO 9001"] },
-    { id: "manufacturingProcess", label: "Manufacturing Process Description", type: "textarea", required: true },
+    {
+      id: "manufacturingSite",
+      label: "Manufacturing Site",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "qualitySystem",
+      label: "Quality System Standard",
+      type: "select",
+      required: true,
+      options: ["ISO 13485", "21 CFR 820", "ISO 9001"],
+    },
+    {
+      id: "manufacturingProcess",
+      label: "Manufacturing Process Description",
+      type: "textarea",
+      required: true,
+    },
   ],
   "quality-system": [
-    { id: "qmsStandard", label: "QMS Standard", type: "select", required: true, options: ["ISO 13485:2016", "21 CFR Part 820", "ISO 9001:2015"] },
-    { id: "designControls", label: "Design Controls", type: "textarea", required: true },
-    { id: "riskManagement", label: "Risk Management Process", type: "textarea", required: true },
+    {
+      id: "qmsStandard",
+      label: "QMS Standard",
+      type: "select",
+      required: true,
+      options: ["ISO 13485:2016", "21 CFR Part 820", "ISO 9001:2015"],
+    },
+    {
+      id: "designControls",
+      label: "Design Controls",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "riskManagement",
+      label: "Risk Management Process",
+      type: "textarea",
+      required: true,
+    },
   ],
   biocompatibility: [
-    { id: "biocompatibilityStandard", label: "Biocompatibility Standard", type: "select", required: true, options: ["ISO 10993", "USP Class VI", "FDA Blue Book"] },
-    { id: "biologicalEvaluation", label: "Biological Evaluation Plan", type: "textarea", required: true },
-    { id: "contactType", label: "Contact Type", type: "select", required: true, options: ["Surface Device", "External Communicating", "Implant"] },
+    {
+      id: "biocompatibilityStandard",
+      label: "Biocompatibility Standard",
+      type: "select",
+      required: true,
+      options: ["ISO 10993", "USP Class VI", "FDA Blue Book"],
+    },
+    {
+      id: "biologicalEvaluation",
+      label: "Biological Evaluation Plan",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "contactType",
+      label: "Contact Type",
+      type: "select",
+      required: true,
+      options: ["Surface Device", "External Communicating", "Implant"],
+    },
   ],
   "software-documentation": [
-    { id: "softwareClass", label: "Software Classification", type: "select", required: true, options: ["Class A", "Class B", "Class C"] },
-    { id: "softwareStandard", label: "Software Standard", type: "select", required: true, options: ["IEC 62304", "ISO 14971", "FDA Guidance"] },
-    { id: "softwareLifecycle", label: "Software Lifecycle Process", type: "textarea", required: true },
+    {
+      id: "softwareClass",
+      label: "Software Classification",
+      type: "select",
+      required: true,
+      options: ["Class A", "Class B", "Class C"],
+    },
+    {
+      id: "softwareStandard",
+      label: "Software Standard",
+      type: "select",
+      required: true,
+      options: ["IEC 62304", "ISO 14971", "FDA Guidance"],
+    },
+    {
+      id: "softwareLifecycle",
+      label: "Software Lifecycle Process",
+      type: "textarea",
+      required: true,
+    },
   ],
 };
 
@@ -117,7 +258,8 @@ const mockValidationResults = {
       status: "fail",
       score: 60,
       title: "Incomplete Risk Analysis",
-      description: "Risk analysis section lacks comprehensive hazard identification",
+      description:
+        "Risk analysis section lacks comprehensive hazard identification",
       recommendation: "Conduct thorough risk assessment following ISO 14971",
     },
   ],
@@ -152,6 +294,22 @@ const RegulatoryDocPrepAgent = () => {
   const [isDocumentGenerated, setIsDocumentGenerated] = useState(false);
 
   const isFormValid = selectedSubmission && selectedAttachmentType;
+
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Simulate API call to fetch submissions
+    const fetchSubmissions = async () => {
+      const response = await api.get(
+        `/applications/userId?user_id=${user?.id}`
+      );
+      const data = response.data;
+      setSubmissions(data);
+    };
+
+    fetchSubmissions();
+  }, [user?.id]);
 
   // Simulate API call to fetch form questions
   const fetchFormQuestions = async (attachmentType: string) => {
@@ -461,7 +619,9 @@ const RegulatoryDocPrepAgent = () => {
               <div key={question.id}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {question.label}
-                  {question.required && <span className="text-red-500 ml-1">*</span>}
+                  {question.required && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
                 </label>
                 {renderFormField(question)}
               </div>
@@ -555,13 +715,15 @@ const RegulatoryDocPrepAgent = () => {
                   value={selectedSubmission}
                   onChange={(e) => setSelectedSubmission(e.target.value)}
                 >
-                  <option value="">Select a recent submission</option>
-                  {mockSubmissions.map((submission) => (
+                  <option value="" disabled selected>
+                    Select a recent submission
+                  </option>
+                  {submissions.map((submission) => (
                     <option
                       key={submission.id}
-                      value={submission.id.toString()}
+                      value={submission.submissionType?.toString()}
                     >
-                      {submission.submissionName}
+                      {submission.name}
                     </option>
                   ))}
                 </select>
@@ -581,12 +743,9 @@ const RegulatoryDocPrepAgent = () => {
                   onChange={(e) => setSelectedAttachmentType(e.target.value)}
                 >
                   <option value="">Select document type to generate</option>
-                  {attachmentTypes.map((type) => (
-                    <option
-                      key={type}
-                      value={type.toLowerCase().replace(/\s+/g, "-")}
-                    >
-                      {type}
+                  {attachmentTypes.map(({ label, id }) => (
+                    <option key={id} value={id}>
+                      {label}
                     </option>
                   ))}
                 </select>
