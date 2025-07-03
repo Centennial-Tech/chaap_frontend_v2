@@ -231,15 +231,14 @@ const Dashboard = () => {
     }
   }, [formSuggestion, suggestionError]);
 
-  // Add a ref to always have the latest questionAnswers
-  const questionAnswersRef = React.useRef(questionAnswers);
-  React.useEffect(() => {
-    questionAnswersRef.current = questionAnswers;
-  }, [questionAnswers]);
-
-  // Event handlers
-  const handleDeleteSubmission = React.useCallback((id: number) => {
-    setSubmissions((prev) => prev.filter((s) => s.id !== id));
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  
+  const handleDeleteSubmission = React.useCallback(async (id: string) => {
+    console.log("Delete button clicked for submission ID:", id);
+    console.log("Delete functionality is currently disabled - no action taken");
+    // No API call or state changes - just log that the button was clicked
   }, []);
 
   const handleOpen = React.useCallback(() => setOpen(true), []);
