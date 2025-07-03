@@ -52,7 +52,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
             </span>
           </div>
         );
-      }
+    }
   };
 
   return (
@@ -81,11 +81,11 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-ms-gray-300">
-          {submissions.map((submission) => (
+          {submissions.map((submission: any) => (
             <tr key={submission.id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-ms-gray-900">
-                  {submission.project}
+                  {submission.name}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
@@ -105,7 +105,8 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
-                {new Date(submission.updatedAt).toLocaleDateString()}
+                {/* {new Date(submission.updatedAt).toLocaleDateString()} */}
+                {submission.updatedAt}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                 <Button variant="ghost" size="icon">
