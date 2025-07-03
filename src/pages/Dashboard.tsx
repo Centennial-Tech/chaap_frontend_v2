@@ -1,185 +1,51 @@
 import { CheckCircle, Clock, FileText } from "lucide-react";
-import { Card, CardContent } from "../components/ui/Card";
+import { Card } from "../components/ui/Card";
 import React, { useEffect } from "react";
 import StatsCard from "../components/StatsCard";
-import SubmissionModal from "../components/SubmissionModal";
-import SubmissionTable from "../components/SubmissionTable";
-import api from "../api";
+import ApplicationModal from "../components/ApplicationModal";
+import ApplicationTable from "../components/ApplicationTable";
 import { useAuth } from "../provider/authProvider";
-
-// Types
-interface Submission {
-  id: number;
-  project: string;
-  type: "Device" | "Drug";
-  submissionType: string;
-  targetSubmission: string;
-  status: "draft" | "pending" | "approved";
-  progress: number;
-  updatedAt: string;
-  productDescription: string;
-}
-
-interface SubmissionTypeOption {
-  value: string;
-  label: string;
-}
-
-interface Stats {
-  drafts: number;
-  pending: number;
-  approved: number;
-  total: number;
-  approvalRate: number;
-}
-
-// Constants
-const SUBMISSION_TYPES = {
-  Device: [
-    { value: "510k", label: "510k (Premarket Notification)" },
-    { value: "PMA", label: "PMA (Premarket Approval)" },
-    { value: "De Novo", label: "De Novo Classification Request" },
-    { value: "HDE", label: "HDE (Humanitarian Device Exemption)" },
-    { value: "IDE", label: "IDE (Investigational Device Exemption)" },
-  ] as SubmissionTypeOption[],
-  Drug: [
-    { value: "IND", label: "IND (Investigational New Drug)" },
-    { value: "NDA", label: "NDA (New Drug Application)" },
-    { value: "ANDA", label: "ANDA (Abbreviated New Drug Application)" },
-    { value: "BLA", label: "BLA (Biologics License Application)" },
-  ] as SubmissionTypeOption[],
-};
-
-const STATUS_CONFIG = {
-  draft: { text: "Draft", color: "bg-blue-500" },
-  pending: { text: "Pending", color: "bg-orange-500" },
-  approved: { text: "Approved", color: "bg-green-500" },
-} as const;
-
-// Utility functions
-const getSubmissionTypesForType = (
-  selectedType: string
-): SubmissionTypeOption[] => {
-  return SUBMISSION_TYPES[selectedType as keyof typeof SUBMISSION_TYPES] || [];
-};
-
-const getStatusConfig = (status: string) => {
-  return (
-    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || {
-      text: status,
-      color: "bg-gray-500",
-    }
-  );
-};
-
-const calculateStats = (submissions: Submission[]): Stats => {
-  const drafts = submissions.filter((s) => s.status === "draft").length;
-  const pending = submissions.filter((s) => s.status === "pending").length;
-  const approved = submissions.filter((s) => s.status === "approved").length;
-  const total = submissions.length;
-  const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
-
-  return { drafts, pending, approved, total, approvalRate };
-};
-
-const generateNewId = (submissions: Submission[]): number => {
-  return submissions.length ? Math.max(...submissions.map((s) => s.id)) + 1 : 1;
-};
-
-// Initial data
-// const INITIAL_SUBMISSIONS: Submission[] = [
-//   {
-//     id: 1,
-//     project: "CardioSense Monitor",
-//     type: "Device",
-//     submissionType: "PMA (Premarket Approval)",
-//     targetSubmission: "2024-06-01T10:30:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-06-01T10:30:00Z",
-//     productDescription: "A monitor for cardiovascular health.",
-//   },
-//   {
-//     id: 2,
-//     project: "ThermoScan Pro",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-06-30T14:45:00Z",
-//     status: "pending",
-//     progress: 80,
-//     updatedAt: "2024-06-02T14:45:00Z",
-//     productDescription: "A professional-grade thermometer.",
-//   },
-//   {
-//     id: 3,
-//     project: "Adestunore",
-//     type: "Drug",
-//     submissionType: "NDA (New Drug Application)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "A new drug for treating conditions.",
-//   },
-//   {
-//     id: 4,
-//     project: "PulseOx 2000",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-07-15T09:20:00Z",
-//     status: "draft",
-//     progress: 40,
-//     updatedAt: "2024-06-03T09:20:00Z",
-//     productDescription: "A pulse oximeter for measuring blood oxygen.",
-//   },
-//   {
-//     id: 5,
-//     project: "Hicesterol",
-//     type: "Drug",
-//     submissionType: "IND (Investigational New Drug)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "draft",
-//     progress: 0,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "An investigational drug for high cholesterol.",
-//   },
-// ];
+import {
+  type Application,
+  getStatusConfig,
+  calculateStats,
+  fetchApplications,
+  sortApplicationsByDate,
+  createApplication,
+} from "../helpers/applicationApiHelper";
 
 const Dashboard = () => {
   // State management
   const [open, setOpen] = React.useState(false);
-  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
+  const [applications, setApplications] = React.useState<Application[]>([]);
   const { user } = useAuth();
 
-  const fetchSubmissions = async () => {
+  const fetchApplicationsData = async () => {
     try {
-      const response = await api.get(
-        `/applications/userId?user_id=${user?.id}`
-      );
-      const data: Submission[] = response.data;
-      setSubmissions(data);
+      if (user?.id) {
+        const data = await fetchApplications(user.id);
+        setApplications(data);
+      }
     } catch (error) {
-      console.error("Error fetching submissions:", error);
+      console.error("Error fetching applications:", error);
     }
   };
   useEffect(() => {
-    fetchSubmissions();
-  }, []);
+    fetchApplicationsData();
+  }, [user?.id]);
 
   // Form state (update type to match new fields)
   type FormData = {
-    projectTitle: string;
+    name: string;
     type: string;
-    submissionType: string;
-    targetSubmission: string;
+    end_time: string;
     productDescription: string;
   };
 
   const [formData, setFormData] = React.useState<FormData>({
-    projectTitle: "",
+    name: "",
     type: "",
-    submissionType: "",
-    targetSubmission: "",
+    end_time: "",
     productDescription: "",
   });
 
@@ -190,53 +56,23 @@ const Dashboard = () => {
   }>({});
   // Add loading state for API call
   const [loading, setLoading] = React.useState(false);
-  // Add state for form suggestion
-  const [formSuggestion, setFormSuggestion] = React.useState<string>("");
-  const [suggestionError, setSuggestionError] = React.useState("");
 
   // Track if we are in the final create step
   const [readyToCreate, setReadyToCreate] = React.useState(false);
-  // Track if user can skip suggestion and go to create after error
-  const [allowManualCreate, setAllowManualCreate] = React.useState(false);
 
-  // Derived state - Sort submissions by last updated (most recent first)
-  const sortedSubmissions = React.useMemo(() => {
-    return [...submissions].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
-  }, [submissions]);
+  // Derived state - Sort applications by last updated (most recent first)
+  const sortedApplications = React.useMemo(() => {
+    return sortApplicationsByDate(applications);
+  }, [applications]);
 
-  const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
-
-  // Update readyToCreate when formSuggestion is set
-  React.useEffect(() => {
-    if (formSuggestion) {
-      setReadyToCreate(true);
-    } else {
-      setReadyToCreate(false);
-    }
-  }, [formSuggestion]);
-
-  React.useEffect(() => {
-    if (suggestionError) {
-      setAllowManualCreate(true);
-      setReadyToCreate(true);
-    } else if (formSuggestion) {
-      setAllowManualCreate(false);
-      setReadyToCreate(true);
-    } else {
-      setAllowManualCreate(false);
-      setReadyToCreate(false);
-    }
-  }, [formSuggestion, suggestionError]);
+  const stats = React.useMemo(() => calculateStats(applications), [applications]);
 
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
   
-  const handleDeleteSubmission = React.useCallback(async (id: string) => {
-    console.log("Delete button clicked for submission ID:", id);
+  const handleDeleteApplication = React.useCallback(async (id: string) => {
+    console.log("Delete button clicked for application ID:", id);
     console.log("Delete functionality is currently disabled - no action taken");
     // No API call or state changes - just log that the button was clicked
   }, []);
@@ -246,86 +82,47 @@ const Dashboard = () => {
   const handleClose = React.useCallback(() => {
     setOpen(false);
     setFormData({
-      projectTitle: "",
+      name: "",
       type: "",
-      submissionType: "",
-      targetSubmission: "",
+      end_time: "",
       productDescription: "",
     });
     setQuestions([]);
     setQuestionAnswers({});
     setLoading(false);
+    setReadyToCreate(false);
   }, []);
 
-  const handleAdditionalQuestionsSubmission = React.useCallback(
+  const handleCreateApplication = React.useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
-      setSuggestionError("");
-      let suggestion = "";
-      let response;
-      let attempts = 0;
-      try {
-        do {
-          // Use the ref to get the latest answers
-          const answers = { ...questionAnswersRef.current };
-          console.log("API will send answers:", answers);
-          response = await api.post("/agent/suggested_form", {
-            user_answers: JSON.stringify(answers),
-          });
-          suggestion = response.data?.suggested_form || "";
-          attempts++;
-        } while (suggestion.length > 10 && attempts < 2);
-        if (suggestion.length > 10) {
-          setSuggestionError(
-            "We are not able to get a suggestion based on your inputs. Please select the submission type manually."
-          );
-          setFormSuggestion("");
-          setFormData((prev) => ({ ...prev, submissionType: "" }));
-        } else {
-          setFormSuggestion(suggestion);
-          setFormData((prev) => ({ ...prev, submissionType: suggestion }));
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [] // Remove questionAnswers from deps, use ref instead
-  );
-
-  const handleCreateSubmission = React.useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setLoading(true);
-      // TODO: Add your final API calls here before creating the submission
+      // TODO: Add your final API calls here before creating the application
       // Example:
       // await api.post('/your/endpoint', { ... });
       // await api.post('/another/endpoint', { ... });
       // Add your API logic below this comment
-      const newSubmission: any = {
-        // id: generateNewId(submissions),
-        name: formData.projectTitle,
+      const newApplication: Partial<Application> = {
+        name: formData.name,
         type: formData.type as "Device" | "Drug",
-        submissionType: formData.submissionType,
-        targetSubmission: "",
+        end_time: "",
         status: "draft",
         progress: 0,
-        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         productDescription: formData.productDescription,
-        screening_responses: JSON.stringify(questionAnswersRef.current),
+        screening_responses: JSON.stringify(questionAnswers),
       };
 
-      await api.post("/applications/", newSubmission);
-      await fetchSubmissions();
-      // setSubmissions((prev) => [newSubmission, ...prev]);
+      await createApplication(newApplication);
+      await fetchApplicationsData();
+      // setApplications((prev) => [newApplication, ...prev]);
       setQuestions([]);
       setQuestionAnswers({});
-      setFormSuggestion("");
       setReadyToCreate(false);
       setLoading(false);
       handleClose();
     },
-    [formData, submissions, handleClose]
+    [formData, applications, handleClose]
   );
 
   const handleFormSubmit = React.useCallback(
@@ -335,11 +132,18 @@ const Dashboard = () => {
         setLoading(true);
         try {
           // First submit: get questions from API
-          const response = await api.post("/agent/form_questions", {
-            user_input: formData.productDescription,
+          const response = await fetch("/agent/form_questions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_input: formData.productDescription,
+            }),
           });
+          const responseData = await response.json();
           const qs =
-            response.data?.questions
+            responseData?.questions
               ?.match(/- (.+?)(?=\n|$)/g)
               ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
           setQuestions(qs);
@@ -349,12 +153,12 @@ const Dashboard = () => {
         // Don't close modal yet, let user answer questions
         return;
       }
-      // Second submit: save submission with answers
-      await handleAdditionalQuestionsSubmission(e);
-      // Now show the submissionType field with default value from formSuggestion
+      // Second submit: save application with answers
+      await handleCreateApplication(e);
+      // Now show the applicationType field with default value from formSuggestion
       return;
     },
-    [formData, submissions, handleClose, questions]
+    [formData, applications, handleClose, questions]
   );
 
   // Handler for question answers
@@ -375,7 +179,6 @@ const Dashboard = () => {
       setFormData((prev) => ({
         ...prev,
         type: newType,
-        submissionType: "", // Reset submission type when type changes
       }));
     },
     []
@@ -394,7 +197,7 @@ const Dashboard = () => {
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
           <p className="text-gray-600 mt-1">
-            Manage your submissions and compliance documentation
+            Manage your applications and compliance documentation
           </p>
         </div>
         <button
@@ -416,67 +219,61 @@ const Dashboard = () => {
             <path d="M5 12h14"></path>
             <path d="M12 5v14"></path>
           </svg>
-          New Submission
+          New Application
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         <StatsCard
-          title="Draft Submissions"
+          title="Draft Applications"
           value={stats?.drafts || 0}
           icon={FileText}
           iconBgColor="bg-blue-100"
           iconColor="text-blue-600"
         />
         <StatsCard
-          title="Pending Review"
-          value={stats?.pending || 0}
+          title="In Progress"
+          value={stats?.in_progress || 0}
           icon={Clock}
           iconBgColor="bg-orange-100"
           iconColor="text-orange-500"
         />
         <StatsCard
-          title="Approved"
-          value={stats?.approved || 0}
+          title="Completed"
+          value={stats?.completed || 0}
           icon={CheckCircle}
           iconBgColor="bg-green-100"
           iconColor="text-green-600"
         />
       </div>
 
-      {/* Submissions Table */}
+      {/* Applications Table */}
       <Card>
         <div className="px-6 py-4 border-b border-ms-gray-300">
           <h3 className="text-lg font-medium text-ms-gray-900">
-            Your Submissions
+            Your Applications
           </h3>
         </div>
-        <SubmissionTable
-          submissions={sortedSubmissions}
-          onDelete={handleDeleteSubmission}
-          getStatusConfig={getStatusConfig}
+        <ApplicationTable
+          applications={sortedApplications}
+          onDelete={handleDeleteApplication}
         />
       </Card>
 
       {/* Modal */}
-      <SubmissionModal
+      <ApplicationModal
         open={open}
         formData={formData}
         onClose={handleClose}
-        onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
+        onSubmit={readyToCreate ? handleCreateApplication : handleFormSubmit}
         onTypeChange={handleTypeChange}
         onInputChange={handleInputChange}
-        getSubmissionTypesForType={getSubmissionTypesForType}
-        hideTargetDate
+        hideEndTime
         questions={questions}
         questionAnswers={questionAnswers}
         onQuestionAnswerChange={handleQuestionAnswerChange}
         loading={loading}
-        showSubmissionType={!!formSuggestion || !!suggestionError}
-        formSuggestion={formSuggestion}
         readyToCreate={readyToCreate}
-        suggestionError={suggestionError}
-        allowManualCreate={allowManualCreate}
       />
     </div>
   );

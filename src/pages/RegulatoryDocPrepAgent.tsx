@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "../components/ui/Card";
 import { CheckCircle, AlertTriangle, XCircle, Download } from "lucide-react";
 import Modal from "../components/ui/Modal";
-import api from "../api";
 import { useAuth } from "../provider/authProvider";
+import { fetchApplications } from "../helpers/applicationApiHelper";
 
 const attachmentTypes = [
   {
@@ -278,7 +278,7 @@ const mockValidationResults = {
 };
 
 const RegulatoryDocPrepAgent = () => {
-  const [selectedSubmission, setSelectedSubmission] = useState("");
+  const [selectedApplication, setSelectedApplication] = useState("");
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
@@ -293,22 +293,25 @@ const RegulatoryDocPrepAgent = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDocumentGenerated, setIsDocumentGenerated] = useState(false);
 
-  const isFormValid = selectedSubmission && selectedAttachmentType;
+  const isFormValid = selectedApplication && selectedAttachmentType;
 
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    // Simulate API call to fetch submissions
-    const fetchSubmissions = async () => {
-      const response = await api.get(
-        `/applications/userId?user_id=${user?.id}`
-      );
-      const data = response.data;
-      setSubmissions(data);
+    // Fetch applications using helper
+    const fetchApplicationsData = async () => {
+      if (user?.id) {
+        try {
+          const data = await fetchApplications(user.id);
+          setApplications(data);
+        } catch (error) {
+          console.error("Error fetching applications:", error);
+        }
+      }
     };
 
-    fetchSubmissions();
+    fetchApplicationsData();
   }, [user?.id]);
 
   // Simulate API call to fetch form questions
@@ -704,26 +707,26 @@ const RegulatoryDocPrepAgent = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label
-                  htmlFor="submission-select"
+                  htmlFor="application-select"
                   className="text-sm font-medium text-gray-700"
                 >
-                  1. Submission Name
+                  1. Application Name
                 </label>
                 <select
-                  id="submission-select"
+                  id="application-select"
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedSubmission}
-                  onChange={(e) => setSelectedSubmission(e.target.value)}
+                  value={selectedApplication}
+                  onChange={(e) => setSelectedApplication(e.target.value)}
                 >
                   <option value="" disabled selected>
-                    Select a recent submission
+                    Select a recent application
                   </option>
-                  {submissions.map((submission) => (
+                  {applications.map((application) => (
                     <option
-                      key={submission.id}
-                      value={submission.submissionType?.toString()}
+                      key={application.id}
+                      value={application.name}
                     >
-                      {submission.name}
+                      {application.name}
                     </option>
                   ))}
                 </select>

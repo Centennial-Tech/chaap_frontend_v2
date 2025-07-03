@@ -2,35 +2,16 @@ import React, { useState } from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
 import { Edit, Download, Trash2 } from "lucide-react";
+import { type Application } from "../helpers/applicationApiHelper";
 
-interface Submission {
-  id: string;
-  application_id: string;
-  name: string;
-  submissionType: string;
-  status: "draft" | "in_progress" | "completed";
-  progress: number;
-  updated_at: string; 
-  start_time: string;
-  end_time?: string | null;
-  user_id: string;
-  username: string;
-  screening_responses?: string;
-  form_id?: string | null;
-  active: boolean;
-  productDescription?: string;
-}
-
-interface SubmissionTableProps {
-  submissions: Submission[];
+interface ApplicationTableProps {
+  applications: Application[];
   onDelete: (id: string) => Promise<void>; // Changed from number to string
-  getStatusConfig: (status: string) => { text: string; color: string };
 }
 
-const SubmissionTable: React.FC<SubmissionTableProps> = ({
-  submissions,
+const ApplicationTable: React.FC<ApplicationTableProps> = ({
+  applications,
   onDelete,
-  getStatusConfig,
 }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null);
 
@@ -39,11 +20,11 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   };
 
   const handleConfirmDelete = async (id: string) => {
-    console.log("SubmissionTable: handleConfirmDelete called with ID:", id);
+    console.log("ApplicationTable: handleConfirmDelete called with ID:", id);
     setShowConfirmDialog(null);
     // Call the onDelete function (which now does nothing)
     await onDelete(id);
-    console.log("SubmissionTable: Delete confirmation completed");
+    console.log("ApplicationTable: Delete confirmation completed");
   };
 
   const handleCancelDelete = () => {
@@ -97,9 +78,6 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                 Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
-                Submission Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
@@ -114,31 +92,28 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-ms-gray-300">
-            {submissions.map((submission: any) => (
-              <tr key={submission.application_id}>
+            {applications.map((application: any) => (
+              <tr key={application.application_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-ms-gray-700">
-                    {submission.name}
+                    {application.name}
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
-                  {submission.submissionType}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex justify-start">
-                    {getStatusIcon(submission.status)}
+                    {getStatusIcon(application.status)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="w-full">
-                    <Progress value={submission.progress} className="h-2" />
+                    <Progress value={application.progress} className="h-2" />
                     <span className="text-xs text-ms-gray-700 mt-1 block">
-                      {submission.progress}% Complete
+                      {application.progress}% Complete
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
-                  {submission.updated_at}
+                  {application.updated_at}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                   <Button variant="ghost" size="icon">
@@ -147,11 +122,11 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   <Button variant="ghost" size="icon">
                     <Download className="w-4 h-4 text-ms-gray-700" />
                   </Button>
-                  {submission.status === "draft" && (
+                  {application.status === "draft" && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDeleteClick(submission.application_id)}
+                      onClick={() => handleDeleteClick(application.application_id)}
                     >
                       <Trash2 className="w-4 h-4 ms-red" />
                     </Button>
@@ -169,7 +144,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this submission? This action cannot be undone.
+              Are you sure you want to delete this application? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -192,4 +167,4 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   );
 };
 
-export default SubmissionTable;
+export default ApplicationTable;
