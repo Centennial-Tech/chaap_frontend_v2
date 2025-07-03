@@ -8,7 +8,7 @@ import {
 import { useAuth } from "../provider/authProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import NoAccess from "../pages/NoAccess";
-import Home from "../pages/Home";
+import Home from "../pages/Home2";
 import Footer from "../components/Footer";
 import Contact from "../pages/Contact";
 import Presubmission from "../pages/agents/Presubmission";
@@ -34,13 +34,16 @@ const LayoutWithHeader = () => {
     }
   }, [user, location.pathname, navigate]);
 
+  // Only add padding/margin if not on the home page
+  const isHome = location.pathname === "/";
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <ScrollToHash />
       <div className="relative z-50">{!user ? <Header2 /> : <Navbar />}</div>
       <main className="flex-grow flex">
         {user ? <Sidebar /> : ""}
-        <div className="flex-grow mt-[60px] p-4 md:p-6 lg:p-8">
+        <div className={`flex-grow ${!isHome ? "mt-[60px] p-4 md:p-6 lg:p-8" : ""}`}>
           <Outlet />
         </div>
       </main>
