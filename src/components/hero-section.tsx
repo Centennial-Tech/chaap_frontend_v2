@@ -16,15 +16,15 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full min-h-screen bg-white text-gray-900 overflow-hidden">
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 min-h-screen">
+    <section className="relative w-full bg-white text-gray-900 overflow-hidden flex items-center justify-center pb-24 min-h-[calc(100vh-5rem)]">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
         <div className="text-center">
-          <div className="inline-block bg-gradient-to-r from-blue-100 to-orange-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-blue-200">
+          <div className="inline-block bg-white/60 backdrop-blur-sm text-blue-600 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-blue-200">
             ✨ Healthcare AI Revolution
           </div>
           <h1 className="text-5xl lg:text-7xl font-black leading-tight mb-6 text-gray-900 max-w-5xl mx-auto">
             AI That Understands{" "}
-            <span className="text-transparent bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text">
+            <span className="text-gray-900 bg-clip-text">
               Regulation
             </span>
           </h1>
