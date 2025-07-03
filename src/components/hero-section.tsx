@@ -16,7 +16,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full bg-white text-gray-900 overflow-hidden flex items-center justify-center pb-24 min-h-[calc(100vh-5rem)]">
+    <section className="relative w-full bg-white text-gray-900 overflow-hidden flex items-center justify-center min-h-[calc(100vh-5rem)]">
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
         <div className="text-center">
           <div className="inline-block bg-white/60 backdrop-blur-sm text-blue-600 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-blue-200">
