@@ -54,6 +54,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   suggestionError = "",
   allowManualCreate = false,
 }) => {
+
   const { showOverlay, hideOverlay } = useOverlay();
   const [hideQuestions, setHideQuestions] = React.useState(false);
   // Add local state to control hiding of questions after suggestion error
@@ -84,6 +85,23 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
       hideOverlay();
     }
   }, [open, showOverlay, hideOverlay]);
+
+  // Handle ESC key to close modal
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open, onClose]);
 
   if (!open) return null;
 
