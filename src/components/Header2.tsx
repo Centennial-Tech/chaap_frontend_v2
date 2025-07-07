@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import CustomButton from "../components/Button";
 import { Link } from "react-router-dom";
-import { useOverlay } from "../provider/overleyProvider";
 import { Button, useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
+import { Z_INDEX } from "../constants/zIndex";
 
 const Header2 = () => {
   const { user } = useAuth();
@@ -15,23 +15,8 @@ const Header2 = () => {
     { name: "CHAAP Agents", path: "/#agents" },
     { name: "Contact", path: "/contact" },
   ];
-  const { showOverlay, hideOverlay } = useOverlay();
 
   const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const { id } = e.target as any;
-      if (id?.length > 0 && id == "global_overlay") {
-        setIsOpen(false);
-        hideOverlay();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,12 +39,7 @@ const Header2 = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => {
-                setIsOpen((prev) => {
-                  if (!prev) {
-                    showOverlay();
-                  }
-                  return !prev;
-                });
+                setIsOpen((prev) => !prev);
               }}
               type="button"
               className="inline-flex items-center cursor-pointer p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -130,7 +110,8 @@ const Header2 = () => {
         <div
           className={`${
             isOpen ? "w-[70%]" : "w-0"
-          } flex justify-center md:hidden border-t shadow-lg fixed overflow-hidden transition-all duration-300 ease-in-out bg-white top-[67.5px] h-screen left-0 z-10`}
+          } flex justify-center md:hidden border-t shadow-lg fixed overflow-hidden transition-all duration-300 ease-in-out bg-white top-[67.5px] h-screen left-0`}
+          style={{ zIndex: Z_INDEX.MOBILE_MENU }}
           id="navbar-default"
         >
           <div className="mt-10 flex flex-col items-center gap-3">

@@ -1,5 +1,5 @@
-import React, { useEffect, useContext } from "react";
-import { OverlayContext } from "../../provider/overleyProvider";
+import React, { useEffect } from "react";
+import { Z_INDEX } from "../../constants/zIndex";
 
 interface ReusableModalProps {
   isOpen: boolean;
@@ -9,7 +9,6 @@ interface ReusableModalProps {
   maxWidth?: string;
   maxHeight?: string;
   showCloseButton?: boolean;
-  overlayStrategy?: 'local' | 'global' | 'none';
 }
 
 const ReusableModal: React.FC<ReusableModalProps> = ({
@@ -20,24 +19,7 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
   maxWidth = "max-w-md",
   maxHeight = "max-h-[80vh]",
   showCloseButton = true,
-  overlayStrategy = 'local',
 }) => {
-  // Check if overlay context is available
-  const overlayContext = useContext(OverlayContext);
-  const showGlobalOverlay = overlayContext?.showOverlay;
-  const hideGlobalOverlay = overlayContext?.hideOverlay;
-
-  // Handle global overlay only if context is available
-  useEffect(() => {
-    if (overlayStrategy === 'global' && overlayContext && showGlobalOverlay && hideGlobalOverlay) {
-      if (isOpen) {
-        showGlobalOverlay();
-      } else {
-        hideGlobalOverlay();
-      }
-    }
-  }, [isOpen, overlayStrategy, overlayContext, showGlobalOverlay, hideGlobalOverlay]);
-
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -59,17 +41,22 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
 
   return (
     <>
-      {/* Local overlay */}
-      {overlayStrategy === 'local' && (
-        <div 
-          className="fixed inset-x-0 top-[-44px] bottom-0 z-[60] bg-black/40"
-          onClick={onClose}
-        />
-      )}
+      {/* Overlay */}
+      <div 
+        className="fixed inset-x-0 top-[-40px] bottom-0 bg-black/40"
+        style={{ zIndex: Z_INDEX.OVERLAY }}
+        onClick={onClose}
+      />
       
       {/* Modal Content */}
-      <div className="fixed inset-x-0 top-[60px] bottom-0 z-[70] flex items-center justify-center">
-        <div className={`bg-white rounded-lg p-6 ${maxWidth} w-full mx-4 ${maxHeight} overflow-y-auto relative`}>
+      <div 
+        className="fixed inset-x-0 top-[60px] bottom-0 flex items-center justify-center p-4"
+        style={{ zIndex: Z_INDEX.MODAL }}
+      >
+        <div 
+          className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">{title}</h3>

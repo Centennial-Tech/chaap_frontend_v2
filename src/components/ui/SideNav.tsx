@@ -24,7 +24,7 @@ const sectionItems = [
     icon: Bot,
   },
   {
-    label: "Regulatory Doc Prep Agent",
+    label: "Document Prep Agent",
     path: "/agents/document-preparation",
     icon: Cpu,
   },

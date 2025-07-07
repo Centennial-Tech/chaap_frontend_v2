@@ -5,6 +5,7 @@ import {
   createBrowserRouter,
   type RouteObject,
 } from "react-router-dom";
+import { Z_INDEX } from "../constants/zIndex";
 import { useAuth } from "../provider/authProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import NoAccess from "../pages/NoAccess";
@@ -18,7 +19,7 @@ import Login from "../pages/Login";
 import KnowledgeAgent from "../components/KnowledgeAgent";
 import Logout from "../pages/Logout";
 import Dashboard from "../pages/Dashboard";
-import RegulatoryDocPrepAgent from "../pages/RegulatoryDocPrepAgent";
+import DocPrepAgent from "../pages/DocPrepAgent";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/ui/SideNav";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -40,7 +41,7 @@ const LayoutWithHeader = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <ScrollToHash />
-      <div className="relative z-50">{!user ? <Header2 /> : <Navbar />}</div>
+      <div className="relative" style={{ zIndex: Z_INDEX.HEADER }}>{!user ? <Header2 /> : <Navbar />}</div>
       <main className="flex-grow flex">
         {user ? <Sidebar /> : ""}
         <div className={`flex-grow ${!isHome ? "mt-[60px] p-4 md:p-6 lg:p-8" : ""}`}>
@@ -107,7 +108,7 @@ const Routes = () => {
               children: [
                 {
                   path: "document-preparation",
-                  element: <RegulatoryDocPrepAgent />,
+                  element: <DocPrepAgent />,
                 },
               ],
             },
