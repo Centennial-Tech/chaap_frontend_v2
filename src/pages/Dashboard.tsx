@@ -1,6 +1,6 @@
 import { CheckCircle, Clock, FileText } from "lucide-react";
-import { Card, CardContent } from "../components/ui/Card";
-import React, { useEffect } from "react";
+import { Card } from "../components/ui/Card";
+import React, { useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
@@ -9,14 +9,22 @@ import { useAuth } from "../provider/authProvider";
 
 // Types
 interface Submission {
-  id: number;
-  project: string;
+  id: string;
+  application_id: string;
+  name: string;
   type: "Device" | "Drug";
   submissionType: string;
   targetSubmission: string;
-  status: "draft" | "pending" | "approved";
+  status: "draft" | "in_progress" | "completed";
   progress: number;
   updatedAt: string;
+  start_time: string;
+  end_time?: string | null;
+  user_id: string;
+  username: string;
+  screening_responses?: string;
+  form_id?: string | null;
+  active: boolean;
   productDescription: string;
 }
 
@@ -50,12 +58,6 @@ const SUBMISSION_TYPES = {
   ] as SubmissionTypeOption[],
 };
 
-const STATUS_CONFIG = {
-  draft: { text: "Draft", color: "bg-blue-500" },
-  pending: { text: "Pending", color: "bg-orange-500" },
-  approved: { text: "Approved", color: "bg-green-500" },
-} as const;
-
 // Utility functions
 const getSubmissionTypesForType = (
   selectedType: string
@@ -63,28 +65,17 @@ const getSubmissionTypesForType = (
   return SUBMISSION_TYPES[selectedType as keyof typeof SUBMISSION_TYPES] || [];
 };
 
-const getStatusConfig = (status: string) => {
-  return (
-    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || {
-      text: status,
-      color: "bg-gray-500",
-    }
-  );
-};
-
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
-  const pending = submissions.filter((s) => s.status === "pending").length;
-  const approved = submissions.filter((s) => s.status === "approved").length;
+  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
+  const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
-  const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  return { drafts, pending, approved, total, approvalRate };
+  return { drafts, pending: in_progress, approved: completed, total, approvalRate };
 };
 
-const generateNewId = (submissions: Submission[]): number => {
-  return submissions.length ? Math.max(...submissions.map((s) => s.id)) + 1 : 1;
-};
+
 
 // Initial data
 // const INITIAL_SUBMISSIONS: Submission[] = [
@@ -188,6 +179,8 @@ const Dashboard = () => {
   const [questionAnswers, setQuestionAnswers] = React.useState<{
     [q: string]: string;
   }>({});
+  // Add ref to track latest questionAnswers for async operations
+  const questionAnswersRef = useRef<{ [q: string]: string }>({});
   // Add loading state for API call
   const [loading, setLoading] = React.useState(false);
   // Add state for form suggestion
@@ -217,6 +210,11 @@ const Dashboard = () => {
       setReadyToCreate(false);
     }
   }, [formSuggestion]);
+
+  // Sync questionAnswersRef with questionAnswers state
+  React.useEffect(() => {
+    questionAnswersRef.current = questionAnswers;
+  }, [questionAnswers]);
 
   React.useEffect(() => {
     if (suggestionError) {
@@ -454,7 +452,6 @@ const Dashboard = () => {
         <SubmissionTable
           submissions={sortedSubmissions}
           onDelete={handleDeleteSubmission}
-          getStatusConfig={getStatusConfig}
         />
       </Card>
 
