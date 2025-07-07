@@ -6,7 +6,8 @@ body {
 }
 html,
 body {
-  font-family: Inter, sans-serif !important;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif !important;
   color: rgba(0, 0, 0, 0.8);
 }
 

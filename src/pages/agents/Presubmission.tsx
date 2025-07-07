@@ -12,7 +12,7 @@ const Presubmission = () => {
   const ChallengeItem = ({ text }: any) => {
     return (
       <div
-        className="bg-gradient-to-r from-[#034ea22e] via-[#904ec821] to-[#f370211f]
+        className="bg-gradient-to-r from-[#034ea22e] via-[#904ec821] to-[#034ea21f]
     list-none
     // rounded-none
     relative
@@ -70,9 +70,9 @@ const Presubmission = () => {
         </div>
       </div>
       {/* 2nd screen */}
-      <div className="h-screen bg-white">
+      <div className="h-screen">
         <div className="pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
-          wdhschywdsv
+          {/* wdhschywdsv */}
         </div>
       </div>
     </div>

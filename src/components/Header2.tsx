@@ -44,12 +44,12 @@ const Header2 = () => {
 
   return (
     <header
-      className={`fixed flex justify-between items-center px-4 py-2 w-full hover:bg-white hover:shadow-sm ${
+      className={`fixed flex justify-between items-center py-2 w-full hover:bg-white hover:shadow-sm ${
         scrolled ? "bg-white shadow-sm" : ""
       }`}
     >
-      <div className="max-w-7xl flex justify-between items-center w-full mx-auto">
-        <div className="flex gap-7 items-center w-full max-w-[500px]">
+      <div className="flex justify-between items-center w-full">
+        <div className="flex gap-7 items-center w-full max-w-[500px] pl-3">
           {/* Mobile hamburger */}
           <div className="md:hidden flex items-center">
             <button
@@ -62,7 +62,7 @@ const Header2 = () => {
                 });
               }}
               type="button"
-              className="inline-flex items-center cursor-pointer p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className="inline-flex items-center cursor-pointer p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-controls="navbar-default"
               aria-expanded="false"
               data-collapse-toggle="navbar-default"
@@ -76,7 +76,7 @@ const Header2 = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    stroke="#f37021"
+                    stroke="#6b7280"
                     strokeWidth={2}
                     d="M1 1h15M1 7h15M1 13h15"
                     strokeLinecap="round"
@@ -91,7 +91,7 @@ const Header2 = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    stroke="#f37021"
+                    stroke="#6b7280"
                     strokeWidth={2}
                     d="M6 18L18 6M6 6l12 12"
                     strokeLinecap="round"
@@ -103,12 +103,12 @@ const Header2 = () => {
           </div>
           <Link
             to={"/"}
-            className="w-[150px]  items-center justify-center flex"
+            className="w-[150px] items-center justify-center flex"
           >
             <img src={logo} alt="Logo" />
           </Link>
         </div>
-        <span className="inline-flex gap-3">
+        <span className="inline-flex gap-3 pr-4">
           <span className="hidden md:flex gap-2 items-center">
             {menuItems.map(({ name, path }) => (
               <CustomButton key={name} href={path} name={name} />
@@ -121,7 +121,7 @@ const Header2 = () => {
             size={
               useMediaQuery(theme.breakpoints.down("sm")) ? "small" : "medium"
             }
-            color={user ? "error" : "warning"}
+            color="inherit"
             className="!font-extrabold hidden md:inline-flex"
           >
             {user ? "Logout" : "Login"}
@@ -130,7 +130,7 @@ const Header2 = () => {
         <div
           className={`${
             isOpen ? "w-[70%]" : "w-0"
-          } flex justify-center md:hidden border-t shadow-lg fixed overflow-hidden transition-all duration-300 ease-in-out bg-[#ffffff] top-[67.5px] h-screen left-0 z-10`}
+          } flex justify-center md:hidden border-t shadow-lg fixed overflow-hidden transition-all duration-300 ease-in-out bg-white top-[67.5px] h-screen left-0 z-10`}
           id="navbar-default"
         >
           <div className="mt-10 flex flex-col items-center gap-3">

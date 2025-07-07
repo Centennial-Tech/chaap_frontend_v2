@@ -16,11 +16,11 @@ const Overlay: React.FC = () => {
 
   return (
     <div
-      onClick={hideOverlay}
       id="global_overlay"
       className="
-          fixed inset-0
-          z-1
+          fixed inset-x-0 top-[60px] bottom-0
+          z-40
+          bg-black/40
           flex items-center justify-center
         "
     ></div>

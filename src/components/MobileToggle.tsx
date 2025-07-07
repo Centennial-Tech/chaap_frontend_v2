@@ -13,9 +13,9 @@ const MobileToggle: FC<MobileToggleProps> = ({ isOpen, setIsOpen }) => {
       onClick={() => setIsOpen(!isOpen)}
     >
       {isOpen ? (
-        <X size={24} className="text-gray-700" />
+        <X size={24} className="text-gray-600" />
       ) : (
-        <Menu size={24} className="text-gray-700" />
+        <Menu size={24} className="text-gray-600" />
       )}
     </div>
   );
