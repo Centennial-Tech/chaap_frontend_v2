@@ -1,5 +1,6 @@
 import { CheckCircle, Lightbulb, FileText, MessageCircle, Search, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const agents = [
   {
@@ -77,7 +78,13 @@ const agents = [
 export default function AIAgentsSection() {
   return (
     <section id="ai-agents" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <motion.div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        viewport={{ once: true }}
+      >
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
@@ -90,14 +97,18 @@ export default function AIAgentsSection() {
 
         {/* Agents Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {agents.map((agent) => (
-            <div 
-              key={agent.id} 
+          {agents.map((agent, idx) => (
+            <motion.div
+              key={agent.id}
               className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-lg transition-all duration-300"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 + idx * 0.12, ease: "easeOut" }}
+              viewport={{ once: true }}
             >
               {/* Icon and Title */}
               <div className="flex flex-col items-center text-center mb-8">
-                <div className={`w-16 h-16 rounded-2xl ${agent.iconBg} flex items-center justify-center mb-4 shadow-lg`}>
+                <div className={`${agent.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg`}>
                   <agent.icon className="text-white" size={28} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">{agent.name}</h3>
@@ -122,7 +133,7 @@ export default function AIAgentsSection() {
                   {agent.buttonText}
                 </button>
               </Link>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -134,7 +145,7 @@ export default function AIAgentsSection() {
             </button>
           </Link>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

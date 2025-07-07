@@ -1,4 +1,5 @@
 import { Bot, Target, Boxes, TrendingUp, RotateCcw, Shield } from "lucide-react";
+import { motion } from "framer-motion";
 
 const features = [
   {
@@ -36,7 +37,13 @@ const features = [
 export default function FeaturesSection() {
   return (
     <section id="features" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <motion.div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        viewport={{ once: true }}
+      >
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Centennial Healthcare{" "}
@@ -48,10 +55,14 @@ export default function FeaturesSection() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature) => (
-            <div
+          {features.map((feature, idx) => (
+            <motion.div
               key={feature.title}
               className="p-8 rounded-2xl shadow-lg border transition-all duration-300 group hover:shadow-xl hover:border-purple-300/50 bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:from-purple-100 hover:to-purple-150"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 + idx * 0.12, ease: "easeOut" }}
+              viewport={{ once: true }}
             >
               <div className="w-20 h-20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
                 <feature.icon className="text-white drop-shadow-sm" size={32} />
@@ -62,10 +73,10 @@ export default function FeaturesSection() {
               <p className="leading-relaxed text-slate-700">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
