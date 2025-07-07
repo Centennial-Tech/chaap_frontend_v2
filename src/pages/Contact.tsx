@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 import Input from "../components/Input";
-import { DEER } from "../constants/animation_config";
-import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles";
-import type { Engine } from "tsparticles-engine";
 
 interface ContactFormData {
   first_name: string;
@@ -39,10 +35,6 @@ const Contact: React.FC = () => {
     // TODO: Send `form` to your API...
   };
 
-  const particlesInit = (engine: Engine) => {
-    loadFull(engine);
-  };
-
   const handleMessage = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -54,7 +46,6 @@ const Contact: React.FC = () => {
       <div className="flex flex-col gap-[16px] px-[20px] py-[10px] w-full flex-grow max-w-[1260px] overflow-hidden justify-center mx-auto">
         <div className="flex justify-center md:justify-between flex-col md:flex-row gap-5">
           {/* Form */}
-
           <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 rounded-lg">
             <form className="space-y-3" onSubmit={handleSubmit}>
               <h5 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -171,11 +162,9 @@ const Contact: React.FC = () => {
           <div className="border-r"></div>
           {/* contact info */}
           <div className="flex flex-col gap-5 p-4 sm:p-6 md:p-8">
-            <Particles
-              init={particlesInit as any}
-              options={DEER as any}
-              className="h-[460px]"
-            />
+            <div className="h-[460px] bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center">
+              <div className="text-6xl">📍</div>
+            </div>
             <div className="flex flex-col flex-wrap">
               <span className="text-lg font-medium text-gray-600">
                 ADDRESS
@@ -202,7 +191,6 @@ const Contact: React.FC = () => {
                 </a>
               </p>
             </div>
-            {/* <img src={icon} alt="" /> */}
           </div>
         </div>
       </div>

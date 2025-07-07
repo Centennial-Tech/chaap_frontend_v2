@@ -1,11 +1,7 @@
 import axios from "axios";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
-import Particles from "react-tsparticles";
-import { ATTACT_LINES } from "../constants/animation_config";
-import { loadFull } from "tsparticles";
-import type { Engine } from "tsparticles-engine";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import {
   ContentCopyOutlined,
@@ -287,19 +283,8 @@ const KnowledgeAgent = () => {
     setRequest("");
   };
 
-  const particlesInit = useCallback((engine: Engine) => {
-    loadFull(engine);
-  }, []);
   return (
     <div className="mt-[60px] flex justify-center items-center text-lg w-full h-[calc(100vh-60px)]">
-      <Particles
-        init={particlesInit as any}
-        options={ATTACT_LINES as any}
-        className="absolute inset-0 opacity-70"
-        style={{
-          zIndex: -1,
-        }}
-      />
       <div className="relative w-full h-[80%] font-mono md:max-w-[80%] lg:max-w-[60%] m-5">
         <div
           style={{

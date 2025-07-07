@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function HeroSection() {
   // Animated node network state
@@ -18,7 +18,7 @@ export default function HeroSection() {
     [1, 7], [2, 6], [3, 5], [4, 6], [0, 2], [1, 5], [3, 7]
   ];
   const [positions, setPositions] = useState(
-    NODES.map((n, i) => ({
+    NODES.map(n => ({
       x: n.base[0],
       y: n.base[1],
       phase: Math.random() * Math.PI * 2,

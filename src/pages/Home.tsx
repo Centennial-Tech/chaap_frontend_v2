@@ -1,7 +1,3 @@
-import { ATTACT_LINES } from "../constants/animation_config";
-import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles";
-import type { Engine } from "tsparticles-engine";
 import { Link } from "react-router-dom";
 import BgCustomGrid from "../components/BgCustomGrid";
 import ChatBot from "../components/ChatBot";
@@ -24,10 +20,6 @@ interface IWhyChaap {
 }
 
 const Home = () => {
-  const particlesInit = (engine: Engine) => {
-    loadFull(engine);
-  };
-
   const features: IFeature[] = [
     {
       icon: "https://chaap.ai/assets/icons15-7959893a.png",
@@ -208,14 +200,6 @@ const Home = () => {
       <ChatBot />
       <div className="w-full h-screen overflow-hidden">
         <div className="w-full h-full relative flex justify-center items-center md:items-start">
-          <Particles
-            init={particlesInit as any}
-            options={ATTACT_LINES as any}
-            className="absolute inset-0"
-            style={{
-              zIndex: -1,
-            }}
-          />
           <div className="flex flex-col p-10 justify-center items-center gap-5 relative md:top-1/4">
             <div className="">
               <p className="text-5xl">
