@@ -33,7 +33,7 @@ const sectionItems = [
   },
   {
     label: "Regulatory Knowledge Agent",
-    path: "/regulatory-knowledge-agent",
+    path: "/agents/regulatory",
     icon: Brain,
   },
   {
