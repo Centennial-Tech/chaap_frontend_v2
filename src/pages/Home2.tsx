@@ -11,12 +11,12 @@ import ChatBot from "../components/ChatBot";
 export default function Home2() {
   useEffect(() => {
     // Check if there's a hash in the URL and scroll to that section
-    const hash = window.location.hash.replace('#', '');
+    const hash = window.location.hash.replace("#", "");
     if (hash) {
       setTimeout(() => {
         const element = document.getElementById(hash);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }, 100); // Small delay to ensure the page is fully rendered
     }
