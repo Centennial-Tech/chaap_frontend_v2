@@ -781,6 +781,7 @@ const RegulatoryDocPrepAgent = () => {
         isOpen={isValidateModalOpen}
         onClose={() => setIsValidateModalOpen(false)}
         title="Upload Document for Validation"
+        overlayStrategy="local"
       >
         {renderUploadModalContent()}
       </Modal>
@@ -790,6 +791,7 @@ const RegulatoryDocPrepAgent = () => {
         onClose={() => setIsValidationResultsOpen(false)}
         title="Validation Results"
         maxWidth="max-w-2xl"
+        overlayStrategy="local"
       >
         {renderValidationResultsContent()}
       </Modal>
@@ -800,6 +802,7 @@ const RegulatoryDocPrepAgent = () => {
         title="Create New Document"
         maxWidth="max-w-lg"
         showCloseButton={!isGenerating}
+        overlayStrategy="local"
       >
         {renderCreateModalContent()}
       </Modal>

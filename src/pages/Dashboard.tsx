@@ -1,23 +1,25 @@
 import { CheckCircle, Clock, FileText } from "lucide-react";
 import { Card } from "../components/ui/Card";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import StatsCard from "../components/StatsCard";
 import ApplicationModal from "../components/ApplicationModal";
 import ApplicationTable from "../components/ApplicationTable";
 import { useAuth } from "../provider/authProvider";
 import {
   type Application,
-  getStatusConfig,
   calculateStats,
   fetchApplications,
   sortApplicationsByDate,
   createApplication,
+  deleteApplication,
 } from "../helpers/applicationApiHelper";
+import Modal from "../components/ui/Modal";
 
 const Dashboard = () => {
   // State management
   const [open, setOpen] = React.useState(false);
   const [applications, setApplications] = React.useState<Application[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchApplicationsData = async () => {
@@ -72,9 +74,12 @@ const Dashboard = () => {
   // ============================================================================
   
   const handleDeleteApplication = React.useCallback(async (id: string) => {
-    console.log("Delete button clicked for application ID:", id);
-    console.log("Delete functionality is currently disabled - no action taken");
-    // No API call or state changes - just log that the button was clicked
+    try {
+      await deleteApplication(id);
+      await fetchApplicationsData(); 
+    } catch (error) {
+      console.error("Error deleting application:", error);
+    }
   }, []);
 
   const handleOpen = React.useCallback(() => setOpen(true), []);
@@ -92,6 +97,19 @@ const Dashboard = () => {
     setLoading(false);
     setReadyToCreate(false);
   }, []);
+
+  const handleDeleteClick = (id: string) => {
+    setShowConfirmDialog(id);
+  };
+
+  const handleConfirmDelete = async (id: string) => {
+    setShowConfirmDialog(null);
+    await handleDeleteApplication(id);
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirmDialog(null);
+  };
 
   const handleCreateApplication = React.useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -257,10 +275,12 @@ const Dashboard = () => {
         <ApplicationTable
           applications={sortedApplications}
           onDelete={handleDeleteApplication}
+          onDeleteClick={handleDeleteClick}
+          showConfirmDialog={showConfirmDialog}
         />
       </Card>
 
-      {/* Modal */}
+      {/* Application Modal */}
       <ApplicationModal
         open={open}
         formData={formData}
@@ -275,6 +295,36 @@ const Dashboard = () => {
         loading={loading}
         readyToCreate={readyToCreate}
       />
+
+      {/* Confirm Delete Modal */}
+      <Modal
+        isOpen={!!showConfirmDialog}
+        onClose={handleCancelDelete}
+        title="Confirm Deletion"
+        maxWidth="max-w-md"
+        overlayStrategy="local"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to delete this application? This action cannot be undone.
+          </p>
+          
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={handleCancelDelete}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => showConfirmDialog && handleConfirmDelete(showConfirmDialog)}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

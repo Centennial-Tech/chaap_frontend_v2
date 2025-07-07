@@ -210,6 +210,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
       title="New Application"
       maxWidth="max-w-2xl"
       maxHeight="max-h-[90vh]"
+      overlayStrategy="local"
     >
       {modalContent}
     </Modal>
