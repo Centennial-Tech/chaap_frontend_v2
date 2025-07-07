@@ -9,7 +9,7 @@ interface OverlayContextType {
   hideOverlay: () => void;
 }
 
-const OverlayContext = createContext<OverlayContextType | undefined>(undefined);
+export const OverlayContext = createContext<OverlayContextType | undefined>(undefined);
 
 export const OverlayProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
