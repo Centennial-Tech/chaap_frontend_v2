@@ -13,8 +13,6 @@ const ChatBot = () => {
 
   // Add state for typing effect
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [fullResponseText, setFullResponseText] = useState<string>("");
-  const [displayedText, setDisplayedText] = useState<string>("");
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
 
