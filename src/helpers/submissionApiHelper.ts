@@ -1,0 +1,143 @@
+import api from "../api";
+
+// Submission interface matching the CouchDB document format
+export interface Submission {
+  id: string;
+  _id?: string;
+  _rev?: string;
+  // Submission data fields
+  name: string;
+  submission_id: string;
+  type: string;
+  status: string;
+  progress: number;
+  created_at: string;
+  updated_at: string;
+  end_time?: string | null; // Maps to target submission date
+  productDescription: string;
+  submissionType?: string;
+  // Additional fields for form suggestions
+  formSuggestion?: string;
+  suggestionError?: string;
+  // Questions and answers
+  questions?: string[];
+  questionAnswers?: { [q: string]: string };
+}
+
+// Stats interface
+export interface Stats {
+  drafts: number;
+  in_progress: number;
+  completed: number;
+  total: number;
+}
+
+// Status configuration
+export const STATUS_CONFIG = {
+  draft: { text: "Draft", color: "bg-blue-500" },
+  in_progress: { text: "In Progress", color: "bg-orange-500" },
+  completed: { text: "Completed", color: "bg-green-500" },
+} as const;
+
+// Utility functions
+export const getStatusConfig = (status: string) => {
+  return (
+    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || {
+      text: status,
+      color: "bg-gray-500",
+    }
+  );
+};
+
+// Helper function to calculate statistics
+export const calculateStats = (submissions: Submission[]): Stats => {
+  const drafts = submissions.filter((s) => s.status === "draft").length;
+  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
+  const completed = submissions.filter((s) => s.status === "completed").length;
+  const total = submissions.length;
+
+  return {
+    drafts,
+    in_progress,
+    completed,
+    total,
+  };
+};
+
+// Helper function to sort submissions by date (most recent first)
+export const sortSubmissionsByDate = (submissions: Submission[]): Submission[] => {
+  return [...submissions].sort((a, b) => {
+    const dateA = new Date(a.updated_at || a.created_at);
+    const dateB = new Date(b.updated_at || b.created_at);
+    return dateB.getTime() - dateA.getTime();
+  });
+};
+
+// API functions
+export const fetchSubmissions = async (userId: string): Promise<Submission[]> => {
+  try {
+    const response = await api.get(`/applications/userId?user_id=${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching submissions:", error);
+    throw error;
+  }
+};
+
+export const createSubmission = async (submissionData: Partial<Submission>): Promise<Submission> => {
+  try {
+    const response = await api.post("/applications/", submissionData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating submission:", error);
+    throw error;
+  }
+};
+
+export const updateSubmission = async (submissionId: string, submissionData: Partial<Submission>): Promise<Submission> => {
+  try {
+    const response = await api.put(`/applications/${submissionId}`, submissionData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating submission:", error);
+    throw error;
+  }
+};
+
+export const deleteSubmission = async (submissionId: string): Promise<void> => {
+  try {
+    await api.delete(`/applications/${submissionId}`);
+  } catch (error) {
+    console.error("Error deleting submission:", error);
+    throw error;
+  }
+};
+
+export const getSubmissionById = async (submissionId: string): Promise<Submission> => {
+  try {
+    const response = await api.get(`/applications/${submissionId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching submission by ID:", error);
+    throw error;
+  }
+};
+
+// Form suggestion API function
+export const getFormSuggestion = async (type: string, productDescription: string): Promise<{
+  questions: string[];
+  suggestion: string;
+}> => {
+  try {
+    const response = await api.post("/api/form-suggestion", {
+      type,
+      productDescription,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting form suggestion:", error);
+    throw error;
+  }
+};
+
+ 

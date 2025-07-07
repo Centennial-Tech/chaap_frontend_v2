@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useOverlay } from "../../provider/overleyProvider";
+import React, { useEffect, useContext } from "react";
+import { OverlayContext } from "../../provider/overleyProvider";
 
 interface ReusableModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface ReusableModalProps {
   maxWidth?: string;
   maxHeight?: string;
   showCloseButton?: boolean;
+  overlayStrategy?: 'local' | 'global' | 'none';
 }
 
 const ReusableModal: React.FC<ReusableModalProps> = ({
@@ -19,17 +20,23 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
   maxWidth = "max-w-md",
   maxHeight = "max-h-[80vh]",
   showCloseButton = true,
+  overlayStrategy = 'local',
 }) => {
-  const { showOverlay, hideOverlay } = useOverlay();
+  // Check if overlay context is available
+  const overlayContext = useContext(OverlayContext);
+  const showGlobalOverlay = overlayContext?.showOverlay;
+  const hideGlobalOverlay = overlayContext?.hideOverlay;
 
-  // Show/hide overlay when modal opens/closes
+  // Handle global overlay only if context is available
   useEffect(() => {
-    if (isOpen) {
-      showOverlay();
-    } else {
-      hideOverlay();
+    if (overlayStrategy === 'global' && overlayContext && showGlobalOverlay && hideGlobalOverlay) {
+      if (isOpen) {
+        showGlobalOverlay();
+      } else {
+        hideGlobalOverlay();
+      }
     }
-  }, [isOpen, showOverlay, hideOverlay]);
+  }, [isOpen, overlayStrategy, overlayContext, showGlobalOverlay, hideGlobalOverlay]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -51,25 +58,36 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-x-0 top-[60px] bottom-0 z-50 flex items-center justify-center">
-      <div className={`bg-white rounded-lg p-6 ${maxWidth} w-full mx-4 ${maxHeight} overflow-y-auto relative`}>
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          {showCloseButton && (
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-xl"
-            >
-              ×
-            </button>
-          )}
-        </div>
+    <>
+      {/* Local overlay */}
+      {overlayStrategy === 'local' && (
+        <div 
+          className="fixed inset-x-0 top-[-44px] bottom-0 z-[60] bg-black/40"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Modal Content */}
+      <div className="fixed inset-x-0 top-[60px] bottom-0 z-[70] flex items-center justify-center">
+        <div className={`bg-white rounded-lg p-6 ${maxWidth} w-full mx-4 ${maxHeight} overflow-y-auto relative`}>
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            {showCloseButton && (
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ×
+              </button>
+            )}
+          </div>
 
-        {/* Content */}
-        {children}
+          {/* Content */}
+          {children}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

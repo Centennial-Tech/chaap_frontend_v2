@@ -1,206 +1,77 @@
-import { CheckCircle, Clock, FileText } from "lucide-react";
-import { Card } from "../components/ui/Card";
-import React, { useEffect, useRef } from "react";
-import StatsCard from "../components/StatsCard";
+import React, { useState, useRef } from "react";
+import { Plus, CheckCircle, Clock, FileText } from "lucide-react";
+import { useAuth } from "../provider/authProvider";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
-import api from "../api";
-import { useAuth } from "../provider/authProvider";
+import StatsCard from "../components/StatsCard";
+import {
+  type Submission,
+  fetchSubmissions,
+  sortSubmissionsByDate,
+  createSubmission,
+  deleteSubmission,
+  calculateStats,
+  getFormSuggestion,
+} from "../helpers/submissionApiHelper";
+import { getSubmissionTypesForType } from "../constants";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import Modal from "../components/ui/Modal";
 
-// Types
-interface Submission {
-  id: string;
-  application_id: string;
-  name: string;
-  type: "Device" | "Drug";
-  submissionType: string;
-  targetSubmission: string;
-  status: "draft" | "in_progress" | "completed";
-  progress: number;
-  updatedAt: string;
-  start_time: string;
-  end_time?: string | null;
-  user_id: string;
-  username: string;
-  screening_responses?: string;
-  form_id?: string | null;
-  active: boolean;
-  productDescription: string;
-}
-
-interface SubmissionTypeOption {
-  value: string;
-  label: string;
-}
-
-interface Stats {
-  drafts: number;
-  pending: number;
-  approved: number;
-  total: number;
-  approvalRate: number;
-}
-
-// Constants
-const SUBMISSION_TYPES = {
-  Device: [
-    { value: "510k", label: "510k (Premarket Notification)" },
-    { value: "PMA", label: "PMA (Premarket Approval)" },
-    { value: "De Novo", label: "De Novo Classification Request" },
-    { value: "HDE", label: "HDE (Humanitarian Device Exemption)" },
-    { value: "IDE", label: "IDE (Investigational Device Exemption)" },
-  ] as SubmissionTypeOption[],
-  Drug: [
-    { value: "IND", label: "IND (Investigational New Drug)" },
-    { value: "NDA", label: "NDA (New Drug Application)" },
-    { value: "ANDA", label: "ANDA (Abbreviated New Drug Application)" },
-    { value: "BLA", label: "BLA (Biologics License Application)" },
-  ] as SubmissionTypeOption[],
-};
-
-// Utility functions
-const getSubmissionTypesForType = (
-  selectedType: string
-): SubmissionTypeOption[] => {
-  return SUBMISSION_TYPES[selectedType as keyof typeof SUBMISSION_TYPES] || [];
-};
-
-const calculateStats = (submissions: Submission[]): Stats => {
-  const drafts = submissions.filter((s) => s.status === "draft").length;
-  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
-  const completed = submissions.filter((s) => s.status === "completed").length;
-  const total = submissions.length;
-  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  return { drafts, pending: in_progress, approved: completed, total, approvalRate };
-};
-
-
-
-// Initial data
-// const INITIAL_SUBMISSIONS: Submission[] = [
-//   {
-//     id: 1,
-//     project: "CardioSense Monitor",
-//     type: "Device",
-//     submissionType: "PMA (Premarket Approval)",
-//     targetSubmission: "2024-06-01T10:30:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-06-01T10:30:00Z",
-//     productDescription: "A monitor for cardiovascular health.",
-//   },
-//   {
-//     id: 2,
-//     project: "ThermoScan Pro",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-06-30T14:45:00Z",
-//     status: "pending",
-//     progress: 80,
-//     updatedAt: "2024-06-02T14:45:00Z",
-//     productDescription: "A professional-grade thermometer.",
-//   },
-//   {
-//     id: 3,
-//     project: "Adestunore",
-//     type: "Drug",
-//     submissionType: "NDA (New Drug Application)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "A new drug for treating conditions.",
-//   },
-//   {
-//     id: 4,
-//     project: "PulseOx 2000",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-07-15T09:20:00Z",
-//     status: "draft",
-//     progress: 40,
-//     updatedAt: "2024-06-03T09:20:00Z",
-//     productDescription: "A pulse oximeter for measuring blood oxygen.",
-//   },
-//   {
-//     id: 5,
-//     project: "Hicesterol",
-//     type: "Drug",
-//     submissionType: "IND (Investigational New Drug)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "draft",
-//     progress: 0,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "An investigational drug for high cholesterol.",
-//   },
-// ];
-
-const Dashboard = () => {
-  // State management
-  const [open, setOpen] = React.useState(false);
-  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
+const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [submissionToDelete, setSubmissionToDelete] = React.useState<string | null>(null);
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissionsData = async () => {
+    if (!user) return;
     try {
-      const response = await api.get(
-        `/applications/userId?user_id=${user?.id}`
-      );
-      const data: Submission[] = response.data;
+      const data = await fetchSubmissions(user.id);
       setSubmissions(data);
     } catch (error) {
       console.error("Error fetching submissions:", error);
     }
   };
-  useEffect(() => {
-    fetchSubmissions();
+
+  React.useEffect(() => {
+    fetchSubmissionsData();
   }, []);
 
-  // Form state (update type to match new fields)
-  type FormData = {
-    projectTitle: string;
-    type: string;
-    submissionType: string;
-    targetSubmission: string;
-    productDescription: string;
-  };
-
-  const [formData, setFormData] = React.useState<FormData>({
-    projectTitle: "",
+  // Form state
+  const [formData, setFormData] = React.useState({
+    name: "",
     type: "",
     submissionType: "",
-    targetSubmission: "",
+    end_time: "",
     productDescription: "",
   });
 
-  // Add state for generated questions and their answers
   const [questions, setQuestions] = React.useState<string[]>([]);
   const [questionAnswers, setQuestionAnswers] = React.useState<{
     [q: string]: string;
   }>({});
   // Add ref to track latest questionAnswers for async operations
   const questionAnswersRef = useRef<{ [q: string]: string }>({});
-  // Add loading state for API call
-  const [loading, setLoading] = React.useState(false);
-  // Add state for form suggestion
-  const [formSuggestion, setFormSuggestion] = React.useState<string>("");
-  const [suggestionError, setSuggestionError] = React.useState("");
-
-  // Track if we are in the final create step
+  const [formSuggestion, setFormSuggestion] = React.useState("");
+  const [suggestionError, setSuggestionError] = useState("");
   const [readyToCreate, setReadyToCreate] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   // Track if user can skip suggestion and go to create after error
   const [allowManualCreate, setAllowManualCreate] = React.useState(false);
 
   // Derived state - Sort submissions by last updated (most recent first)
   const sortedSubmissions = React.useMemo(() => {
-    return [...submissions].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
+    return sortSubmissionsByDate(submissions);
   }, [submissions]);
 
   const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
+
+  // Sync questionAnswersRef with questionAnswers state
+  React.useEffect(() => {
+    questionAnswersRef.current = questionAnswers;
+  }, [questionAnswers]);
 
   // Update readyToCreate when formSuggestion is set
   React.useEffect(() => {
@@ -210,11 +81,6 @@ const Dashboard = () => {
       setReadyToCreate(false);
     }
   }, [formSuggestion]);
-
-  // Sync questionAnswersRef with questionAnswers state
-  React.useEffect(() => {
-    questionAnswersRef.current = questionAnswers;
-  }, [questionAnswers]);
 
   React.useEffect(() => {
     if (suggestionError) {
@@ -229,101 +95,77 @@ const Dashboard = () => {
     }
   }, [formSuggestion, suggestionError]);
 
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
-  
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
-    console.log("Delete button clicked for submission ID:", id);
-    console.log("Delete functionality is currently disabled - no action taken");
-    // No API call or state changes - just log that the button was clicked
+    try {
+      await deleteSubmission(id);
+      await fetchSubmissionsData();
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+    }
   }, []);
 
-  const handleOpen = React.useCallback(() => setOpen(true), []);
-
-  const handleClose = React.useCallback(() => {
-    setOpen(false);
+  const handleClose = () => {
+    setIsModalOpen(false);
     setFormData({
-      projectTitle: "",
+      name: "",
       type: "",
       submissionType: "",
-      targetSubmission: "",
+      end_time: "",
       productDescription: "",
     });
     setQuestions([]);
     setQuestionAnswers({});
+    setFormSuggestion("");
+    setSuggestionError("");
+    setReadyToCreate(false);
+    setAllowManualCreate(false);
     setLoading(false);
-  }, []);
+  };
 
-  const handleAdditionalQuestionsSubmission = React.useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setLoading(true);
-      setSuggestionError("");
-      let suggestion = "";
-      let response;
-      let attempts = 0;
-      try {
-        do {
-          // Use the ref to get the latest answers
-          const answers = { ...questionAnswersRef.current };
-          console.log("API will send answers:", answers);
-          response = await api.post("/agent/suggested_form", {
-            user_answers: JSON.stringify(answers),
-          });
-          suggestion = response.data?.suggested_form || "";
-          attempts++;
-        } while (suggestion.length > 10 && attempts < 2);
-        if (suggestion.length > 10) {
-          setSuggestionError(
-            "We are not able to get a suggestion based on your inputs. Please select the submission type manually."
-          );
-          setFormSuggestion("");
-          setFormData((prev) => ({ ...prev, submissionType: "" }));
-        } else {
-          setFormSuggestion(suggestion);
-          setFormData((prev) => ({ ...prev, submissionType: suggestion }));
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [] // Remove questionAnswers from deps, use ref instead
-  );
+  const handleDeleteClick = (id: string) => {
+    setSubmissionToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (submissionToDelete) {
+      await handleDeleteSubmission(submissionToDelete);
+      setIsDeleteModalOpen(false);
+      setSubmissionToDelete(null);
+    }
+  };
 
   const handleCreateSubmission = React.useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
-      // TODO: Add your final API calls here before creating the submission
-      // Example:
-      // await api.post('/your/endpoint', { ... });
-      // await api.post('/another/endpoint', { ... });
-      // Add your API logic below this comment
-      const newSubmission: any = {
-        // id: generateNewId(submissions),
-        name: formData.projectTitle,
-        type: formData.type as "Device" | "Drug",
-        submissionType: formData.submissionType,
-        targetSubmission: "",
-        status: "draft",
-        progress: 0,
-        updatedAt: new Date().toISOString(),
-        productDescription: formData.productDescription,
-        screening_responses: JSON.stringify(questionAnswersRef.current),
-      };
 
-      await api.post("/applications/", newSubmission);
-      await fetchSubmissions();
-      // setSubmissions((prev) => [newSubmission, ...prev]);
-      setQuestions([]);
-      setQuestionAnswers({});
-      setFormSuggestion("");
-      setReadyToCreate(false);
-      setLoading(false);
-      handleClose();
+      try {
+        // TODO: Add your final API calls here before creating the submission
+        const newSubmission: Partial<Submission> = {
+          name: formData.name,
+          type: formData.type,
+          submissionType: formData.submissionType,
+          end_time: formData.end_time,
+          productDescription: formData.productDescription,
+          status: "draft",
+          progress: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          questionAnswers: questionAnswersRef.current, // Use ref for latest answers
+        };
+
+        await createSubmission(newSubmission);
+        await fetchSubmissionsData();
+        // setSubmissions((prev) => [newSubmission, ...prev]);
+        handleClose();
+      } catch (error) {
+        console.error("Error creating submission:", error);
+      } finally {
+        setLoading(false);
+      }
     },
-    [formData, submissions, handleClose]
+    [formData, handleClose] // Remove questionAnswers from deps, use ref instead
   );
 
   const handleFormSubmit = React.useCallback(
@@ -333,14 +175,16 @@ const Dashboard = () => {
         setLoading(true);
         try {
           // First submit: get questions from API
-          const response = await api.post("/agent/form_questions", {
-            user_input: formData.productDescription,
-          });
-          const qs =
-            response.data?.questions
-              ?.match(/- (.+?)(?=\n|$)/g)
-              ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
-          setQuestions(qs);
+          const data = await getFormSuggestion(formData.type, formData.productDescription);
+          
+          setQuestions(data.questions || []);
+          setFormSuggestion(data.suggestion || "");
+          setSuggestionError("");
+          setReadyToCreate(true);
+        } catch (error) {
+          console.error("Error getting form suggestion:", error);
+          setSuggestionError("Failed to get form suggestion");
+          setReadyToCreate(false);
         } finally {
           setLoading(false);
         }
@@ -348,21 +192,30 @@ const Dashboard = () => {
         return;
       }
       // Second submit: save submission with answers
-      await handleAdditionalQuestionsSubmission(e);
+      await handleCreateSubmission(e);
       // Now show the submissionType field with default value from formSuggestion
       return;
     },
-    [formData, submissions, handleClose, questions]
+    [formData, questions, handleCreateSubmission] // Remove questionAnswers from deps, use ref instead
   );
 
-  // Handler for question answers
   const handleQuestionAnswerChange = React.useCallback(
-    (q: string, value: string) => {
+    (question: string, value: string) => {
       setQuestionAnswers((prev) => {
-        const updated = { ...prev, [q]: value };
+        const updated = { ...prev, [question]: value };
         console.log("handleQuestionAnswerChange", updated);
         return updated;
       });
+    },
+    []
+  );
+
+  const handleInputChange = React.useCallback(
+    (field: keyof typeof formData, value: string) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     },
     []
   );
@@ -375,106 +228,136 @@ const Dashboard = () => {
         type: newType,
         submissionType: "", // Reset submission type when type changes
       }));
-    },
-    []
-  );
-
-  const handleInputChange = React.useCallback(
-    (field: keyof FormData, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+      setFormSuggestion("");
+      setSuggestionError("");
+      setReadyToCreate(false);
     },
     []
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 mt-1">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Dashboard
+          </h1>
+          <p className="text-gray-600">
             Manage your submissions and compliance documentation
           </p>
         </div>
-        <button
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-          onClick={handleOpen}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4 mr-2"
-          >
-            <path d="M5 12h14"></path>
-            <path d="M12 5v14"></path>
-          </svg>
-          New Submission
-        </button>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        <StatsCard
-          title="Draft Submissions"
-          value={stats?.drafts || 0}
-          icon={FileText}
-          iconBgColor="bg-blue-100"
-          iconColor="text-blue-600"
-        />
-        <StatsCard
-          title="Pending Review"
-          value={stats?.pending || 0}
-          icon={Clock}
-          iconBgColor="bg-orange-100"
-          iconColor="text-orange-500"
-        />
-        <StatsCard
-          title="Approved"
-          value={stats?.approved || 0}
-          icon={CheckCircle}
-          iconBgColor="bg-green-100"
-          iconColor="text-green-600"
-        />
-      </div>
-
-      {/* Submissions Table */}
-      <Card>
-        <div className="px-6 py-4 border-b border-ms-gray-300">
-          <h3 className="text-lg font-medium text-ms-gray-900">
-            Recent Submissions
-          </h3>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title="Total Submissions"
+            value={stats.total}
+            icon={FileText}
+            iconBgColor="bg-blue-100"
+            iconColor="text-blue-600"
+          />
+          <StatsCard
+            title="Draft Submissions"
+            value={stats.drafts}
+            icon={FileText}
+            iconBgColor="bg-yellow-100"
+            iconColor="text-yellow-600"
+          />
+          <StatsCard
+            title="In Progress"
+            value={stats.in_progress}
+            icon={Clock}
+            iconBgColor="bg-orange-100"
+            iconColor="text-orange-600"
+          />
+          <StatsCard
+            title="Completed"
+            value={stats.completed}
+            icon={CheckCircle}
+            iconBgColor="bg-green-100"
+            iconColor="text-green-600"
+          />
         </div>
-        <SubmissionTable
-          submissions={sortedSubmissions}
-          onDelete={handleDeleteSubmission}
-        />
-      </Card>
 
-      {/* Modal */}
-      <SubmissionModal
-        open={open}
-        formData={formData}
-        onClose={handleClose}
-        onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
-        onTypeChange={handleTypeChange}
-        onInputChange={handleInputChange}
-        getSubmissionTypesForType={getSubmissionTypesForType}
-        hideTargetDate
-        questions={questions}
-        questionAnswers={questionAnswers}
-        onQuestionAnswerChange={handleQuestionAnswerChange}
-        loading={loading}
-        showSubmissionType={!!formSuggestion || !!suggestionError}
-        formSuggestion={formSuggestion}
-        readyToCreate={readyToCreate}
-        suggestionError={suggestionError}
-        allowManualCreate={allowManualCreate}
-      />
+        {/* Action Button */}
+        <div className="mb-6">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Submission
+          </Button>
+        </div>
+
+        {/* Submissions Table */}
+        <Card className="p-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Recent Submissions
+            </h2>
+          </div>
+          <SubmissionTable
+            submissions={sortedSubmissions}
+            onDelete={handleDeleteClick}
+            onView={(submission) => {
+              // TODO: Implement view functionality
+              console.log("View submission:", submission);
+            }}
+            onEdit={(submission) => {
+              // TODO: Implement edit functionality
+              console.log("Edit submission:", submission);
+            }}
+          />
+        </Card>
+
+        {/* Submission Modal */}
+        <SubmissionModal
+          open={isModalOpen}
+          formData={formData}
+          onClose={handleClose}
+          onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
+          onTypeChange={handleTypeChange}
+          onInputChange={handleInputChange}
+          questions={questions}
+          questionAnswers={questionAnswers}
+          onQuestionAnswerChange={handleQuestionAnswerChange}
+          loading={loading}
+          readyToCreate={readyToCreate}
+          formSuggestion={formSuggestion}
+          suggestionError={suggestionError}
+          allowManualCreate={allowManualCreate}
+          getSubmissionTypesForType={getSubmissionTypesForType}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Confirm Delete"
+          maxWidth="max-w-md"
+        >
+          <div className="p-6">
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this submission? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </div>
     </div>
   );
 };

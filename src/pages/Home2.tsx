@@ -6,6 +6,7 @@ import AIAgentsSection from "../components/ai-agents-section";
 import ComparisonSection from "../components/comparison-section";
 import ContactSection from "../components/contact-section";
 import StatsSection from "../components/stats-section";
+import ChatBot from "../components/ChatBot";
 
 export default function Home2() {
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function Home2() {
       <div className="w-full bg-white pt-20">
         <ContactSection />
       </div>
+      <ChatBot />
     </div>
   );
 }
