@@ -50,6 +50,13 @@ export default function Header3() {
                 <span className="relative z-10">AI Agents</span>
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </button>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
+              >
+                <span className="relative z-10">Contact Us</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              </button>
               <Link to="/login">
                 <button
                   className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
@@ -85,6 +92,12 @@ export default function Header3() {
                 className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
               >
                 AI Agents
+              </button>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+              >
+                Demo
               </button>
               <Link to="/login">
                 <button
