@@ -446,7 +446,7 @@ const Dashboard = () => {
       <Card>
         <div className="px-6 py-4 border-b border-ms-gray-300">
           <h3 className="text-lg font-medium text-ms-gray-900">
-            Your Submissions
+            Recent Submissions
           </h3>
         </div>
         <SubmissionTable
