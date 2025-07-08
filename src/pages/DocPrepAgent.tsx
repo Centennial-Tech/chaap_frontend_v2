@@ -5,6 +5,7 @@ import Modal from "../components/ui/Modal";
 import api from "../api";
 import { useAuth } from "../provider/authProvider";
 import { extractText } from "../utils";
+import jsPDF from "jspdf";
 
 const attachmentTypes = [
   {
@@ -244,10 +245,28 @@ const DocPrepAgent = () => {
   // Validation loading state
   const [isValidating, setIsValidating] = useState(false);
 
+  // Create workflow loading state
+  const [isStartingWorkflow, setIsStartingWorkflow] = useState(false);
+  const [workflowStage, setWorkflowStage] = useState<
+    "starting" | "processing_responses"
+  >("starting");
+
+  // Workflow status flow state
+  const [showWorkflowStatus, setShowWorkflowStatus] = useState(false);
+  const [workflowResponse, setWorkflowResponse] = useState<any>(null);
+  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
+  const [additionalQuestions, setAdditionalQuestions] = useState<string[]>([]);
+  const [questionResponses, setQuestionResponses] = useState<
+    Record<string, string>
+  >({});
+  const [showFullDocument, setShowFullDocument] = useState(false);
+
   const isFormValid = selectedSubmission && selectedAttachmentType;
 
   const [submissions, setSubmissions] = useState<any[]>([]);
   const { user } = useAuth();
+
+  const [currentSessionId, setCurrentSessionId] = useState<string>("");
 
   useEffect(() => {
     // Simulate API call to fetch submissions
@@ -296,9 +315,107 @@ const DocPrepAgent = () => {
   };
 
   const handleCreate = async () => {
-    setIsCreateModalOpen(true);
-    setIsDocumentGenerated(false);
-    await fetchFormQuestions(selectedAttachmentType);
+    setWorkflowStage("starting");
+    setIsStartingWorkflow(true);
+
+    try {
+      // Generate a UUID for the session
+      const sessionId = crypto.randomUUID();
+      setCurrentSessionId(sessionId);
+
+      const response = await api.post("/agents/document_prep/start-workflow", {
+        fda_document_type: (selectedSubmission as any).submissionType || "IND",
+        attachment_type: selectedAttachmentType,
+        session_id: sessionId,
+      });
+
+      console.log("Workflow API response:", response.data);
+
+      // Check if the response indicates success
+      if (response.data.success === false) {
+        // Handle error response from API
+        console.error("API returned error:", response.data.error);
+        setWorkflowResponse(response.data);
+        setIsStartingWorkflow(false);
+        setShowWorkflowStatus(true);
+      } else {
+        // Store the successful response
+        setWorkflowResponse(response.data);
+
+        // Start polling for workflow status
+        await pollWorkflowStatus(sessionId);
+      }
+    } catch (error) {
+      console.error("Error starting workflow:", error);
+      setIsStartingWorkflow(false);
+
+      // Handle network or other errors
+      const errorResponse = {
+        success: false,
+        error: "Failed to connect to the server. Please try again.",
+        session_id: null,
+      };
+      setWorkflowResponse(errorResponse);
+      setShowWorkflowStatus(true);
+      setWorkflowStage("starting");
+    }
+  };
+
+  const pollWorkflowStatus = async (sessionId: string) => {
+    try {
+      const statusResponse = await api.get(
+        `/agents/document_prep/workflow-status/${sessionId}`
+      );
+
+      console.log("Current workflow status:", statusResponse.data);
+      setWorkflowStatus(statusResponse.data);
+
+      if (statusResponse.data.status === "processing") {
+        // Still processing, continue polling after a delay
+        setTimeout(() => pollWorkflowStatus(sessionId), 3000); // Poll every 3 seconds
+      } else if (statusResponse.data.status === "awaiting_user_input") {
+        // Ready for user input
+        setAdditionalQuestions(statusResponse.data.additional_questions || []);
+
+        // Initialize question responses
+        const initialResponses: Record<string, string> = {};
+        (statusResponse.data.additional_questions || []).forEach(
+          (question: string) => {
+            initialResponses[question] = "";
+          }
+        );
+        setQuestionResponses(initialResponses);
+
+        setIsStartingWorkflow(false);
+        setIsCreateModalOpen(true);
+      } else if (statusResponse.data.status === "completed") {
+        // Workflow completed - show document ready for download
+        setWorkflowStatus(statusResponse.data);
+        setIsStartingWorkflow(false);
+        setShowWorkflowStatus(true);
+      } else if (statusResponse.data.status === "error") {
+        // Error occurred
+        const errorResponse = {
+          success: false,
+          error: statusResponse.data.error || "Workflow encountered an error",
+          session_id: sessionId,
+        };
+        setWorkflowResponse(errorResponse);
+        setIsStartingWorkflow(false);
+        setShowWorkflowStatus(true);
+      }
+    } catch (error) {
+      console.error("Error polling workflow status:", error);
+      setIsStartingWorkflow(false);
+
+      const errorResponse = {
+        success: false,
+        error: "Failed to check workflow status. Please try again.",
+        session_id: sessionId,
+      };
+      setWorkflowResponse(errorResponse);
+      setShowWorkflowStatus(true);
+    }
   };
 
   const handleFileUpload = async (
@@ -428,26 +545,105 @@ const DocPrepAgent = () => {
     setFormResponses((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleQuestionResponse = (question: string, value: string) => {
+    setQuestionResponses((prev) => ({ ...prev, [question]: value }));
+  };
+
+  const handleContinueToForm = async () => {
+    setShowWorkflowStatus(false);
+    setIsCreateModalOpen(true);
+    setIsDocumentGenerated(false);
+    await fetchFormQuestions(selectedAttachmentType);
+  };
+
   const handleModalCreate = async () => {
     setIsGenerating(true);
 
     try {
-      // Simulate document generation API call
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      setIsDocumentGenerated(true);
+      // If we have additional questions, submit user responses
+      if (additionalQuestions.length > 0 && currentSessionId) {
+        const response = await api.post(
+          `/agents/document_prep/submit-additional-info`,
+          {
+            session_id: currentSessionId,
+            user_responses: questionResponses,
+          }
+        );
+
+        console.log("User input submitted:", response.data);
+
+        // Close the create modal and show processing status
+        setIsCreateModalOpen(false);
+        setWorkflowStage("processing_responses");
+        setIsStartingWorkflow(true);
+        setIsGenerating(false); // Reset generating state since modal is closing
+
+        // Continue polling for workflow status after submitting responses
+        await pollWorkflowStatus(currentSessionId);
+      } else {
+        // Fallback to old behavior for mock form questions
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        setIsDocumentGenerated(true);
+        setIsGenerating(false);
+      }
     } catch (error) {
       console.error("Error generating document:", error);
-    } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleDownload = () => {
-    // Implement actual download logic here
-    console.log("Downloading document...");
-    // For now, just close the modal
-    setIsCreateModalOpen(false);
-    setIsDocumentGenerated(false);
+  const handleDownload = async (format: "pdf" | "doc" | "txt" = "pdf") => {
+    try {
+      // If we have the final document content from completed workflow
+      if (workflowStatus?.final_document) {
+        downloadFile(
+          selectedSubmission.name,
+          workflowStatus.final_document,
+          format
+        );
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      alert("Failed to download document. Please try again.");
+    }
+  };
+
+  const downloadFile = (
+    filename: string,
+    content: string,
+    type: "txt" | "pdf" | "doc"
+  ) => {
+    if (type === "pdf") {
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(content, 180); // auto wrap at 180mm
+      doc.text(lines, 10, 10);
+      doc.save(`${filename}.pdf`);
+      return;
+    }
+
+    let blob: Blob;
+
+    if (type === "doc") {
+      const docContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+            xmlns:w='urn:schemas-microsoft-com:office:word' 
+            xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>${filename}</title></head>
+      <body><pre>${content}</pre></body></html>
+    `;
+      blob = new Blob([docContent], { type: "application/msword" });
+    } else {
+      blob = new Blob([content], { type: "text/plain" });
+    }
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.${type}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleCloseCreateModal = () => {
@@ -459,6 +655,17 @@ const DocPrepAgent = () => {
   };
 
   const isCreateFormValid = () => {
+    // If we have additional questions from the workflow
+    if (additionalQuestions.length > 0) {
+      return additionalQuestions.every((question: string) => {
+        return (
+          questionResponses[question] &&
+          questionResponses[question].trim() !== ""
+        );
+      });
+    }
+
+    // Fallback to old form validation for mock questions
     return formQuestions.every((question: any) => {
       if (question.required) {
         return (
@@ -1011,23 +1218,65 @@ const DocPrepAgent = () => {
       ) : (
         <>
           <div className="space-y-4 mb-6">
-            {formQuestions.map((question: any) => (
-              <div key={question.id}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {question.label}
-                  {question.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-                {renderFormField(question)}
-              </div>
-            ))}
+            {/* Render workflow additional questions */}
+            {additionalQuestions.length > 0 ? (
+              <>
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-800 mb-2">
+                    Additional Information Required
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    Please provide the following information to complete your
+                    document:
+                  </p>
+                </div>
+                {additionalQuestions.map((question: string, index: number) => (
+                  <div key={`question-${index}`}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {question}
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <textarea
+                      className={`w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px] ${
+                        isDocumentGenerated || isGenerating
+                          ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                          : ""
+                      }`}
+                      value={questionResponses[question] || ""}
+                      onChange={(e) =>
+                        handleQuestionResponse(question, e.target.value)
+                      }
+                      disabled={isDocumentGenerated || isGenerating}
+                      placeholder="Please provide your answer here..."
+                      rows={3}
+                    />
+                  </div>
+                ))}
+              </>
+            ) : (
+              /* Render mock form questions (fallback) */
+              formQuestions.map((question: any) => (
+                <div key={question.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {question.label}
+                    {question.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </label>
+                  {renderFormField(question)}
+                </div>
+              ))
+            )}
           </div>
 
           {isGenerating && (
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                <span>Generating document...</span>
+                <span>
+                  {additionalQuestions.length > 0
+                    ? "Processing your responses..."
+                    : "Generating document..."}
+                </span>
                 <span>Please wait</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -1054,11 +1303,11 @@ const DocPrepAgent = () => {
                 disabled={!isCreateFormValid() || isGenerating}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                {isGenerating ? "Generating..." : "Submit"}
+                {isGenerating ? "Processing..." : "Submit"}
               </button>
             ) : (
               <button
-                onClick={handleDownload}
+                onClick={() => handleDownload("pdf")}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
@@ -1068,6 +1317,511 @@ const DocPrepAgent = () => {
           </div>
         </>
       )}
+    </>
+  );
+
+  const renderWorkflowStatusContent = () => (
+    <>
+      <div className="flex flex-col items-center justify-center py-8 px-4">
+        {/* Status icon - success or error */}
+        <div className="relative mb-6">
+          {workflowResponse?.success !== false &&
+          workflowStatus?.status === "completed" ? (
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          ) : workflowResponse?.success ? (
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          ) : (
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Status message */}
+        <div className="text-center space-y-3 mb-8">
+          {workflowStatus?.status === "completed" ? (
+            <>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Document Ready for Download!
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Your document has been successfully generated and is ready to
+                download.
+              </p>
+            </>
+          ) : workflowResponse?.success ? (
+            <>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Workflow Started Successfully!
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Your document creation workflow has been initialized and is
+                ready to proceed.
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Workflow Start Failed
+              </h3>
+              <p className="text-gray-600 text-sm">
+                There was an issue starting your document creation workflow.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Status details */}
+        {workflowResponse && (
+          <div className="w-full space-y-4 mb-8">
+            <div
+              className={`border rounded-lg p-4 ${
+                workflowResponse.success
+                  ? "bg-green-50 border-green-200"
+                  : "bg-red-50 border-red-200"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`text-sm font-medium ${
+                      workflowResponse?.success !== false
+                        ? "text-green-800"
+                        : "text-red-800"
+                    }`}
+                  >
+                    Status:
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      workflowStatus?.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : workflowResponse?.success !== false
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {workflowStatus?.status === "completed"
+                      ? "Completed"
+                      : workflowResponse?.success !== false
+                      ? "Active"
+                      : "Failed"}
+                  </span>
+                </div>
+
+                {(workflowResponse?.session_id || currentSessionId) && (
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-sm font-medium ${
+                        workflowResponse?.success !== false
+                          ? "text-green-800"
+                          : "text-red-800"
+                      }`}
+                    >
+                      Session ID:
+                    </span>
+                    <span
+                      className={`text-sm font-mono px-2 py-1 rounded ${
+                        workflowResponse?.success !== false
+                          ? "text-green-700 bg-green-100"
+                          : "text-red-700 bg-red-100"
+                      }`}
+                    >
+                      {workflowResponse?.session_id || currentSessionId}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-start justify-between">
+                  <span
+                    className={`text-sm font-medium ${
+                      workflowResponse?.success !== false
+                        ? "text-green-800"
+                        : "text-red-800"
+                    }`}
+                  >
+                    {workflowStatus?.status === "completed"
+                      ? "Document:"
+                      : workflowResponse?.success !== false
+                      ? "Message:"
+                      : "Error:"}
+                  </span>
+                  <span
+                    className={`text-sm text-right max-w-xs ${
+                      workflowResponse?.success !== false
+                        ? "text-green-700"
+                        : "text-red-700"
+                    }`}
+                  >
+                    {workflowStatus?.status === "completed"
+                      ? "Document generation completed successfully"
+                      : workflowResponse?.message || workflowResponse?.error}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Document preview - show for completed workflows */}
+            {workflowStatus?.status === "completed" &&
+              workflowStatus?.final_document && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Document Preview
+                    </div>
+                    <span className="text-xs text-gray-500 font-normal">
+                      {Math.round(workflowStatus.final_document.length / 1000)}K
+                      chars
+                    </span>
+                  </h4>
+                  <div className="bg-white border border-gray-300 rounded p-4 max-h-60 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap text-xs text-gray-800 font-mono leading-relaxed">
+                      {showFullDocument
+                        ? workflowStatus.final_document
+                        : workflowStatus.final_document.substring(0, 1000) +
+                          (workflowStatus.final_document.length > 1000
+                            ? "..."
+                            : "")}
+                    </pre>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    {workflowStatus.final_document.length > 1000 && (
+                      <p className="text-xs text-gray-500">
+                        {showFullDocument
+                          ? `Showing full document (${workflowStatus.final_document.length} characters)`
+                          : "Showing first 1000 characters"}
+                      </p>
+                    )}
+                    {workflowStatus.final_document.length > 1000 && (
+                      <button
+                        onClick={() => setShowFullDocument(!showFullDocument)}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      >
+                        {showFullDocument ? "Show Less" : "Show More"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            {workflowResponse?.success !== false && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                  {workflowStatus?.status === "completed"
+                    ? "Workflow Progress:"
+                    : "Next Steps:"}
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">
+                      Workflow initialized
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        workflowStatus?.status === "completed"
+                          ? "bg-green-100"
+                          : "bg-blue-100"
+                      }`}
+                    >
+                      {workflowStatus?.status === "completed" ? (
+                        <svg
+                          className="w-4 h-4 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <span className="text-xs font-medium text-blue-600">
+                          2
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className={`text-sm ${
+                        workflowStatus?.status === "completed"
+                          ? "text-gray-700"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      Complete document information form
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        workflowStatus?.status === "completed"
+                          ? "bg-green-100"
+                          : "bg-gray-200"
+                      }`}
+                    >
+                      {workflowStatus?.status === "completed" ? (
+                        <svg
+                          className="w-4 h-4 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <span className="text-xs font-medium text-gray-500">
+                          3
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className={`text-sm ${
+                        workflowStatus?.status === "completed"
+                          ? "text-gray-700"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Generate document
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        workflowStatus?.status === "completed"
+                          ? "bg-blue-100"
+                          : "bg-gray-200"
+                      }`}
+                    >
+                      <span
+                        className={`text-xs font-medium ${
+                          workflowStatus?.status === "completed"
+                            ? "text-blue-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        4
+                      </span>
+                    </div>
+                    <span
+                      className={`text-sm ${
+                        workflowStatus?.status === "completed"
+                          ? "text-blue-700 font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Download completed document
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error guidance - only show for failed workflows */}
+            {!workflowResponse.success && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  What to do next:
+                </h4>
+                <div className="space-y-2 text-sm text-gray-700">
+                  {workflowResponse.error === "Session already exists" ? (
+                    <>
+                      <p>
+                        • A workflow session is already running for this
+                        configuration.
+                      </p>
+                      <p>• You can wait a few minutes and try again, or</p>
+                      <p>• Contact support if you believe this is an error.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>• Check your internet connection and try again.</p>
+                      <p>
+                        • Ensure you have selected both a submission and
+                        attachment type.
+                      </p>
+                      <p>• If the problem persists, please contact support.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex justify-center space-x-4 w-full">
+          <button
+            onClick={() => {
+              setShowWorkflowStatus(false);
+              // Reset workflow state if completed
+              if (workflowStatus?.status === "completed") {
+                setWorkflowStatus(null);
+                setWorkflowResponse(null);
+                setCurrentSessionId("");
+                setAdditionalQuestions([]);
+                setQuestionResponses({});
+                setShowFullDocument(false);
+                setWorkflowStage("starting");
+              }
+            }}
+            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+          >
+            Close
+          </button>
+          {workflowStatus?.status === "completed" && (
+            <div className="flex flex-col space-y-2">
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Download Options:
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleDownload("pdf")}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2 text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  PDF
+                </button>
+                <button
+                  onClick={() => handleDownload("doc")}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  DOC
+                </button>
+                <button
+                  onClick={() => handleDownload("txt")}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center gap-2 text-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  TXT
+                </button>
+              </div>
+            </div>
+          )}
+          {workflowResponse?.success &&
+            workflowStatus?.status !== "completed" && (
+              <button
+                onClick={handleContinueToForm}
+                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+              >
+                Continue to Form
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            )}
+          {!workflowResponse?.success && (
+            <button
+              onClick={() => {
+                setShowWorkflowStatus(false);
+                // Reset any form state if needed
+              }}
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          )}
+        </div>
+      </div>
     </>
   );
 
@@ -1157,7 +1911,7 @@ const DocPrepAgent = () => {
             <div className="flex justify-center space-x-6 pt-6">
               <button
                 onClick={handleValidate}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isStartingWorkflow}
                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
               >
                 Validate
@@ -1165,10 +1919,17 @@ const DocPrepAgent = () => {
 
               <button
                 onClick={handleCreate}
-                disabled={!isFormValid}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
+                disabled={!isFormValid || isStartingWorkflow}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors flex items-center gap-2"
               >
-                Create
+                {isStartingWorkflow ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Starting...
+                  </>
+                ) : (
+                  "Create"
+                )}
               </button>
             </div>
           </CardContent>
@@ -1255,6 +2016,102 @@ const DocPrepAgent = () => {
             </div>
           </div>
         </div>
+      </Modal>
+
+      {/* Create Workflow Loading Modal */}
+      <Modal
+        isOpen={isStartingWorkflow}
+        onClose={() => {}} // Prevent closing during workflow creation
+        title={
+          workflowStage === "processing_responses"
+            ? "Processing Document Generation"
+            : "Preparing Document Creation"
+        }
+        showCloseButton={false}
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col items-center justify-center py-8 px-4">
+          {/* Animated creation icon */}
+          <div className="relative mb-6">
+            <div className="w-16 h-16 border-4 border-green-200 rounded-full">
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-green-600 rounded-full animate-spin"></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-green-600 animate-pulse"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Loading text */}
+          <div className="text-center space-y-3">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {workflowStage === "processing_responses"
+                ? "Processing Your Responses"
+                : "Setting Up Document Creation"}
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce"></div>
+                <div
+                  className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+              </div>
+              <p className="text-gray-600 text-sm">
+                {workflowStage === "processing_responses"
+                  ? "Your responses have been submitted and the document is being generated. This may take a few moments."
+                  : "Initializing the document creation workflow and preparing form questions. This will only take a moment."}
+              </p>
+            </div>
+          </div>
+
+          {/* Progress indicators */}
+          <div className="mt-6 w-full space-y-3">
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>
+                  {workflowStage === "processing_responses"
+                    ? "Generating document..."
+                    : "Starting workflow..."}
+                </span>
+                <span>
+                  {workflowStage === "processing_responses" ? "📄" : "🚀"}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full animate-pulse"
+                  style={{ width: "100%" }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Workflow Status Modal */}
+      <Modal
+        isOpen={showWorkflowStatus}
+        onClose={() => setShowWorkflowStatus(false)}
+        title="Workflow Status"
+        maxWidth="max-w-4xl"
+      >
+        {renderWorkflowStatusContent()}
       </Modal>
 
       <Modal
