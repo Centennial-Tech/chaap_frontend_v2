@@ -176,7 +176,7 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
         {loading ? (
           <ChatLoader />
         ) : (
-          <div className="bg-blue-50 rounded-2xl rounded-tl-none p-4 shadow-sm">
+          <div className="bg-blue-50 rounded-2xl rounded-tl-none p-4 shadow-lg">
             {isTyping ? (
               // Show plain text during typing for better performance
               <div className="whitespace-pre-wrap">
@@ -331,7 +331,7 @@ const KnowledgeAgent = () => {
           <span className="block font-bold text-gray-700 float-right self-end">
             You{" "}
           </span>
-          <div className="bg-white rounded-2xl rounded-tr-none p-4 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl rounded-tr-none p-4 shadow-lg border border-gray-100">
             <span className="break-all">{content}</span>
           </div>
         </div>
