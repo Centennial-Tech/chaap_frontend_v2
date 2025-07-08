@@ -22,6 +22,7 @@ import Dashboard from "../pages/Dashboard";
 import DocPrepAgent from "../pages/DocPrepAgent";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/ui/SideNav";
+import UserProfile from "../pages/UserProfile";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const LayoutWithHeader = () => {
@@ -102,6 +103,10 @@ const Routes = () => {
             {
               path: "/dashboard",
               element: <Dashboard />,
+            },
+            {
+              path: "/profile",
+              element: <UserProfile />,
             },
             {
               path: "/agents/",

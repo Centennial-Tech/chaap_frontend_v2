@@ -19,7 +19,7 @@ const mainNavItems = [
 
 const sectionItems = [
   {
-    label: "Pre-submission Strategy Agent",
+    label: "Pre-Submission Strategy Agent",
     path: "/pre-submission-strategy-agent",
     icon: Bot,
   },
@@ -51,6 +51,14 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false);
 
   const shouldShowFull = !isMinimized || isHovered;
+
+  // Dispatch custom event when sidebar state changes
+  useEffect(() => {
+    const event = new CustomEvent('sidebarToggle', {
+      detail: { expanded: shouldShowFull }
+    });
+    window.dispatchEvent(event);
+  }, [shouldShowFull]);
 
   // Adjust main content margin instead of body margin
   useEffect(() => {

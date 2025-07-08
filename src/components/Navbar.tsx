@@ -103,20 +103,25 @@ export default function Navbar() {
 
           {/* User Profile */}
           <div className="flex items-center space-x-3">
-            <div className="text-right text-sm">
-              <div className="font-bold text-gray-900">{userName}</div>
-              <div className="text-gray-600">
-                {user?.organization_name || "Centennial Technologies"}
+            <Link
+              to="/profile"
+              className="flex items-center space-x-3 hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200"
+            >
+              <div className="text-right text-sm">
+                <div className="font-bold text-gray-900">{userName}</div>
+                <div className="text-gray-600">
+                  {user?.organization_name || "Centennial Technologies"}
+                </div>
               </div>
-            </div>
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-              {userName
-                ? userName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                : "U"}
-            </div>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                {userName
+                  ? userName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                  : "U"}
+              </div>
+            </Link>
           </div>
           <LogoutButton />
         </div>
