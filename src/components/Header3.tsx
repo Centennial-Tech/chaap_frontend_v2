@@ -39,31 +39,31 @@ export default function Header3() {
             <div className="ml-10 flex items-center space-x-2 bg-slate-50 p-1 rounded-xl">
               <button 
                 onClick={() => scrollToSection('features')}
-                className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
+                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
               >
                 <span className="relative z-10">Features</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </button>
               <button 
                 onClick={() => scrollToSection('ai-agents')}
-                className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
+                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
               >
                 <span className="relative z-10">AI Agents</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
-                className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
+                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
               >
                 <span className="relative z-10">Contact Us</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
               </button>
               <Link to="/login">
                 <button
-                  className="relative text-slate-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200 px-4 py-2 text-sm font-medium rounded-lg group"
+                  className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
                 >
                   <span className="relative z-10">Login</span>
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-orange-100/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                 </button>
               </Link>
             </div>
@@ -72,7 +72,7 @@ export default function Header3() {
             <button
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-slate-600 hover:text-blue-800 p-2 rounded-lg focus:outline-none"
+              className="text-purple-500 hover:text-purple-600 p-2 rounded-lg focus:outline-none"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -84,25 +84,25 @@ export default function Header3() {
             <div className="px-4 pt-4 pb-6 bg-gradient-to-br from-white to-slate-50 border-t border-slate-200 flex flex-col space-y-2">
               <button 
                 onClick={() => scrollToSection('features')}
-                className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
               >
                 Features
               </button>
               <button 
                 onClick={() => scrollToSection('ai-agents')}
-                className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
               >
                 AI Agents
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
-                className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
               >
                 Demo
               </button>
               <Link to="/login">
                 <button
-                  className="text-slate-600 hover:text-blue-800 hover:bg-blue-100 block px-4 py-3 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                  className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
                 >
                   Login
                 </button>
