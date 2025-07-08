@@ -221,7 +221,7 @@ const mockFormQuestions = {
 };
 
 const DocPrepAgent = () => {
-  const [selectedSubmission, setSelectedSubmission] = useState("");
+  const [selectedSubmission, setSelectedSubmission] = useState({} as any);
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
@@ -261,6 +261,12 @@ const DocPrepAgent = () => {
 
     fetchSubmissions();
   }, [user?.id]);
+
+  // Debug effect to monitor validation results changes
+  useEffect(() => {
+    console.log("Validation results changed:", validationResults);
+    console.log("isValidationResultsOpen:", isValidationResultsOpen);
+  }, [validationResults, isValidationResultsOpen]);
 
   // Simulate API call to fetch form questions
   const fetchFormQuestions = async (attachmentType: string) => {
@@ -324,6 +330,13 @@ const DocPrepAgent = () => {
   };
 
   const handleModalValidate = async () => {
+    console.log("Starting validation process...");
+    console.log(
+      "Current state - isValidationResultsOpen:",
+      isValidationResultsOpen
+    );
+    console.log("Current state - validationResults:", validationResults);
+
     if (!uploadedFile || !extractedText) {
       console.error("No file or extracted text available for validation");
       return;
@@ -332,12 +345,16 @@ const DocPrepAgent = () => {
     setIsValidateModalOpen(false);
     setIsValidating(true);
 
+    // Clear any previous results
+    setValidationResults(null);
+    console.log("Cleared previous validation results");
+
     try {
       // Prepare the payload for the validation API
       console.log("Preparing validation payload...", extractedText);
       const validationPayload = {
         document_content: extractedText,
-        document_type: selectedSubmission || "IND",
+        document_type: (selectedSubmission as any).submissionType || "IND",
         attachment_type: selectedAttachmentType, // This can be dynamic based on your requirements
         session_id: "string",
       };
@@ -355,10 +372,17 @@ const DocPrepAgent = () => {
         validationPayload
       );
 
+      console.log("Validation API response:", response.data);
+
       if (response.data) {
-        setValidationResults(response.data);
+        // Check if validation_results exists, otherwise use the entire response
+        const results = response.data.validation_result || response.data;
+        console.log("Setting validation results:", results);
+        setValidationResults(results);
         setIsValidationResultsOpen(true);
-        console.log("Validation completed successfully:", response.data);
+        console.log(
+          "Validation completed successfully. Modal should open now."
+        );
       } else {
         throw new Error("No validation results received");
       }
@@ -367,8 +391,10 @@ const DocPrepAgent = () => {
 
       // Fallback to mock results if API fails
       console.log("Falling back to mock validation results");
-      setValidationResults({
+      const mockResults = {
         overallScore: 85,
+        confidence_score: 85,
+        is_compliant: true,
         reviewPoints: [
           {
             id: 1,
@@ -378,9 +404,18 @@ const DocPrepAgent = () => {
               "The validation service is currently unavailable. Please try again later.",
           },
         ],
+        issues: ["API validation service is currently unavailable"],
+        recommendations: [
+          "Please try again later when the validation service is restored",
+          "Check your internet connection and ensure the API endpoint is accessible",
+        ],
         summary: "Mock validation results due to API error",
-      });
+      };
+
+      console.log("Setting mock validation results:", mockResults);
+      setValidationResults(mockResults);
       setIsValidationResultsOpen(true);
+      console.log("Mock validation results set. Modal should open now.");
     } finally {
       // Clear the file and extracted text after validation
       setUploadedFile(null);
@@ -636,33 +671,35 @@ const DocPrepAgent = () => {
   );
 
   const renderValidationResultsContent = () => {
-    // Add dummy validation results if none exist
-    // const results = validationResults || {
-    //   overallScore: 92,
-    //   reviewPoints: [
-    //     {
-    //       id: 1,
-    //       status: "pass",
-    //       title: "Sample Validation Check",
-    //     },
+    // Safeguard: if no validation results, show a loading or error state
+    if (!validationResults) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading validation results...</p>
+          </div>
+        </div>
+      );
+    }
+
+    const results = validationResults;
+    // const results = {
+    //   confidence_score: 40,
+    //   detailed_analysis:
+    //     "The submitted NDA cover letter contains placeholder content, which is unacceptable for FDA submissions. Placeholder content significantly detracts from the document's credibility and compliance. The FDA requires specific and accurate information in all sections of the cover letter, including the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data. Additionally, the document does not demonstrate adherence to FDA formatting guidelines, which are critical for ensuring clarity and professionalism in regulatory submissions. The presence of placeholder content and lack of specific details result in a low confidence score and non-compliance with FDA requirements.",
+    //   is_compliant: false,
+    //   issues: [
+    //     "Placeholder content ({company_name}, {contact_info}, {regulatory_contact}, {submission_date}, {drug_name}, {generic_name}, {nda_number}, {application_type}, {supporting_data}) is present and unacceptable.",
+    //     "The document lacks specific details required for a compliant NDA cover letter, such as the actual company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
+    //     "No indication of adherence to formatting guidelines specified by the FDA for NDA cover letters.",
+    //   ],
+    //   recommendations: [
+    //     "Replace all placeholder content with actual, accurate information.",
+    //     "Ensure the cover letter includes all required elements, such as the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
+    //     "Verify that the formatting adheres to FDA guidelines, including proper headers, spacing, and alignment.",
     //   ],
     // };
-    const results = {
-      confidence_score: 40,
-      detailed_analysis:
-        "The submitted NDA cover letter contains placeholder content, which is unacceptable for FDA submissions. Placeholder content significantly detracts from the document's credibility and compliance. The FDA requires specific and accurate information in all sections of the cover letter, including the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data. Additionally, the document does not demonstrate adherence to FDA formatting guidelines, which are critical for ensuring clarity and professionalism in regulatory submissions. The presence of placeholder content and lack of specific details result in a low confidence score and non-compliance with FDA requirements.",
-      is_compliant: false,
-      issues: [
-        "Placeholder content ({company_name}, {contact_info}, {regulatory_contact}, {submission_date}, {drug_name}, {generic_name}, {nda_number}, {application_type}, {supporting_data}) is present and unacceptable.",
-        "The document lacks specific details required for a compliant NDA cover letter, such as the actual company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
-        "No indication of adherence to formatting guidelines specified by the FDA for NDA cover letters.",
-      ],
-      recommendations: [
-        "Replace all placeholder content with actual, accurate information.",
-        "Ensure the cover letter includes all required elements, such as the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
-        "Verify that the formatting adheres to FDA guidelines, including proper headers, spacing, and alignment.",
-      ],
-    };
 
     return (
       <>
@@ -672,7 +709,7 @@ const DocPrepAgent = () => {
               results.confidence_score || 0
             )}`}
           >
-            {results.confidence_score || "-"}%
+            {results.confidence_score || 0}%
           </div>
           <div className="text-lg text-gray-600">Overall Compliance Score</div>
           <div className="text-sm text-gray-600">
@@ -1071,8 +1108,13 @@ const DocPrepAgent = () => {
                 <select
                   id="submission-select"
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedSubmission}
-                  onChange={(e) => setSelectedSubmission(e.target.value)}
+                  onChange={(e) => {
+                    const submissionId = e.target.value;
+                    const submission = submissions.find(
+                      (s) => s.id === submissionId
+                    );
+                    setSelectedSubmission(submission);
+                  }}
                 >
                   <option value="" disabled selected>
                     Select a recent submission
@@ -1080,7 +1122,8 @@ const DocPrepAgent = () => {
                   {submissions.map((submission) => (
                     <option
                       key={submission.id}
-                      value={submission.submissionType?.toString()}
+                      value={submission.id}
+                      selected={submission.id === selectedSubmission}
                     >
                       {submission.name}
                     </option>
@@ -1215,12 +1258,12 @@ const DocPrepAgent = () => {
       </Modal>
 
       <Modal
-        isOpen={isValidationResultsOpen && validationResults}
+        isOpen={isValidationResultsOpen}
         onClose={() => setIsValidationResultsOpen(false)}
         title="Validation Results"
         maxWidth="max-w-4xl"
       >
-        {renderValidationResultsContent()}
+        {validationResults && renderValidationResultsContent()}
       </Modal>
 
       <Modal
