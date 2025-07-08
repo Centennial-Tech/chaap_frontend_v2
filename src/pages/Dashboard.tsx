@@ -11,7 +11,7 @@ import {
   deleteSubmission,
   type Submission,
 } from "../helpers/submissionApiHelper";
-
+import api from "../api";
 
 interface Stats {
   drafts: number;
@@ -26,11 +26,19 @@ interface Stats {
 
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
-  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
+  const in_progress = submissions.filter(
+    (s) => s.status === "in_progress"
+  ).length;
   const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
-  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0
-  return { drafts, pending: in_progress, approved: completed, total, approvalRate };
+  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return {
+    drafts,
+    pending: in_progress,
+    approved: completed,
+    total,
+    approvalRate,
+  };
 };
 
 const Dashboard = () => {
@@ -128,7 +136,7 @@ const Dashboard = () => {
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-  
+
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
     try {
       await deleteSubmission(id);
@@ -167,17 +175,10 @@ const Dashboard = () => {
           // Use the ref to get the latest answers
           const answers = { ...questionAnswersRef.current };
           console.log("API will send answers:", answers);
-          response = await fetch("/agent/suggested_form", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_answers: JSON.stringify(answers),
-            }),
+          response = await api.post("/agent/suggested_form", {
+            user_answers: JSON.stringify(answers),
           });
-          const data = await response.json();
-          suggestion = data?.suggested_form || "";
+          suggestion = response.data?.suggested_form || "";
           attempts++;
         } while (suggestion.length > 10 && attempts < 2);
         if (suggestion.length > 10) {
@@ -234,18 +235,11 @@ const Dashboard = () => {
         setLoading(true);
         try {
           // First submit: get questions from API
-          const response = await fetch("/agent/form_questions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_input: formData.productDescription,
-            }),
+          const response = await api.post("/agent/form_questions", {
+            user_input: formData.productDescription,
           });
-          const data = await response.json();
           const qs =
-            data?.questions
+            response.data?.questions
               ?.match(/- (.+?)(?=\n|$)/g)
               ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
           setQuestions(qs);
@@ -260,7 +254,7 @@ const Dashboard = () => {
       // Now show the submissionType field with default value from formSuggestion
       return;
     },
-    [formData, questions, handleAdditionalQuestionsSubmission]
+    [formData, submissions, handleClose, questions]
   );
 
   // Handler for question answers
@@ -274,8 +268,6 @@ const Dashboard = () => {
     },
     []
   );
-
-
 
   const handleInputChange = React.useCallback(
     (field: keyof FormData, value: string) => {

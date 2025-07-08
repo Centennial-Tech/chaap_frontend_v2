@@ -240,7 +240,7 @@ const DocPrepAgent = () => {
   const [extractedText, setExtractedText] = useState<string>("");
   const [isExtractingText, setIsExtractingText] = useState(false);
   const [extractionError, setExtractionError] = useState<string>("");
-  
+
   // Validation loading state
   const [isValidating, setIsValidating] = useState(false);
 
@@ -337,8 +337,8 @@ const DocPrepAgent = () => {
       console.log("Preparing validation payload...", extractedText);
       const validationPayload = {
         document_content: extractedText,
-        document_type: selectedAttachmentType || "general",
-        attachment_type: "cover_letter", // This can be dynamic based on your requirements
+        document_type: selectedSubmission || "IND",
+        attachment_type: selectedAttachmentType, // This can be dynamic based on your requirements
         session_id: "string",
       };
 
@@ -348,12 +348,6 @@ const DocPrepAgent = () => {
       //   "attachment_type": "cover_letter", // optional
       //   "session_id": "string"        // optional
       // }
-
-      console.log("Sending validation request:", {
-        ...validationPayload,
-        document_content:
-          validationPayload.document_content.substring(0, 100) + "...",
-      });
 
       // Call the validation API
       const response = await api.post(
@@ -1186,8 +1180,14 @@ const DocPrepAgent = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div
+                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
               </div>
               <p className="text-gray-600 text-sm">
                 Our AI is reviewing your document for compliance and structure.
@@ -1204,7 +1204,10 @@ const DocPrepAgent = () => {
                 <span>⚡</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full animate-pulse"
+                  style={{ width: "100%" }}
+                ></div>
               </div>
             </div>
           </div>
