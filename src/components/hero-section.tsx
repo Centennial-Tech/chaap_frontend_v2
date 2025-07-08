@@ -26,7 +26,7 @@ export default function HeroSection() {
               autoPlay
               muted
               playsInline
-              className="h-auto w-auto transform xl:translate-x-[-10%] xl:scale-[1.2] lg:translate-x-[-5%] lg:scale-[1.2] scale-75"
+              className="h-auto w-auto transform translate-x-[-5%] scale-[1.2] xl:scale-[1.1] xl:translate-x-[-5%]"
               style={{
                 background: "white",
               }}
