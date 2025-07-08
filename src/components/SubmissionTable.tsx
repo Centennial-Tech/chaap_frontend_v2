@@ -1,25 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
+import Modal from "./ui/Modal";
 import { Edit, Download, Trash2 } from "lucide-react";
-
-interface Submission {
-  id: string;
-  application_id: string;
-  name: string;
-  submissionType: string;
-  status: "draft" | "in_progress" | "completed";
-  progress: number;
-  updatedAt: string;
-  start_time: string;
-  end_time?: string | null;
-  user_id: string;
-  username: string;
-  screening_responses?: string;
-  form_id?: string | null;
-  active: boolean;
-  productDescription?: string;
-}
+import { deleteSubmission } from "../helpers/submissionApiHelper";
+import type { Submission } from "../helpers/submissionApiHelper";
 
 interface SubmissionTableProps {
   submissions: Submission[];
@@ -33,6 +18,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(
     null
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteClick = (id: string) => {
     setShowConfirmDialog(id);
@@ -40,14 +26,33 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
 
   const handleConfirmDelete = async (id: string) => {
     console.log("SubmissionTable: handleConfirmDelete called with ID:", id);
-    setShowConfirmDialog(null);
-    // Call the onDelete function (which now does nothing)
-    await onDelete(id);
-    console.log("SubmissionTable: Delete confirmation completed");
+    setIsDeleting(true);
+    try {
+      // Use the delete API helper
+      await deleteSubmission(id);
+      // Call the parent's onDelete callback to refresh the list
+      await onDelete(id);
+      console.log("SubmissionTable: Delete confirmation completed");
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsDeleting(false);
+      setShowConfirmDialog(null);
+    }
   };
 
   const handleCancelDelete = () => {
     setShowConfirmDialog(null);
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    } catch (error) {
+      return dateString; // Fallback to original string if parsing fails
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -114,8 +119,8 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-ms-gray-300">
-            {submissions.map((submission: any) => (
-              <tr key={submission.application_id}>
+            {submissions.map((submission) => (
+              <tr key={submission.id || submission.submission_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-ms-gray-700">
                     {submission.name}
@@ -138,24 +143,24 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
-                  {submission.updatedAt}
+                  {formatDate(submission.updated_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                   <Button variant="ghost" size="icon">
-                    <Edit className="w-4 h-4 text-ms-gray-700" />
+                    <Edit className="w-4 h-4 text-blue-600 hover:text-blue-700" />
                   </Button>
                   <Button variant="ghost" size="icon">
-                    <Download className="w-4 h-4 text-ms-gray-700" />
+                    <Download className="w-4 h-4 text-green-600 hover:text-green-700" />
                   </Button>
                   {submission.status === "draft" && (
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        handleDeleteClick(submission.application_id)
+                        handleDeleteClick(submission.id || submission.submission_id)
                       }
                     >
-                      <Trash2 className="w-4 h-4 ms-red" />
+                      <Trash2 className="w-4 h-4 text-red-600 hover:text-red-700" />
                     </Button>
                   )}
                 </td>
@@ -166,33 +171,37 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
       </div>
 
       {/* Confirmation Dialog */}
-      {showConfirmDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this submission? This action
-              cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={handleCancelDelete}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() =>
-                  showConfirmDialog && handleConfirmDelete(showConfirmDialog)
-                }
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
+      <Modal
+        isOpen={!!showConfirmDialog}
+        onClose={handleCancelDelete}
+        title="Confirm Deletion"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to delete this submission? This action
+            cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                showConfirmDialog && handleConfirmDelete(showConfirmDialog)
+              }
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
     </>
   );
 };

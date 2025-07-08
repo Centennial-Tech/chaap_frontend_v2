@@ -29,6 +29,8 @@ interface response {
 interface IConversation {
   who: string;
   what: string;
+  isStreaming?: boolean;
+  isTyping?: boolean;
 }
 
 const type = {
@@ -57,7 +59,7 @@ const components: any = {
   },
 };
 
-const AI = ({ content, loading = false, ref = () => {} }: response) => {
+const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: response & { isTyping?: boolean }) => {
   const [copied, setCopied] = useState<boolean>(false);
   const [liked, setLiked] = useState<boolean>(false);
   const [unliked, setUnliked] = useState<boolean>(false);
@@ -74,7 +76,7 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
           <svg
             stroke="none"
             fill="black"
-            stroke-width="1.5"
+            strokeWidth="1.5"
             viewBox="0 0 24 24"
             aria-hidden="true"
             height="20"
@@ -82,8 +84,8 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
             ></path>
           </svg>
@@ -91,7 +93,6 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
       </span>
 
       <div className="leading-relaxed flex flex-col gap-2">
-        {/* import ContentCopyIcon from '@mui/icons-material/ContentCopy'; */}
         <div className="flex justify-between">
           <span className="block font-bold text-gray-700 mr-3">
             Regulatory Agent
@@ -173,11 +174,22 @@ const AI = ({ content, loading = false, ref = () => {} }: response) => {
         {loading ? (
           <ChatLoader />
         ) : (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, supersub]}
-            children={content}
-            components={components}
-          />
+          <>
+            {isTyping ? (
+              // Show plain text during typing for better performance
+              <div className="whitespace-pre-wrap">
+                {content}
+                <span className="animate-pulse">|</span>
+              </div>
+            ) : (
+              // Show rendered markdown when typing is complete
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, supersub]}
+                children={content}
+                components={components}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
@@ -190,6 +202,12 @@ const KnowledgeAgent = () => {
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [streaming, setStreaming] = useState<boolean>(true); // Toggle for streaming mode
+
+  // Add state for typing effect
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
 
   const suggestions = [
     "What is a predicate device in the 510(k) pathway?",
@@ -203,10 +221,48 @@ const KnowledgeAgent = () => {
     },
   ]);
 
+  // Typing effect function
+  const startTypingEffect = (text: string, messageIndex: number) => {
+    setIsTyping(true);
+    let currentIndex = 0;
+
+    const typeCharacter = () => {
+      if (currentIndex < text.length) {
+        // Type multiple characters at once for faster display
+        const charsToAdd = Math.min(2, text.length - currentIndex);
+        currentIndex += charsToAdd;
+        const displayText = text.substring(0, currentIndex);
+        
+        setConversations((prev) =>
+          prev.map((conv, index) =>
+            index === messageIndex
+              ? { ...conv, what: displayText, isTyping: true }
+              : conv
+          )
+        );
+      } else {
+        // Typing complete
+        setConversations((prev) =>
+          prev.map((conv, index) =>
+            index === messageIndex
+              ? { ...conv, isTyping: false, isStreaming: false }
+              : conv
+          )
+        );
+        setIsTyping(false);
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+        }
+      }
+    };
+
+    typingIntervalRef.current = setInterval(typeCharacter, 5); // Fast typing speed to match ChatBot
+  };
+
   useEffect(() => {
-    // if (lastRef.current) {
-    //   lastRef.current.scrollIntoView({ behavior: "smooth" });
-    // }
+    if (lastRef.current) {
+      lastRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [conversations]);
 
   useEffect(() => {
@@ -214,6 +270,38 @@ const KnowledgeAgent = () => {
       convRef.current.scrollTop = convRef.current.scrollHeight;
     }
   }, [request]);
+
+  // Auto-scroll when typing, unless user scrolled up
+  useEffect(() => {
+    if (isTyping && !userScrolledUp && convRef.current) {
+      convRef.current.scrollTop = convRef.current.scrollHeight;
+    }
+  }, [conversations, isTyping, userScrolledUp]);
+
+  // Detect if user manually scrolled up
+  const handleScroll = () => {
+    if (convRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = convRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px threshold
+      setUserScrolledUp(!isAtBottom);
+    }
+  };
+
+  // Reset scroll state when new conversation starts
+  useEffect(() => {
+    if (loading) {
+      setUserScrolledUp(false);
+    }
+  }, [loading]);
+
+  // Cleanup typing interval on unmount
+  useEffect(() => {
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const User = ({ content }: response) => {
     return (
@@ -229,7 +317,7 @@ const KnowledgeAgent = () => {
             <svg
               stroke="none"
               fill="black"
-              stroke-width="0"
+              strokeWidth="0"
               viewBox="0 0 16 16"
               height="20"
               width="20"
@@ -243,43 +331,172 @@ const KnowledgeAgent = () => {
     );
   };
 
-  const Conversation = ({ who, what }: IConversation) => {
-    if (who === "AI") return <AI content={what} />;
+  const Conversation = ({ who, what, isTyping }: IConversation) => {
+    if (who === "AI") return <AI content={what} isTyping={isTyping} />;
     else return <User content={what} />;
   };
 
-  const askBot = async (message: string) => {
+  // Streaming function using Server-Sent Events with typing effect
+  const askBotStreaming = async (message: string) => {
+    setLoading(true);
+
+    // Calculate the index where AI message will be added
+    const aiMessageIndex = conversations.length + 1; // +1 because user message will be added first
+
     try {
-      setLoading(true);
+      const response = await fetch(`${Config.API}/agent/regulatory`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          request: message,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (data.error) {
+                  console.error("Streaming error:", data.error);
+                  setLoading(false);
+                  // Add error message
+                  setConversations((prev) => [
+                    ...prev,
+                    {
+                      who: type.ai,
+                      what: "Sorry, an error occurred. Please try again.",
+                      isStreaming: false,
+                      isTyping: false,
+                    },
+                  ]);
+                  return;
+                }
+
+                if (data.content) {
+                  accumulatedContent += data.content;
+                  // Don't update UI immediately, just accumulate content
+                }
+
+                if (data.done) {
+                  // When streaming is complete, stop loading and add empty message
+                  setLoading(false);
+                  setConversations((prev) => [
+                    ...prev,
+                    {
+                      who: type.ai,
+                      what: "",
+                      isStreaming: true,
+                      isTyping: false,
+                    },
+                  ]);
+                  // Start typing effect
+                  startTypingEffect(accumulatedContent, aiMessageIndex);
+                  return;
+                }
+              } catch (e) {
+                console.error("Error parsing SSE data:", e);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Streaming error:", error);
+      setLoading(false);
+      // Add error message
+      setConversations((prev) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "Token limit reached. Please try again in a few seconds.",
+          isStreaming: false,
+          isTyping: false,
+        },
+      ]);
+    }
+  };
+
+  // Non-streaming function with typing effect
+  const askBot = async (message: string) => {
+    setLoading(true);
+    const aiMessageIndex = conversations.length + 1;
+
+    try {
       const res = await axios.post(`${Config.API}/agent/regulatory`, {
         request: message,
+        stream: false,
       });
-      const newMessage = {
-        who: type.ai,
-        what: res.data.message,
-      };
+
       setLoading(false);
-      setConversations((prev: any) => [...prev, newMessage]);
+      // Add empty AI message after loading completes
+      setConversations((prev: any) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "",
+          isStreaming: true,
+          isTyping: false,
+        },
+      ]);
+
+      // Start typing effect with the response
+      startTypingEffect(res.data.message, aiMessageIndex);
     } catch (error) {
-      const newMessage = {
-        who: type.ai,
-        what: "Token limit reached. Please try again in a few seconds.",
-      };
+      console.error("Error:", error);
       setLoading(false);
-      setConversations((prev: any) => [...prev, newMessage]);
+      // Add error message
+      setConversations((prev: any) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "Token limit reached. Please try again in a few seconds.",
+          isTyping: false,
+          isStreaming: false,
+        },
+      ]);
     }
   };
 
   const handleSubmit = (e: any) => {
     e?.preventDefault();
-    if (loading || request.length === 0) return;
+    
+    // Don't submit if already typing or loading
+    if (loading || isTyping || request.length === 0) return;
+    
     const newMessage = {
       who: type.user,
       what: request,
     };
 
     setConversations((prev: any) => [...prev, newMessage]);
-    askBot(request);
+
+    // Choose streaming or non-streaming based on state
+    if (streaming) {
+      askBotStreaming(request);
+    } else {
+      askBot(request);
+    }
+
     setRequest("");
   };
 
@@ -295,34 +512,46 @@ const KnowledgeAgent = () => {
         >
           <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 px-5 items-center justify-between shadow-xl">
             <div className="flex gap-5 items-center">
-              {/* <div
-                className="w-10 h-10 rounded-full"
-                style={{
-                  background: "linear-gradient(to right, #ffffff, #034da2)",
-                }}
-              ></div> */}
               <span>Regulatory Agent</span>
             </div>
-            <Tooltip title="This is a Knowledge Agent.">
-              <InfoOutlineIcon />
-            </Tooltip>
+
+            <div className="flex items-center gap-4">
+              {/* Streaming toggle button */}
+              <button
+                onClick={() => setStreaming(!streaming)}
+                className={`px-3 py-1 text-xs rounded-full transition-all ${
+                  streaming
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-300 text-gray-700"
+                }`}
+                title={streaming ? "Streaming ON" : "Streaming OFF"}
+              >
+                {streaming ? "⚡ Live" : "📝 Standard"}
+              </button>
+
+              <Tooltip title="This is a Knowledge Agent.">
+                <InfoOutlineIcon />
+              </Tooltip>
+            </div>
           </div>
 
           <div
             ref={convRef}
             className={`pb-[150px] flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
             style={{ minWidth: "100%" }}
+            onScroll={handleScroll}
           >
-            {conversations.map(({ who, what }) => (
-              <Conversation who={who} what={what} />
+            {conversations.map(({ who, what, isTyping }, index) => (
+              <Conversation key={index} who={who} what={what} isTyping={isTyping} />
             ))}
             {loading ? <AI ref={lastRef} content="" loading /> : ""}
           </div>
 
           <div className="absolute bottom-0 left-[50%] translate-x-[-50%] md:translate-x-[-45%] flex items-center flex-col gap-3 pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
             <div className="opacity-50 hover:opacity-100 flex-wrap flex gap-2 w-full justify-start">
-              {suggestions.map((suggestion) => (
+              {suggestions.map((suggestion, index) => (
                 <Button
+                  key={index}
                   variant="outlined"
                   size="small"
                   className="!border-dotted !rounded-full !normal-case"
@@ -347,9 +576,10 @@ const KnowledgeAgent = () => {
                   if (!isOpen) setIsOpen(true);
                   setRequest(e.target.value);
                 }}
+                disabled={loading || isTyping}
               />
               <Button
-                disabled={loading}
+                disabled={loading || isTyping || request.length === 0}
                 className={`${
                   request.length > 0 ? "opacity-100" : "opacity-0"
                 } !absolute right-4 !rounded-full !transition-all !duration-300`}

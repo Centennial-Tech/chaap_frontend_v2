@@ -9,6 +9,12 @@ const ChatBot = () => {
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [streaming, setStreaming] = useState<boolean>(true); // Toggle for streaming mode
+
+  // Add state for typing effect
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
 
   interface response {
     content: string;
@@ -19,6 +25,8 @@ const ChatBot = () => {
   interface IConversation {
     who: string;
     what: string;
+    isStreaming?: boolean;
+    isTyping?: boolean;
   }
 
   const type = {
@@ -40,7 +48,7 @@ const ChatBot = () => {
             <svg
               stroke="none"
               fill="black"
-              stroke-width="1.5"
+              strokeWidth="1.5"
               viewBox="0 0 24 24"
               aria-hidden="true"
               height="20"
@@ -48,8 +56,8 @@ const ChatBot = () => {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
               ></path>
             </svg>
@@ -58,10 +66,52 @@ const ChatBot = () => {
 
         <p className="leading-relaxed">
           <span className="block font-bold text-gray-700">Emily </span>
-          {loading ? <ChatLoader /> : content}
+          {loading ? (
+            <ChatLoader />
+          ) : (
+            <>
+              {content}
+              {isTyping && <span className="animate-pulse">|</span>}
+            </>
+          )}
         </p>
       </div>
     );
+  };
+
+  // Typing effect function
+  const startTypingEffect = (text: string, messageIndex: number) => {
+    setIsTyping(true);
+    let currentIndex = 0;
+
+    const typeCharacter = () => {
+      if (currentIndex < text.length) {
+        const displayText = text.substring(0, currentIndex + 1);
+        setConversations((prev) =>
+          prev.map((conv, index) =>
+            index === messageIndex
+              ? { ...conv, what: displayText, isTyping: true }
+              : conv
+          )
+        );
+        currentIndex++;
+      } else {
+        // Typing complete
+        setConversations((prev) =>
+          prev.map((conv, index) =>
+            index === messageIndex
+              ? { ...conv, isTyping: false, isStreaming: false }
+              : conv
+          )
+        );
+        setIsTyping(false);
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+        }
+      }
+    };
+
+    typingIntervalRef.current = setInterval(typeCharacter, 5); // Faster typing speed (was 30ms)
   };
 
   useEffect(() => {
@@ -76,6 +126,38 @@ const ChatBot = () => {
     }
   }, [request]);
 
+  // Auto-scroll when typing, unless user scrolled up
+  useEffect(() => {
+    if (isTyping && !userScrolledUp && convRef.current) {
+      convRef.current.scrollTop = convRef.current.scrollHeight;
+    }
+  }, [conversations, isTyping, userScrolledUp]);
+
+  // Detect if user manually scrolled up
+  const handleScroll = () => {
+    if (convRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = convRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px threshold
+      setUserScrolledUp(!isAtBottom);
+    }
+  };
+
+  // Reset scroll state when new conversation starts
+  useEffect(() => {
+    if (loading) {
+      setUserScrolledUp(false);
+    }
+  }, [loading]);
+
+  // Cleanup typing interval on unmount
+  useEffect(() => {
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
+    };
+  }, []);
+
   const User = ({ content }: response) => {
     return (
       <div className="flex gap-3 my-4 text-gray-700 text-sm">
@@ -84,7 +166,7 @@ const ChatBot = () => {
             <svg
               stroke="none"
               fill="black"
-              stroke-width="0"
+              strokeWidth="0"
               viewBox="0 0 16 16"
               height="20"
               width="20"
@@ -107,28 +189,167 @@ const ChatBot = () => {
     else return <User content={what} />;
   };
 
+  // Streaming function using Server-Sent Events with typing effect
+  const askBotStreaming = async (message: string) => {
+    setLoading(true);
+
+    // Calculate the index where AI message will be added
+    const aiMessageIndex = conversations.length + 1; // +1 because user message will be added first
+
+    try {
+      const response = await fetch(`${Config.API}/agent/live`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          request: message,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (data.error) {
+                  console.error("Streaming error:", data.error);
+                  setLoading(false);
+                  // Add error message
+                  setConversations((prev) => [
+                    ...prev,
+                    {
+                      who: type.ai,
+                      what: "Sorry, an error occurred. Please try again.",
+                      isStreaming: false,
+                      isTyping: false,
+                    },
+                  ]);
+                  return;
+                }
+
+                if (data.content) {
+                  accumulatedContent += data.content;
+                  // Don't update UI immediately, just accumulate content
+                }
+
+                if (data.done) {
+                  // When streaming is complete, stop loading and add empty message
+                  setLoading(false);
+                  setConversations((prev) => [
+                    ...prev,
+                    {
+                      who: type.ai,
+                      what: "",
+                      isStreaming: true,
+                      isTyping: false,
+                    },
+                  ]);
+                  // Start typing effect
+                  startTypingEffect(accumulatedContent, aiMessageIndex);
+                  return;
+                }
+              } catch (e) {
+                console.error("Error parsing SSE data:", e);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Streaming error:", error);
+      setLoading(false);
+      // Add error message
+      setConversations((prev) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "Sorry, an error occurred. Please try again.",
+          isStreaming: false,
+          isTyping: false,
+        },
+      ]);
+    }
+  };
+
+  // Non-streaming function with typing effect
   const askBot = async (message: string) => {
     setLoading(true);
-    const res = await axios.post(`${Config.API}/agent/live`, {
-      request: message,
-    });
-    const newMessage = {
-      who: type.ai,
-      what: res.data.message,
-    };
-    setLoading(false);
-    setConversations((prev: any) => [...prev, newMessage]);
+    const aiMessageIndex = conversations.length + 1;
+
+    try {
+      const res = await axios.post(`${Config.API}/agent/live`, {
+        request: message,
+        stream: false,
+      });
+
+      setLoading(false);
+      // Add empty AI message after loading completes
+      setConversations((prev: any) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "",
+          isStreaming: true,
+          isTyping: false,
+        },
+      ]);
+
+      // Start typing effect with the response
+      startTypingEffect(res.data.message, aiMessageIndex);
+    } catch (error) {
+      console.error("Error:", error);
+      setLoading(false);
+      // Add error message
+      setConversations((prev: any) => [
+        ...prev,
+        {
+          who: type.ai,
+          what: "Sorry, an error occurred. Please try again.",
+          isTyping: false,
+          isStreaming: false,
+        },
+      ]);
+    }
   };
 
   const handleSubmit = (e: any) => {
     e?.preventDefault();
+
+    // Don't submit if already typing or loading
+    if (loading || isTyping) return;
+
     const newMessage = {
       who: type.user,
       what: request,
     };
 
     setConversations((prev: any) => [...prev, newMessage]);
-    askBot(request);
+
+    // Choose streaming or non-streaming based on state
+    if (streaming) {
+      askBotStreaming(request);
+    } else {
+      askBot(request);
+    }
+
     setRequest("");
   };
 
@@ -139,14 +360,29 @@ const ChatBot = () => {
           isOpen ? "max-h-[70%]" : "max-h-0"
         } transition-all duration-500 rounded-3xl text-white w-full max-w-[80%] md:max-w-[40%] lg:max-w-[30%] 2xl:max-w-[25%] shadow-2xl h-full flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white border-[#e5e7eb]`}
       >
-        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 items-center shadow-xl">
-          <div
-            className="w-10 h-10 rounded-full"
-            style={{
-              background: "linear-gradient(to right, #ffffff, #ed6c02)",
-            }}
-          ></div>
-          <span>Emily</span>
+        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 items-center shadow-xl justify-between">
+          <div className="flex gap-2 items-center">
+            <div
+              className="w-10 h-10 rounded-full"
+              style={{
+                background: "linear-gradient(to right, #ffffff, #ed6c02)",
+              }}
+            ></div>
+            <span>Emily</span>
+          </div>
+
+          {/* Streaming toggle button */}
+          <button
+            onClick={() => setStreaming(!streaming)}
+            className={`px-3 py-1 text-xs rounded-full transition-all ${
+              streaming
+                ? "bg-green-500 text-white"
+                : "bg-gray-300 text-gray-700"
+            }`}
+            title={streaming ? "Streaming ON" : "Streaming OFF"}
+          >
+            {streaming ? "⚡ Live" : "📝 Standard"}
+          </button>
         </div>
 
         <div
@@ -155,9 +391,10 @@ const ChatBot = () => {
             isOpen ? "" : "hidden"
           } p-4 overflow-y-auto flex flex-col`}
           style={{ minWidth: "100%" }}
+          onScroll={handleScroll}
         >
-          {conversations.map(({ who, what }) => (
-            <Conversation who={who} what={what} />
+          {conversations.map(({ who, what }, index) => (
+            <Conversation key={index} who={who} what={what} />
           ))}
           {loading ? <AI ref={lastRef} content="" loading /> : ""}
         </div>
@@ -176,9 +413,13 @@ const ChatBot = () => {
                 if (!isOpen) setIsOpen(true);
                 setRequest(e.target.value);
               }}
+              disabled={loading || isTyping}
             />
-            <button className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 h-9 md:h-10 px-4 py-2">
-              Ask
+            <button
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 h-9 md:h-10 px-4 py-2"
+              disabled={loading || isTyping}
+            >
+              {loading ? "..." : isTyping ? "Typing..." : "Ask"}
             </button>
           </form>
         </div>
@@ -205,9 +446,9 @@ const ChatBot = () => {
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className="text-white block border-gray-200 align-middle"
           >
             <path

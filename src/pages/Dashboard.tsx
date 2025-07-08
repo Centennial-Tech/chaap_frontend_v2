@@ -4,34 +4,14 @@ import React, { useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
-import api from "../api";
 import { useAuth } from "../provider/authProvider";
+import {
+  fetchSubmissions,
+  createSubmission,
+  deleteSubmission,
+  type Submission,
+} from "../helpers/submissionApiHelper";
 
-// Types
-interface Submission {
-  id: string;
-  application_id: string;
-  name: string;
-  type: "Device" | "Drug";
-  submissionType: string;
-  targetSubmission: string;
-  status: "draft" | "in_progress" | "completed";
-  progress: number;
-  updatedAt: string;
-  start_time: string;
-  end_time?: string | null;
-  user_id: string;
-  username: string;
-  screening_responses?: string;
-  form_id?: string | null;
-  active: boolean;
-  productDescription: string;
-}
-
-interface SubmissionTypeOption {
-  value: string;
-  label: string;
-}
 
 interface Stats {
   drafts: number;
@@ -42,99 +22,16 @@ interface Stats {
 }
 
 // Constants
-const SUBMISSION_TYPES = {
-  Device: [
-    { value: "510k", label: "510k (Premarket Notification)" },
-    { value: "PMA", label: "PMA (Premarket Approval)" },
-    { value: "De Novo", label: "De Novo Classification Request" },
-    { value: "HDE", label: "HDE (Humanitarian Device Exemption)" },
-    { value: "IDE", label: "IDE (Investigational Device Exemption)" },
-  ] as SubmissionTypeOption[],
-  Drug: [
-    { value: "IND", label: "IND (Investigational New Drug)" },
-    { value: "NDA", label: "NDA (New Drug Application)" },
-    { value: "ANDA", label: "ANDA (Abbreviated New Drug Application)" },
-    { value: "BLA", label: "BLA (Biologics License Application)" },
-  ] as SubmissionTypeOption[],
-};
-
 // Utility functions
-const getSubmissionTypesForType = (
-  selectedType: string
-): SubmissionTypeOption[] => {
-  return SUBMISSION_TYPES[selectedType as keyof typeof SUBMISSION_TYPES] || [];
-};
 
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
   const in_progress = submissions.filter((s) => s.status === "in_progress").length;
   const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
-  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-
+  const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0
   return { drafts, pending: in_progress, approved: completed, total, approvalRate };
 };
-
-
-
-// Initial data
-// const INITIAL_SUBMISSIONS: Submission[] = [
-//   {
-//     id: 1,
-//     project: "CardioSense Monitor",
-//     type: "Device",
-//     submissionType: "PMA (Premarket Approval)",
-//     targetSubmission: "2024-06-01T10:30:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-06-01T10:30:00Z",
-//     productDescription: "A monitor for cardiovascular health.",
-//   },
-//   {
-//     id: 2,
-//     project: "ThermoScan Pro",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-06-30T14:45:00Z",
-//     status: "pending",
-//     progress: 80,
-//     updatedAt: "2024-06-02T14:45:00Z",
-//     productDescription: "A professional-grade thermometer.",
-//   },
-//   {
-//     id: 3,
-//     project: "Adestunore",
-//     type: "Drug",
-//     submissionType: "NDA (New Drug Application)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "approved",
-//     progress: 100,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "A new drug for treating conditions.",
-//   },
-//   {
-//     id: 4,
-//     project: "PulseOx 2000",
-//     type: "Device",
-//     submissionType: "510k (Premarket Notification)",
-//     targetSubmission: "2024-07-15T09:20:00Z",
-//     status: "draft",
-//     progress: 40,
-//     updatedAt: "2024-06-03T09:20:00Z",
-//     productDescription: "A pulse oximeter for measuring blood oxygen.",
-//   },
-//   {
-//     id: 5,
-//     project: "Hicesterol",
-//     type: "Drug",
-//     submissionType: "IND (Investigational New Drug)",
-//     targetSubmission: "2024-05-28T16:10:00Z",
-//     status: "draft",
-//     progress: 0,
-//     updatedAt: "2024-05-28T16:10:00Z",
-//     productDescription: "An investigational drug for high cholesterol.",
-//   },
-// ];
 
 const Dashboard = () => {
   // State management
@@ -142,35 +39,34 @@ const Dashboard = () => {
   const [submissions, setSubmissions] = React.useState<Submission[]>([]);
   const { user } = useAuth();
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissionsData = async () => {
+    if (!user) return;
     try {
-      const response = await api.get(
-        `/applications/userId?user_id=${user?.id}`
-      );
-      const data: Submission[] = response.data;
+      const data = await fetchSubmissions(user.id);
       setSubmissions(data);
     } catch (error) {
       console.error("Error fetching submissions:", error);
     }
   };
+
   useEffect(() => {
-    fetchSubmissions();
-  }, []);
+    fetchSubmissionsData();
+  }, [user]);
 
   // Form state (update type to match new fields)
   type FormData = {
-    projectTitle: string;
+    name: string;
     type: string;
     submissionType: string;
-    targetSubmission: string;
+    end_time: string;
     productDescription: string;
   };
 
   const [formData, setFormData] = React.useState<FormData>({
-    projectTitle: "",
+    name: "",
     type: "",
     submissionType: "",
-    targetSubmission: "",
+    end_time: "",
     productDescription: "",
   });
 
@@ -196,7 +92,7 @@ const Dashboard = () => {
   const sortedSubmissions = React.useMemo(() => {
     return [...submissions].sort(
       (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     );
   }, [submissions]);
 
@@ -234,9 +130,12 @@ const Dashboard = () => {
   // ============================================================================
   
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
-    console.log("Delete button clicked for submission ID:", id);
-    console.log("Delete functionality is currently disabled - no action taken");
-    // No API call or state changes - just log that the button was clicked
+    try {
+      await deleteSubmission(id);
+      await fetchSubmissionsData();
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+    }
   }, []);
 
   const handleOpen = React.useCallback(() => setOpen(true), []);
@@ -244,10 +143,10 @@ const Dashboard = () => {
   const handleClose = React.useCallback(() => {
     setOpen(false);
     setFormData({
-      projectTitle: "",
+      name: "",
       type: "",
       submissionType: "",
-      targetSubmission: "",
+      end_time: "",
       productDescription: "",
     });
     setQuestions([]);
@@ -268,10 +167,17 @@ const Dashboard = () => {
           // Use the ref to get the latest answers
           const answers = { ...questionAnswersRef.current };
           console.log("API will send answers:", answers);
-          response = await api.post("/agent/suggested_form", {
-            user_answers: JSON.stringify(answers),
+          response = await fetch("/agent/suggested_form", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_answers: JSON.stringify(answers),
+            }),
           });
-          suggestion = response.data?.suggested_form || "";
+          const data = await response.json();
+          suggestion = data?.suggested_form || "";
           attempts++;
         } while (suggestion.length > 10 && attempts < 2);
         if (suggestion.length > 10) {
@@ -295,35 +201,30 @@ const Dashboard = () => {
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
-      // TODO: Add your final API calls here before creating the submission
-      // Example:
-      // await api.post('/your/endpoint', { ... });
-      // await api.post('/another/endpoint', { ... });
-      // Add your API logic below this comment
-      const newSubmission: any = {
-        // id: generateNewId(submissions),
-        name: formData.projectTitle,
-        type: formData.type as "Device" | "Drug",
-        submissionType: formData.submissionType,
-        targetSubmission: "",
-        status: "draft",
-        progress: 0,
-        updatedAt: new Date().toISOString(),
-        productDescription: formData.productDescription,
-        screening_responses: JSON.stringify(questionAnswersRef.current),
-      };
+      try {
+        const newSubmission: Partial<Submission> = {
+          name: formData.name,
+          type: formData.type,
+          submissionType: formData.submissionType,
+          end_time: formData.end_time,
+          productDescription: formData.productDescription,
+          status: "draft",
+          progress: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          questionAnswers: questionAnswersRef.current,
+        };
 
-      await api.post("/applications/", newSubmission);
-      await fetchSubmissions();
-      // setSubmissions((prev) => [newSubmission, ...prev]);
-      setQuestions([]);
-      setQuestionAnswers({});
-      setFormSuggestion("");
-      setReadyToCreate(false);
-      setLoading(false);
-      handleClose();
+        await createSubmission(newSubmission);
+        await fetchSubmissionsData();
+        handleClose();
+      } catch (error) {
+        console.error("Error creating submission:", error);
+      } finally {
+        setLoading(false);
+      }
     },
-    [formData, submissions, handleClose]
+    [formData, handleClose]
   );
 
   const handleFormSubmit = React.useCallback(
@@ -333,11 +234,18 @@ const Dashboard = () => {
         setLoading(true);
         try {
           // First submit: get questions from API
-          const response = await api.post("/agent/form_questions", {
-            user_input: formData.productDescription,
+          const response = await fetch("/agent/form_questions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_input: formData.productDescription,
+            }),
           });
+          const data = await response.json();
           const qs =
-            response.data?.questions
+            data?.questions
               ?.match(/- (.+?)(?=\n|$)/g)
               ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
           setQuestions(qs);
@@ -352,7 +260,7 @@ const Dashboard = () => {
       // Now show the submissionType field with default value from formSuggestion
       return;
     },
-    [formData, submissions, handleClose, questions]
+    [formData, questions, handleAdditionalQuestionsSubmission]
   );
 
   // Handler for question answers
@@ -367,21 +275,18 @@ const Dashboard = () => {
     []
   );
 
-  const handleTypeChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newType = e.target.value;
-      setFormData((prev) => ({
-        ...prev,
-        type: newType,
-        submissionType: "", // Reset submission type when type changes
-      }));
-    },
-    []
-  );
+
 
   const handleInputChange = React.useCallback(
     (field: keyof FormData, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+      setFormData((prev) => {
+        const updated = { ...prev, [field]: value };
+        // Reset submission type when type changes
+        if (field === "type") {
+          updated.submissionType = "";
+        }
+        return updated;
+      });
     },
     []
   );
@@ -461,19 +366,14 @@ const Dashboard = () => {
         formData={formData}
         onClose={handleClose}
         onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
-        onTypeChange={handleTypeChange}
         onInputChange={handleInputChange}
-        getSubmissionTypesForType={getSubmissionTypesForType}
-        hideTargetDate
         questions={questions}
         questionAnswers={questionAnswers}
         onQuestionAnswerChange={handleQuestionAnswerChange}
         loading={loading}
-        showSubmissionType={!!formSuggestion || !!suggestionError}
         formSuggestion={formSuggestion}
-        readyToCreate={readyToCreate}
+        canCreate={readyToCreate || allowManualCreate}
         suggestionError={suggestionError}
-        allowManualCreate={allowManualCreate}
       />
     </div>
   );

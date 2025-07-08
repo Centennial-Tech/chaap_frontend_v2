@@ -6,16 +6,17 @@ import AIAgentsSection from "../components/ai-agents-section";
 import ComparisonSection from "../components/comparison-section";
 import ContactSection from "../components/contact-section";
 import StatsSection from "../components/stats-section";
+import ChatBot from "../components/ChatBot";
 
 export default function Home2() {
   useEffect(() => {
     // Check if there's a hash in the URL and scroll to that section
-    const hash = window.location.hash.replace('#', '');
+    const hash = window.location.hash.replace("#", "");
     if (hash) {
       setTimeout(() => {
         const element = document.getElementById(hash);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }, 100); // Small delay to ensure the page is fully rendered
     }
@@ -46,6 +47,7 @@ export default function Home2() {
       <div className="w-full bg-white pt-20">
         <ContactSection />
       </div>
+      <ChatBot />
     </div>
   );
 }

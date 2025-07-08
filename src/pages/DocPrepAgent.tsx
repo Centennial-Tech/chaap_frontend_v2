@@ -277,7 +277,7 @@ const mockValidationResults = {
   },
 };
 
-const RegulatoryDocPrepAgent = () => {
+const DocPrepAgent = () => {
   const [selectedSubmission, setSelectedSubmission] = useState("");
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
@@ -680,10 +680,10 @@ const RegulatoryDocPrepAgent = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">
-            Document Prepration Agent
+            Document Preparation Agent
           </h2>
           <p className="text-gray-700 mt-1">
-            AI-powered assistance for preparing regulatory documentation
+            AI-powered assistance for preparing documentation
           </p>
         </div>
       </div>
@@ -804,4 +804,4 @@ const RegulatoryDocPrepAgent = () => {
   );
 };
 
-export default RegulatoryDocPrepAgent;
+export default DocPrepAgent;

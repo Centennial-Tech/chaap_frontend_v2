@@ -8,11 +8,13 @@ import {
   Zap,
   Brain,
   Shield,
+  SquarePen,
 } from "lucide-react";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { path: "/documents", label: "Document Manager", icon: FolderOpen },
+  { path: "/form-editor", label: "Form Editor", icon: SquarePen},
 ];
 
 const sectionItems = [
@@ -22,7 +24,7 @@ const sectionItems = [
     icon: Bot,
   },
   {
-    label: "Regulatory Doc Prep Agent",
+    label: "Document Prep Agent",
     path: "/agents/document-preparation",
     icon: Cpu,
   },
@@ -33,7 +35,7 @@ const sectionItems = [
   },
   {
     label: "Regulatory Knowledge Agent",
-    path: "/regulatory-knowledge-agent",
+    path: "/agents/regulatory",
     icon: Brain,
   },
   {

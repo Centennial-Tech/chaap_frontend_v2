@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Button from "./Button";
 import { Link } from "react-router-dom";
 import MobileToggle from "./MobileToggle";
-import { useOverlay } from "../provider/overleyProvider";
+import { Z_INDEX } from "../constants/zIndex";
 
 const Header = () => {
   const menuItems = [
@@ -13,7 +13,7 @@ const Header = () => {
 
   const agents = [
     { label: "Pre-Submission Strategy Agent", href: "/presubmission" },
-    { label: "Regulatory Document Preparation Agent", href: "#agent2" },
+            { label: "Document Preparation Agent", href: "#agent2" },
     { label: "FDA Meeting Prep Agent", href: "#agent3" },
     { label: "Regulatory Knowledge Agent", href: "#agent4" },
     { label: "Post Market Surveillance Agent", href: "#agent5" },
@@ -23,20 +23,6 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAgentsOpen, setIsAgentsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { showOverlay } = useOverlay();
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const { id } = e.target as any;
-      if (id?.length > 0 && id == "global_overlay") {
-        setIsAgentsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const getAgents = () => {
     return (
@@ -48,7 +34,6 @@ const Header = () => {
           className="m-auto md:mr-10 px-4 py-2 md:px-0 md:py-0 md:m-[unset] font-semibold text-[18px] flex items-center dropdown w-max cursor-pointer"
           onClick={() => {
             setIsAgentsOpen((prev) => !prev);
-            showOverlay();
           }}
         >
           CHAAP Agents
@@ -76,12 +61,13 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-[51] w-full
+      className={`fixed top-0 left-0 right-0 w-full
     bg-white flex flex-col items-center
     pt-[8px] pb-[20px]        
     transition-[max-height]   
     duration-500 ease-in-out  
     ${isOpen ? "max-h-[1000px]" : "max-h-[90px]"}`}
+      style={{ zIndex: Z_INDEX.HEADER }}
     >
       <div className="w-full max-w-[1260px] mx-auto px-[20px] flex justify-between items-center">
         <div className="w-full h-full p-0.5">

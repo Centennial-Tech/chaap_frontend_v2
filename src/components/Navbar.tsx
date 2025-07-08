@@ -57,7 +57,7 @@ export default function Navbar() {
                   : "text-gray-600 hover:text-gray-700 transition-colors duration-200"
               }
             >
-              {seg.charAt(0).toUpperCase() + seg.slice(1)}
+              {seg.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Link>
             {i < pathSegments.length - 1 && (
               <span className="text-gray-400">&gt;</span>
