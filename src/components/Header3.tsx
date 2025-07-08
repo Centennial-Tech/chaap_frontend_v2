@@ -28,7 +28,7 @@ export default function Header3() {
             <img 
               src={logo} 
               alt="CHAAP Logo" 
-              className="h-20 w-auto object-contain"
+              className="h-20 w-auto ml-4 object-contain"
             />
           </Link>
           <div className="hidden md:block pr-2">
