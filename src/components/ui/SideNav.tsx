@@ -19,7 +19,7 @@ const mainNavItems = [
 
 const sectionItems = [
   {
-    label: "Pre-submission Strategy Agent",
+    label: "Pre-Submission Strategy Agent",
     path: "/pre-submission-strategy-agent",
     icon: Bot,
   },
