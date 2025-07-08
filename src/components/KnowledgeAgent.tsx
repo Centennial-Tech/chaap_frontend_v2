@@ -11,6 +11,8 @@ import {
   ThumbUp,
   ThumbUpAltOutlined,
   VolumeUpOutlined,
+  OpenInFullOutlined,
+  CloseFullscreenOutlined,
 } from "@mui/icons-material";
 import { Button, Tooltip } from "@mui/material";
 import useCustomSpeech from "../hooks/useCustomSpeech";
@@ -92,7 +94,7 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
         </div>
       </span>
 
-      <div className="leading-relaxed flex flex-col gap-2">
+      <div className="leading-relaxed flex flex-col gap-2 flex-1">
         <div className="flex justify-between">
           <span className="block font-bold text-gray-700 mr-3">
             Regulatory Agent
@@ -174,7 +176,7 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
         {loading ? (
           <ChatLoader />
         ) : (
-          <>
+          <div className="bg-blue-50 rounded-2xl rounded-tl-none p-4 shadow-sm">
             {isTyping ? (
               // Show plain text during typing for better performance
               <div className="whitespace-pre-wrap">
@@ -189,7 +191,7 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
                 components={components}
               />
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -199,6 +201,8 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
 const KnowledgeAgent = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [request, setRequest] = useState<string>("");
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
+  const [isMaximized, setIsMaximized] = useState<boolean>(true);
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -209,6 +213,10 @@ const KnowledgeAgent = () => {
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
 
+  const toggleMaximize = () => {
+    setIsMaximized(!isMaximized);
+  };
+
   const suggestions = [
     "What is a predicate device in the 510(k) pathway?",
     "How can you help me?",
@@ -217,7 +225,7 @@ const KnowledgeAgent = () => {
   const [conversations, setConversations] = useState<IConversation[]>([
     {
       who: "AI",
-      what: "Hi, how can I help you today?",
+      what: "Hi! I'm your Regulatory Intelligence Agent with deep knowledge of FDA regulations, guidance documents, and submission processes. I can help you with:\n\n• FDA guidance interpretation\n\n• Regulation lookups and citations\n\n• Predicate device analysis\n\n• Compliance requirements\n\n• Historical precedent research\n\nWhat would you like to know?",
     },
   ]);
 
@@ -303,15 +311,30 @@ const KnowledgeAgent = () => {
     };
   }, []);
 
+  // Listen for sidebar toggle event
+  useEffect(() => {
+    const handleSidebarToggle = (event: CustomEvent) => {
+      setIsSidebarExpanded(event.detail.expanded);
+    };
+
+    window.addEventListener('sidebarToggle' as any, handleSidebarToggle);
+
+    return () => {
+      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle);
+    };
+  }, []);
+
   const User = ({ content }: response) => {
     return (
       <div className="flex gap-3 my-4 text-gray-700 text-sm self-end">
-        <p className="leading-relaxed flex flex-col gap-2">
+        <div className="leading-relaxed flex flex-col gap-2 flex-1">
           <span className="block font-bold text-gray-700 float-right self-end">
             You{" "}
           </span>
-          <span className="break-all">{content}</span>
-        </p>
+          <div className="bg-white rounded-2xl rounded-tr-none p-4 shadow-sm border border-gray-100">
+            <span className="break-all">{content}</span>
+          </div>
+        </div>
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
           <div className="rounded-full bg-gray-100 border p-1">
             <svg
@@ -501,44 +524,139 @@ const KnowledgeAgent = () => {
   };
 
   return (
-    <div className="mt-[60px] flex justify-center items-center text-lg w-full h-[calc(100vh-60px)]">
-      <div className="relative w-full h-[80%] font-mono md:max-w-[80%] lg:max-w-[60%] m-5">
+    <div 
+      className={`
+        fixed 
+        top-[60px] 
+        ${isSidebarExpanded ? 'left-[17rem]' : 'left-[4rem]'}
+        right-0
+        bottom-0
+        flex 
+        justify-center 
+        items-center
+        text-lg 
+        bg-gray-50
+        ${isMaximized ? 'p-6' : 'p-0'}
+        transition-[left,padding]
+        duration-300
+        ease-[cubic-bezier(0.4,0,0.2,1)]
+      `}
+    >
+      <div 
+        style={{
+          width: isMaximized ? '100%' : '700px',
+          height: isMaximized ? '100%' : '500px',
+          maxWidth: isMaximized ? '1536px' : '700px',
+        }}
+        className={`
+          font-mono
+          transition-[width,height,max-width]
+          duration-300
+          ease-[cubic-bezier(0.4,0,0.2,1)]
+          will-change-[width,height,max-width]
+        `}
+      >
         <div
           style={{
-            // backdropFilter: "blur(10px)",
             background: "white",
           }}
-          className={`max-h-[90%s] transition-all duration-500 rounded-xl rounded-b-md shadow-md text-white w-full h-full flex flex-col bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4`}
+          className={`
+            h-full
+            w-full
+            flex 
+            flex-col 
+            overflow-hidden 
+            rounded-xl
+            shadow-lg 
+            text-white
+          `}
         >
-          <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 px-5 items-center justify-between shadow-xl">
+          <div className={`
+            flex gap-2 p-3 font-mono font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 
+            ${isMaximized ? 'px-5 text-lg' : 'px-3 text-base'} 
+            items-center justify-between shadow-xl
+            transition-[padding,font-size]
+            duration-500
+            ease-[cubic-bezier(0.25,0.1,0.25,1)]
+          `}>
             <div className="flex gap-5 items-center">
-              <span>Regulatory Agent</span>
+              <div className="flex flex-col">
+                <span className={`
+                  transition-[font-size,transform]
+                  duration-500
+                  ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                  transform-gpu
+                  ${isMaximized ? 'text-lg' : 'text-base'}
+                `}>
+                  Regulatory Agent
+                </span>
+                <span className={`
+                  font-normal opacity-90
+                  transition-[font-size,transform]
+                  duration-500
+                  ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                  transform-gpu
+                  ${isMaximized ? 'text-sm' : 'text-xs'}
+                `}>
+                  Ask detailed questions about FDA regulations and processes
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Streaming toggle button */}
+            <div className="flex items-center gap-2">
+              <Tooltip title={isMaximized ? "Minimize" : "Maximize"}>
+                <div 
+                  onClick={toggleMaximize}
+                  className="cursor-pointer hover:bg-white/10 p-1 rounded transition-all duration-300"
+                >
+                  {isMaximized ? (
+                    <CloseFullscreenOutlined className="!w-5 !h-5 transition-transform duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] transform-gpu" />
+                  ) : (
+                    <OpenInFullOutlined className="!w-5 !h-5 transition-transform duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] transform-gpu" />
+                  )}
+                </div>
+              </Tooltip>
+
               <button
                 onClick={() => setStreaming(!streaming)}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
-                  streaming
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-300 text-gray-700"
-                }`}
+                className={`
+                  px-2 py-1 text-xs rounded-full 
+                  transition-[background,border]
+                  duration-500
+                  ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                  ${streaming ? "bg-green-500 text-white" : "bg-white/20 text-white border border-white/30"}
+                `}
                 title={streaming ? "Streaming ON" : "Streaming OFF"}
               >
                 {streaming ? "⚡ Live" : "📝 Standard"}
               </button>
 
               <Tooltip title="This is a Knowledge Agent.">
-                <InfoOutlineIcon />
+                <InfoOutlineIcon className={`
+                  transition-[width,height,transform]
+                  duration-500
+                  ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                  transform-gpu
+                  ${isMaximized ? '' : '!w-5 !h-5'}
+                `} />
               </Tooltip>
             </div>
           </div>
 
           <div
             ref={convRef}
-            className={`pb-[150px] flex-grow items-start relative p-4 overflow-y-auto flex flex-col`}
-            style={{ minWidth: "100%" }}
+            className={`
+              flex-1 
+              items-start 
+              ${isMaximized ? 'p-4' : 'px-4 py-3'} 
+              overflow-y-auto 
+              flex 
+              flex-col 
+              bg-gray-50
+              transition-[padding]
+              duration-300
+              ease-[cubic-bezier(0.4,0,0.2,1)]
+            `}
             onScroll={handleScroll}
           >
             {conversations.map(({ who, what, isTyping }, index) => (
@@ -547,50 +665,113 @@ const KnowledgeAgent = () => {
             {loading ? <AI ref={lastRef} content="" loading /> : ""}
           </div>
 
-          <div className="absolute bottom-0 left-[50%] translate-x-[-50%] md:translate-x-[-45%] flex items-center flex-col gap-3 pt-0 mb-5 p-4 md:max-w-[70%] lg:max-w-[70%] w-full mx-auto">
-            <div className="opacity-50 hover:opacity-100 flex-wrap flex gap-2 w-full justify-start">
-              {suggestions.map((suggestion, index) => (
-                <Button
-                  key={index}
-                  variant="outlined"
-                  size="small"
-                  className="!border-dotted !rounded-full !normal-case"
-                  onClick={() => {
-                    setRequest(suggestion);
-                  }}
-                >
-                  {suggestion}
-                </Button>
-              ))}
-            </div>
-            <form
-              className="flex items-center justify-center w-full space-x-2"
-              onSubmit={handleSubmit}
-            >
-              <input
-                autoFocus
-                className="flex-grow opacity-50 hover:opacity-100 focus:opacity-100 flex h-9 md:h-10 w-full rounded-full border bg-blue-200 border-blue-200 outline-none shadow-lg px-3 py-2 text-sm placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-[#030712] focus-visible:ring-offset-2"
-                placeholder="Type your message"
-                value={request}
-                onChange={(e) => {
-                  if (!isOpen) setIsOpen(true);
-                  setRequest(e.target.value);
-                }}
-                disabled={loading || isTyping}
-              />
-              <Button
-                disabled={loading || isTyping || request.length === 0}
-                className={`${
-                  request.length > 0 ? "opacity-100" : "opacity-0"
-                } !absolute right-4 !rounded-full !transition-all !duration-300`}
-                variant="contained"
-                size="medium"
-                draggable={false}
-                type="submit"
+          <div className={`
+            border-t bg-white
+            transition-[padding,height]
+            duration-300
+            ease-[cubic-bezier(0.4,0,0.2,1)]
+            transform-gpu
+            ${isMaximized ? 'p-4' : 'p-3'}
+          `}>
+            <div className={`
+              mx-auto 
+              ${isMaximized ? 'max-w-4xl' : ''} 
+              flex flex-col gap-3
+              transition-[max-width,transform]
+              duration-300
+              ease-[cubic-bezier(0.4,0,0.2,1)]
+              transform-gpu
+            `}>
+              <div className={`
+                flex-wrap 
+                flex 
+                gap-2 
+                w-full 
+                justify-start 
+                transition-[max-height,opacity,transform]
+                duration-500
+                ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                transform-gpu
+                overflow-hidden
+              `}>
+                {suggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outlined"
+                    size="small"
+                    className="!border-dotted !rounded-full !normal-case !text-sm !min-h-[32px] hover:!bg-blue-50"
+                    onClick={() => {
+                      setRequest(suggestion);
+                    }}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+              <form
+                className="flex items-center justify-center w-full space-x-2"
+                onSubmit={handleSubmit}
               >
-                Send
-              </Button>
-            </form>
+                <input
+                  autoFocus
+                  className={`
+                    flex-grow 
+                    opacity-90
+                    hover:opacity-100 
+                    focus:opacity-100 
+                    flex 
+                    ${isMaximized ? 'h-10' : 'h-9'} 
+                    w-full 
+                    rounded-full 
+                    border 
+                    bg-blue-50
+                    border-blue-100
+                    outline-none 
+                    shadow-md
+                    hover:shadow-lg
+                    focus:shadow-lg
+                    ${isMaximized ? 'px-4' : 'px-3'}
+                    py-2 
+                    ${isMaximized ? 'text-sm' : 'text-xs'}
+                    font-normal
+                    placeholder-gray-500
+                    focus:placeholder-gray-400
+                    focus:outline-none 
+                    focus:ring-2 
+                    focus:ring-blue-400
+                    focus:border-transparent
+                    disabled:cursor-not-allowed 
+                    disabled:opacity-50 
+                    text-gray-800
+                    focus-visible:ring-offset-2
+                    transition-all
+                    duration-200
+                  `}
+                  placeholder={isMaximized 
+                    ? "Ask about FDA regulations, guidance documents, device classification..." 
+                    : "Ask about FDA regulations..."
+                  }
+                  value={request}
+                  onChange={(e) => {
+                    if (!isOpen) setIsOpen(true);
+                    setRequest(e.target.value);
+                  }}
+                  disabled={loading || isTyping}
+                />
+                <Button
+                  disabled={loading || isTyping || request.length === 0}
+                  className={`${
+                    request.length > 0 ? "opacity-100" : "opacity-0"
+                  } !rounded-full !transition-all !duration-300 !h-10 !px-5 !text-sm`}
+                  variant="contained"
+                  size={isMaximized ? "medium" : "small"}
+                  draggable={false}
+                  type="submit"
+                >
+                  Send
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -599,3 +780,4 @@ const KnowledgeAgent = () => {
 };
 
 export default KnowledgeAgent;
+

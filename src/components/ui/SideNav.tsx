@@ -52,6 +52,14 @@ export default function Sidebar() {
 
   const shouldShowFull = !isMinimized || isHovered;
 
+  // Dispatch custom event when sidebar state changes
+  useEffect(() => {
+    const event = new CustomEvent('sidebarToggle', {
+      detail: { expanded: shouldShowFull }
+    });
+    window.dispatchEvent(event);
+  }, [shouldShowFull]);
+
   // Adjust main content margin instead of body margin
   useEffect(() => {
     const mainContent =
