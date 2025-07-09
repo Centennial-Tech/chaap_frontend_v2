@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
+import { Bot } from "lucide-react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
 
@@ -44,23 +45,8 @@ const ChatBot = () => {
     return (
       <div ref={ref} className="flex gap-3 my-4 text-gray-700 text-sm">
         <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
-          <div className="rounded-full bg-gray-100 border p-1">
-            <svg
-              stroke="none"
-              fill="black"
-              strokeWidth="1.5"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              height="20"
-              width="20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-              ></path>
-            </svg>
+          <div className="rounded-full bg-gray-100 border p-1 flex items-center justify-center">
+            <Bot className="w-5 h-5 text-gray-700" />
           </div>
         </span>
 
@@ -354,20 +340,22 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="z-50 fixed bottom-0 right-0 font-mono">
+    <div className="z-50 fixed bottom-0 right-0">
       <div
         className={`${
           isOpen ? "max-h-[70%]" : "max-h-0"
         } transition-all duration-500 rounded-3xl text-white w-full max-w-[80%] md:max-w-[40%] lg:max-w-[30%] 2xl:max-w-[25%] shadow-2xl h-full flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white border-[#e5e7eb]`}
       >
-        <div className="flex gap-2 p-3 font-mono text-lg font-bold bg-blue-600 items-center shadow-xl justify-between">
+        <div className="flex gap-2 p-3 text-lg font-bold bg-[#a855f7] items-center shadow-xl justify-between">
           <div className="flex gap-2 items-center">
             <div
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full flex items-center justify-center p-2"
               style={{
                 background: "linear-gradient(to right, #ffffff, #ed6c02)",
               }}
-            ></div>
+            >
+              <Bot className="w-6 h-6 text-gray-700" />
+            </div>
             <span>Emily</span>
           </div>
 
@@ -416,7 +404,7 @@ const ChatBot = () => {
               disabled={loading || isTyping}
             />
             <button
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 h-9 md:h-10 px-4 py-2"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-[#a855f7] hover:bg-[#7a31bd] h-9 md:h-10 px-4 py-2"
               disabled={loading || isTyping}
             >
               {loading ? "..." : isTyping ? "Typing..." : "Ask"}
@@ -427,7 +415,7 @@ const ChatBot = () => {
       <button
         className={`${
           isOpen ? "" : "animate-bounce"
-        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-blue-600 hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
+        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-[#a855f7] hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
         type="button"
         aria-haspopup="dialog"
         aria-expanded="false"
@@ -439,23 +427,7 @@ const ChatBot = () => {
             !isOpen ? "" : "!opacity-0"
           } transition-all duration-500 absolute`}
         >
-          <svg
-            xmlns=" http://www.w3.org/2000/svg"
-            width="30"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-white block border-gray-200 align-middle"
-          >
-            <path
-              d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"
-              className="border-gray-200"
-            ></path>
-          </svg>
+          <Bot className="w-8 h-8 text-white" />
         </span>
         <span
           className={`opacity-100 ${
