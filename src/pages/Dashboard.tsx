@@ -1,5 +1,6 @@
-import { CheckCircle, Clock, FileText } from "lucide-react";
+import { CheckCircle, Clock, FileText, Plus } from "lucide-react";
 import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
 import React, { useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
@@ -12,6 +13,7 @@ import {
   type Submission,
 } from "../helpers/submissionApiHelper";
 import api from "../api";
+import Modal from "../components/ui/Modal";
 
 interface Stats {
   drafts: number;
@@ -46,6 +48,25 @@ const Dashboard = () => {
   const [open, setOpen] = React.useState(false);
   const [submissions, setSubmissions] = React.useState<Submission[]>([]);
   const { user } = useAuth();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId) {
+      setIsDeleting(true);
+      try {
+        await deleteSubmission(confirmDeleteId);
+        await fetchSubmissionsData();
+      } catch (error) {
+        console.error("Error deleting submission:", error);
+      } finally {
+        setIsDeleting(false);
+        setConfirmDeleteOpen(false);
+        setConfirmDeleteId(null);
+      }
+    }
+  };
 
   const fetchSubmissionsData = async () => {
     if (!user) return;
@@ -284,92 +305,113 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen transition-all duration-500 ease-in-out min-w-[calc(100vw-17rem)]">
-      <div className="flex items-center justify-between transition-transform duration-500 ease-in-out">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 mt-1">
-            Manage your submissions and compliance documentation
-          </p>
-        </div>
-        <button
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-          onClick={handleOpen}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4 mr-2"
+    <div className="relative">
+      {/* TODO: Refactor to use global overlay provider for confirm dialog */}
+      {confirmDeleteOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-40"></div>
+          <Modal
+            isOpen={confirmDeleteOpen}
+            onClose={() => { setConfirmDeleteOpen(false); setConfirmDeleteId(null); }}
+            title="Confirm Deletion"
+            maxWidth="max-w-md"
           >
-            <path d="M5 12h14"></path>
-            <path d="M12 5v14"></path>
-          </svg>
-          New Submission
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 transition-all duration-500 ease-in-out transform-gpu">
-        <StatsCard
-          title="Draft Submissions"
-          value={stats?.drafts || 0}
-          icon={FileText}
-          iconBgColor="bg-blue-100"
-          iconColor="text-blue-600"
-          className="transition-transform duration-500 ease-in-out"
-        />
-        <StatsCard
-          title="Pending Review"
-          value={stats?.pending || 0}
-          icon={Clock}
-          iconBgColor="bg-orange-100"
-          iconColor="text-orange-500"
-          className="transition-transform duration-500 ease-in-out"
-        />
-        <StatsCard
-          title="Approved"
-          value={stats?.approved || 0}
-          icon={CheckCircle}
-          iconBgColor="bg-green-100"
-          iconColor="text-green-600"
-          className="transition-transform duration-500 ease-in-out"
-        />
-      </div>
-
-      {/* Submissions Table */}
-      <Card className="transition-all duration-500 ease-in-out transform-gpu">
-        <div className="px-6 py-4 border-b border-ms-gray-300 transition-colors duration-300 ease-in-out">
-          <h3 className="text-lg font-medium text-ms-gray-900">
-            Recent Submissions
-          </h3>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to delete this submission? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => { setConfirmDeleteOpen(false); setConfirmDeleteId(null); }}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        </>
+      )}
+      <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen transition-all duration-500 ease-in-out min-w-[calc(100vw-17rem)]">
+        <div className="flex items-center justify-between transition-transform duration-500 ease-in-out">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
+            <p className="text-gray-600 mt-1">
+              Manage your submissions and compliance documentation
+            </p>
+          </div>
+          <Button onClick={handleOpen}>
+            <Plus className="w-4 h-4" />
+            New Submission
+          </Button>
         </div>
-        <SubmissionTable
-          submissions={sortedSubmissions}
-          onDelete={handleDeleteSubmission}
-        />
-      </Card>
 
-      {/* Modal */}
-      <SubmissionModal
-        open={open}
-        formData={formData}
-        onClose={handleClose}
-        onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
-        onInputChange={handleInputChange}
-        questions={questions}
-        questionAnswers={questionAnswers}
-        onQuestionAnswerChange={handleQuestionAnswerChange}
-        loading={loading}
-        formSuggestion={formSuggestion}
-        canCreate={readyToCreate || allowManualCreate}
-        suggestionError={suggestionError}
-      />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 transition-all duration-500 ease-in-out transform-gpu">
+          <StatsCard
+            title="Draft Submissions"
+            value={stats?.drafts || 0}
+            icon={FileText}
+            iconBgColor="bg-blue-100"
+            iconColor="text-blue-600"
+            className="transition-transform duration-500 ease-in-out"
+          />
+          <StatsCard
+            title="Pending Review"
+            value={stats?.pending || 0}
+            icon={Clock}
+            iconBgColor="bg-orange-100"
+            iconColor="text-orange-500"
+            className="transition-transform duration-500 ease-in-out"
+          />
+          <StatsCard
+            title="Approved"
+            value={stats?.approved || 0}
+            icon={CheckCircle}
+            iconBgColor="bg-green-100"
+            iconColor="text-green-600"
+            className="transition-transform duration-500 ease-in-out"
+          />
+        </div>
+
+        {/* Submissions Table */}
+        <Card className="transition-all duration-500 ease-in-out transform-gpu">
+          <div className="px-6 py-4 border-b border-ms-gray-300 transition-colors duration-300 ease-in-out">
+            <h3 className="text-lg font-medium text-ms-gray-900">
+              Recent Submissions
+            </h3>
+          </div>
+          <SubmissionTable
+            submissions={sortedSubmissions}
+            onDelete={handleDeleteSubmission}
+            setConfirmDeleteOpen={setConfirmDeleteOpen}
+            setConfirmDeleteId={setConfirmDeleteId}
+          />
+        </Card>
+
+        {/* Modal */}
+        <SubmissionModal
+          open={open}
+          formData={formData}
+          onClose={handleClose}
+          onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
+          onInputChange={handleInputChange}
+          questions={questions}
+          questionAnswers={questionAnswers}
+          onQuestionAnswerChange={handleQuestionAnswerChange}
+          loading={loading}
+          formSuggestion={formSuggestion}
+          canCreate={readyToCreate || allowManualCreate}
+          suggestionError={suggestionError}
+        />
+      </div>
     </div>
   );
 };

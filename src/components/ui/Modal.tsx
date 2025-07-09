@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Z_INDEX } from "../../constants/zIndex";
+import { useOverlay } from "../../provider/overleyProvider";
 
 interface ReusableModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
   maxHeight = "max-h-[80vh]",
   showCloseButton = true,
 }) => {
+  const { showOverlay, hideOverlay } = useOverlay();
+
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -30,27 +33,24 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
+      showOverlay();
+    } else {
+      hideOverlay();
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      hideOverlay();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showOverlay, hideOverlay]);
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-x-0 top-[-40px] bottom-0 bg-black/40"
-        style={{ zIndex: Z_INDEX.OVERLAY }}
-        onClick={onClose}
-      />
-      
       {/* Modal Content */}
       <div 
-        className="fixed inset-x-0 top-[60px] bottom-0 flex items-center justify-center p-4"
+        className="fixed inset-0 flex items-center justify-center p-4"
         style={{ zIndex: Z_INDEX.MODAL }}
       >
         <div 

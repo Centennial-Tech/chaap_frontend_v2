@@ -18,7 +18,7 @@ const Overlay: React.FC = () => {
     <div
       id="global_overlay"
       className="
-          fixed inset-x-0 top-[60px] bottom-0
+          fixed inset-0
           z-40
           bg-black/40
           flex items-center justify-center
