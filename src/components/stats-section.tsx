@@ -4,7 +4,9 @@ export default function StatsSection() {
   return (
     <div className="w-full bg-white py-28">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center text-black mb-6">No regulatory hype here. Just results.</h2>
+        <p className="text-4xl md:text-5xl font-500 p-5 text-center text-[#0b0080] mb-0">
+          No regulatory hype here. <span className="block md:inline text-orange-500">Just results!</span>
+        </p>
         <p className="text-xl text-center text-gray-800 mb-12 max-w-3xl mx-auto">
           CHAAP is where innovators put AI to work for regulatory compliance. Connect AI directly to your workflows, build custom agents, and actually deliver on your compliance strategy.
         </p>
