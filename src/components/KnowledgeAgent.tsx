@@ -72,7 +72,7 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: resp
     <div
       ref={ref}
       onClick={() => navigator.clipboard.writeText(content)}
-      className="flex gap-3 my-4 text-gray-700 text-sm"
+      className="flex gap-3 my-4 text-gray-700 text-sm w-fit"
     >
       <span className="relative flex shrink-0 overflow-hidden rounded-full w-8 h-8">
         <div className="rounded-full bg-gray-100 border p-1">
@@ -552,7 +552,6 @@ const KnowledgeAgent = () => {
           maxWidth: isMaximized ? '1536px' : '1000px',
         }}
         className={`
-          font-mono
           transition-[width,height,max-width]
           duration-500
           ease-in-out
@@ -576,7 +575,7 @@ const KnowledgeAgent = () => {
           `}
         >
           <div className={`
-            flex gap-2 p-3 font-mono font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 
+            flex gap-2 p-3 font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 
             ${isMaximized ? 'px-5 text-lg' : 'px-3 text-base'} 
             items-center justify-between shadow-xl
             transition-[padding,font-size]
@@ -652,10 +651,11 @@ const KnowledgeAgent = () => {
             className={`
               flex-1 
               items-start 
-              ${isMaximized ? 'p-4' : 'px-4 py-3'} 
+              ${isMaximized ? 'pr-4 py-4' : 'pr-4 py-3'} 
               overflow-y-auto 
               flex 
               flex-col 
+              items-center
               bg-gray-50
               transition-[padding]
               duration-300
@@ -663,10 +663,21 @@ const KnowledgeAgent = () => {
             `}
             onScroll={handleScroll}
           >
-            {conversations.map(({ who, what, isTyping }, index) => (
-              <Conversation key={index} who={who} what={what} isTyping={isTyping} />
-            ))}
-            {loading ? <AI ref={lastRef} content="" loading /> : ""}
+            <div className={`
+              w-auto
+              max-w-[800px]
+              flex 
+              flex-col
+              -ml-12
+              transition-all
+              duration-300
+              ease-[cubic-bezier(0.4,0,0.2,1)]
+            `}>
+              {conversations.map(({ who, what, isTyping }, index) => (
+                <Conversation key={index} who={who} what={what} isTyping={isTyping} />
+              ))}
+              {loading ? <AI ref={lastRef} content="" loading /> : ""}
+            </div>
           </div>
 
           <div className={`
@@ -678,8 +689,7 @@ const KnowledgeAgent = () => {
             ${isMaximized ? 'p-4' : 'p-3'}
           `}>
             <div className={`
-              mx-auto 
-              ${isMaximized ? 'max-w-4xl' : ''} 
+              max-w-4xl mx-auto
               flex flex-col gap-3
               transition-[max-width,transform]
               duration-300
@@ -753,7 +763,7 @@ const KnowledgeAgent = () => {
                   `}
                   placeholder={isMaximized 
                     ? "Ask about FDA regulations, guidance documents, device classification..." 
-                    : "Ask about FDA regulations..."
+                    : "Ask about FDA regulations, guidance documents, device classification..."
                   }
                   value={request}
                   onChange={(e) => {
