@@ -2,7 +2,7 @@ import AnimatedCounter from "./AnimatedCounter";
 
 export default function StatsSection() {
   return (
-    <div className="w-full bg-white py-28">
+    <div className="w-full py-28">
       <div className="max-w-5xl mx-auto px-4">
         <p className="text-4xl md:text-5xl font-500 p-5 text-center text-[#0b0080] mb-0">
           No regulatory hype here. <span className="block md:inline text-orange-500">Just results!</span>

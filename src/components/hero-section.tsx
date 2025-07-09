@@ -18,11 +18,11 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full bg-white overflow-hidden min-h-[calc(100vh-5rem)]">
+    <section className="relative w-full  overflow-hidden min-h-[calc(100vh-5rem)] bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between min-h-[calc(100vh-5rem)]">
         {/* Text Content */}
         <div className="w-full px-4 md:px-8 lg:ml-4 lg:px-0 lg:w-1/2 text-center lg:text-left z-10 pt-8 lg:pt-0">
-          <div className="inline-block bg-white/60 text-[#a855f7] px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-[#a855f7] lg:self-start">
+          <div className="inline-block bg-white/60 text-purple-500 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-purple-500 lg:self-start">
             ✨ Healthcare AI Revolution
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-400 leading-tight mb-6 text-[#0b0080]">
@@ -31,7 +31,7 @@ export default function HeroSection() {
               Regulation
             </span>
           </h1>
-          <p className="text-xl sm:text-2xl md:text-2xl xl:text-3xl font-bold text-[#a855f7] mb-4">
+          <p className="text-xl sm:text-2xl md:text-2xl xl:text-3xl font-bold text-purple-500 mb-4">
             So You Don't Have To.
           </p>
           <p className="text-base sm:text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0 px-2 sm:px-0">
@@ -40,7 +40,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
             <Button 
               onClick={scrollToContact}
-              className="bg-[#a855f7] hover:from-purple-700 hover:to-purple-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
+              className="bg-purple-500 hover:from-purple-700 hover:to-purple-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
               size="lg"
             >
               Book A Demo
@@ -49,7 +49,7 @@ export default function HeroSection() {
             <Button 
               onClick={scrollToFeatures}
               variant="outline"
-              className="border-[#a855f7] text-[#a855f7] hover:border-purple-500 hover:text-purple-500 hover:bg-purple-50"
+              className="border-purple-500 text-purple-500 hover:border-purple-500 hover:text-purple-500 hover:bg-purple-50"
               size="lg"
             >
               Learn More

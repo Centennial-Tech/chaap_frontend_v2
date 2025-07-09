@@ -18,7 +18,8 @@ const agents = [
     buttonColor: "bg-gradient-to-r from-sky-400 to-blue-500",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(56,189,248,0.7)]",
     satisfaction: 94,
-    effectiveness: 89
+    effectiveness: 89,
+    accuracy: 91
   },
   {
     id: 2,
@@ -35,7 +36,8 @@ const agents = [
     buttonColor: "bg-gradient-to-r from-orange-500 to-orange-600",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(251,146,60,0.7)]",
     satisfaction: 92,
-    effectiveness: 95
+    effectiveness: 95,
+    accuracy: 97
   },
   {
     id: 3,
@@ -52,7 +54,8 @@ const agents = [
     buttonColor: "bg-gradient-to-r from-purple-500 to-purple-600",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]",
     satisfaction: 88,
-    effectiveness: 91
+    effectiveness: 91,
+    accuracy: 89
   },
   {
     id: 4,
@@ -69,7 +72,8 @@ const agents = [
     buttonColor: "bg-gradient-to-r from-pink-500 to-rose-500",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(244,114,182,0.7)]",
     satisfaction: 96,
-    effectiveness: 93
+    effectiveness: 93,
+    accuracy: 95
   },
   {
     id: 5,
@@ -86,7 +90,8 @@ const agents = [
     buttonColor: "bg-gradient-to-r from-blue-600 to-blue-700",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(37,99,235,0.7)]",
     satisfaction: 90,
-    effectiveness: 87
+    effectiveness: 87,
+    accuracy: 93
   }
 ];
 
@@ -151,7 +156,7 @@ export default function AIAgentsSection() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+                      className="bg-gradient-to-r from-orange-400 to-orange-600 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${agent.satisfaction}%` }}
                     ></div>
                   </div>
@@ -167,6 +172,20 @@ export default function AIAgentsSection() {
                     <div 
                       className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${agent.effectiveness}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Accuracy */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-slate-700">Accuracy</span>
+                    <span className="text-sm font-bold text-slate-900">{agent.accuracy}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${agent.accuracy}%` }}
                     ></div>
                   </div>
                 </div>
@@ -187,7 +206,7 @@ export default function AIAgentsSection() {
         {/* Call to Action */}
         <div className="text-center">
           <Link to="/login">
-            <button className="bg-[#a855f7] hover:bg-[#7a31bd] text-white px-8 py-3 text-lg rounded-lg font-semibold transition-all duration-300">
+            <button className="bg-purple-500 hover:bg-[#7a31bd] text-white px-8 py-3 text-lg rounded-lg font-semibold transition-all duration-300">
               Explore All AI Agents
             </button>
           </Link>

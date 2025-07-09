@@ -347,7 +347,7 @@ const ChatBot = () => {
           isOpen ? "max-h-[70%]" : "max-h-0"
         } transition-all duration-500 rounded-3xl text-white w-full max-w-[80%] md:max-w-[40%] lg:max-w-[30%] 2xl:max-w-[25%] shadow-2xl h-full flex flex-col fixed bottom-[calc(4rem+1.5rem)] overflow-hidden right-0 mr-4 bg-white border-[#e5e7eb]`}
       >
-        <div className="flex gap-2 p-3 text-lg font-bold bg-[#a855f7] items-center shadow-xl justify-between">
+        <div className="flex gap-2 p-3 text-lg font-bold bg-purple-500 items-center shadow-xl justify-between">
           <div className="flex gap-2 items-center">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center p-2"
@@ -416,7 +416,7 @@ const ChatBot = () => {
       <button
         className={`${
           isOpen ? "" : "animate-bounce"
-        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-[#a855f7] hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
+        } hover:animate-none fixed bottom-4 right-4 inline-flex items-center justify-center text-sm font-medium disabled:pointer-events-none disabled:opacity-50 border rounded-full w-12 h-12 md:w-16 md:h-16 bg-purple-500 hover:opacity-90 m-0 cursor-pointer border-none bg-none p-0 normal-case leading-5 hover:text-gray-900`}
         type="button"
         aria-haspopup="dialog"
         aria-expanded="false"

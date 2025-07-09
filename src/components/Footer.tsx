@@ -2,7 +2,7 @@ const Footer = () => {
   const footerLogo = new URL("../assets/logo2-svg.svg", import.meta.url).href;
   const linkedInImg = new URL("../assets/linkedin.svg", import.meta.url).href;
   return (
-    <footer className="flex justify-between bg-white w-full shadow-sm py-5">
+    <footer className="flex justify-between w-full shadow-sm py-5">
       <div className="flex flex-col md:flex-row gap-2.5 justify-between items-center w-full max-w-7xl mx-auto">
         <div className="flex items-center text-gray-600 text-lg font-medium">
           <span>A</span>

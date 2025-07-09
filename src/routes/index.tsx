@@ -41,7 +41,7 @@ const LayoutWithHeader = () => {
   const isHome = location.pathname === "/";
 
   return (
-    <div className={`flex flex-col min-h-screen ${user ? 'bg-gradient-to-br from-gradient-purple via-gradient-green via-gradient-red to-gradient-blue bg-[length:400%_400%] animate-gradient-shift' : ''}`}>
+    <div className={`flex flex-col min-h-screen bg-gradient-to-br from-gradient-purple via-gradient-green via-gradient-red to-gradient-blue bg-[length:400%_400%] animate-gradient-shift`}>
       <ScrollToHash />
       <div className="relative" style={{ zIndex: Z_INDEX.HEADER }}>{!user ? <Header2 /> : <Navbar />}</div>
       <main className="flex-grow flex">

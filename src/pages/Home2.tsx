@@ -23,28 +23,28 @@ export default function Home2() {
   }, []);
 
   return (
-    <div className="flex w-full h-full flex-col bg-white">
+    <div className="flex w-full h-full flex-col">
       <Header3 />
       {/* Hero Section - full width, full height */}
-      <div className="w-full bg-white">
+      <div className="w-full">
         <HeroSection />
       </div>
       {/* Features Section - full width, content constrained */}
-      <div className="w-full bg-white">
+      <div className="w-full">
         <FeaturesSection />
       </div>
       {/* AI Agents Section - full width, content constrained */}
-      <div className="w-full bg-white">
+      <div className="w-full">
         <AIAgentsSection />
       </div>
       {/* Stats Section - now a reusable component */}
       <StatsSection />
       {/* Comparison Section - full width, content constrained */}
-      <div className="w-full bg-white pt-20">
+      <div className="w-full pt-20">
         <ComparisonSection />
       </div>
       {/* Contact Section - full width, content constrained */}
-      <div className="w-full bg-white pt-20">
+      <div className="w-full pt-20">
         <ContactSection />
       </div>
       <ChatBot />
