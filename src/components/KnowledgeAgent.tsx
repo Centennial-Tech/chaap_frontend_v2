@@ -539,8 +539,9 @@ const KnowledgeAgent = () => {
         bg-gray-50
         ${isMaximized ? 'p-6' : 'p-0'}
         transition-[left,padding]
-        duration-300
-        ease-[cubic-bezier(0.4,0,0.2,1)]
+        duration-500
+        ease-in-out
+        min-w-[calc(100vw-17rem)]
       `}
     >
       <AnimatedBackground />
@@ -553,9 +554,10 @@ const KnowledgeAgent = () => {
         className={`
           font-mono
           transition-[width,height,max-width]
-          duration-300
-          ease-[cubic-bezier(0.4,0,0.2,1)]
+          duration-500
+          ease-in-out
           will-change-[width,height,max-width]
+          min-w-[calc(100vw-20rem)]
         `}
       >
         <div
