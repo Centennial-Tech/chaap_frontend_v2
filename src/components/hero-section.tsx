@@ -40,7 +40,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
             <Button 
               onClick={scrollToContact}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
+              className="bg-[#a855f7] hover:from-purple-700 hover:to-purple-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
               size="lg"
             >
               Book A Demo
@@ -49,7 +49,7 @@ export default function HeroSection() {
             <Button 
               onClick={scrollToFeatures}
               variant="outline"
-              className="border-blue-600 text-blue-600 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50"
+              className="border-[#a855f7] text-[#a855f7] hover:border-purple-500 hover:text-purple-500 hover:bg-purple-50"
               size="lg"
             >
               Learn More
