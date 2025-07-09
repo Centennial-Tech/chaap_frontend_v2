@@ -38,7 +38,7 @@ export default function HeroSection() {
             Streamline regulatory compliance with AI-powered agents that understand healthcare regulations and accelerate your submission processes with unprecedented accuracy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
-            <Button 
+            <Button
               onClick={scrollToContact}
               className="bg-purple-500 hover:from-purple-700 hover:to-purple-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
               size="lg"
@@ -46,7 +46,7 @@ export default function HeroSection() {
               Book A Demo
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
+            <Button
               onClick={scrollToFeatures}
               variant="outline"
               className="border-purple-500 text-purple-500 hover:border-purple-500 hover:text-purple-500 hover:bg-purple-50"
@@ -64,6 +64,7 @@ export default function HeroSection() {
               autoPlay
               muted
               playsInline
+              loop={true}
               className="w-full sm:w-[90%] md:w-[85%] lg:w-auto h-auto transform scale-90 sm:scale-95 md:scale-100 lg:scale-[1.3] xl:scale-[1.1] lg:translate-x-[-5%]"
               style={{
                 background: "white",
