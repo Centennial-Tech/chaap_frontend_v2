@@ -16,7 +16,9 @@ const agents = [
     ],
     buttonText: "Try Pre-submission Agent",
     buttonColor: "bg-gradient-to-r from-sky-400 to-blue-500",
-    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(56,189,248,0.7)]"
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(56,189,248,0.7)]",
+    satisfaction: 94,
+    effectiveness: 89
   },
   {
     id: 2,
@@ -31,7 +33,9 @@ const agents = [
     ],
     buttonText: "Try Document Agent",
     buttonColor: "bg-gradient-to-r from-orange-500 to-orange-600",
-    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(251,146,60,0.7)]"
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(251,146,60,0.7)]",
+    satisfaction: 92,
+    effectiveness: 95
   },
   {
     id: 3,
@@ -46,7 +50,9 @@ const agents = [
     ],
     buttonText: "Try FDA Agent",
     buttonColor: "bg-gradient-to-r from-purple-500 to-purple-600",
-    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]"
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]",
+    satisfaction: 88,
+    effectiveness: 91
   },
   {
     id: 4,
@@ -61,7 +67,9 @@ const agents = [
     ],
     buttonText: "Try Knowledge Agent",
     buttonColor: "bg-gradient-to-r from-pink-500 to-rose-500",
-    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(244,114,182,0.7)]"
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(244,114,182,0.7)]",
+    satisfaction: 96,
+    effectiveness: 93
   },
   {
     id: 5,
@@ -76,7 +84,9 @@ const agents = [
     ],
     buttonText: "Try Surveillance Agent",
     buttonColor: "bg-gradient-to-r from-blue-600 to-blue-700",
-    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(37,99,235,0.7)]"
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(37,99,235,0.7)]",
+    satisfaction: 90,
+    effectiveness: 87
   }
 ];
 
@@ -92,7 +102,7 @@ export default function AIAgentsSection() {
       >
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+          <h2 className="text-4xl lg:text-5xl font-400 text-[#0b0080] mb-6">
             AI Agents
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
@@ -117,12 +127,12 @@ export default function AIAgentsSection() {
                 <div className={`${agent.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg`}>
                   <agent.icon className="text-white" size={28} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{agent.name}</h3>
-                <p className="text-slate-600 text-sm">{agent.description}</p>
+                <h3 className="text-xl font-500 text-[#0b0080] mb-2">{agent.name}</h3>
+                <p className="text-[#0b0080] text-sm">{agent.description}</p>
               </div>
 
               {/* Features */}
-              <div className="space-y-3 mb-8">
+              <div className="space-y-3 mb-6">
                 {agent.features.map((feature, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <CheckCircle className="text-green-500 mt-0.5 flex-shrink-0" size={16} />
@@ -131,10 +141,41 @@ export default function AIAgentsSection() {
                 ))}
               </div>
 
+              {/* Performance Metrics */}
+              <div className="space-y-4 mb-6">
+                {/* User Satisfaction */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-slate-700">User Satisfaction</span>
+                    <span className="text-sm font-bold text-slate-900">{agent.satisfaction}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${agent.satisfaction}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Effectiveness */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-slate-700">Effectiveness</span>
+                    <span className="text-sm font-bold text-slate-900">{agent.effectiveness}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${agent.effectiveness}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
               {/* Button */}
               <Link to="/login">
                 <button 
-                  className={`w-full text-white font-medium ${agent.buttonColor} hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-lg`}
+                  className={`w-full text-white font-medium ${agent.buttonColor} hover:opacity-90 hover:brightness-90 transition-all duration-300 px-4 py-3 rounded-lg`}
                 >
                   {agent.buttonText}
                 </button>
@@ -146,7 +187,7 @@ export default function AIAgentsSection() {
         {/* Call to Action */}
         <div className="text-center">
           <Link to="/login">
-            <button className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-3 text-lg rounded-lg font-semibold transition-all duration-300">
+            <button className="bg-[#a855f7] hover:bg-[#7a31bd] text-white px-8 py-3 text-lg rounded-lg font-semibold transition-all duration-300">
               Explore All AI Agents
             </button>
           </Link>

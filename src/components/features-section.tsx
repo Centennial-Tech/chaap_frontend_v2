@@ -58,7 +58,11 @@ export default function FeaturesSection() {
           {features.map((feature, idx) => (
             <motion.div
               key={feature.title}
-              className="relative p-8 rounded-2xl shadow-lg border transition-all duration-300 group hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)] hover:border-purple-300/50 bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:from-purple-100 hover:to-purple-150"
+              className={`relative p-8 rounded-2xl shadow-lg border transition-all duration-300 group hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)] hover:border-purple-300/50 bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:from-purple-100 hover:to-purple-150 animate-bounce`}
+              style={{
+                animation: `float 4s ease-in-out infinite`,
+                animationDelay: `${idx * 0.5}s`,
+              }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 + idx * 0.12, ease: "easeOut" }}
@@ -81,6 +85,17 @@ export default function FeaturesSection() {
           ))}
         </div>
       </motion.div>
+      
+      <style>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+        }
+      `}</style>
     </section>
   );
 }
