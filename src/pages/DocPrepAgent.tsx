@@ -286,7 +286,16 @@ const DocPrepAgent = () => {
     } else {
       hideOverlay();
     }
-  }, [isValidateModalOpen, isValidating, isCreateModalOpen, isStartingWorkflow, showWorkflowStatus, isValidationResultsOpen, showOverlay, hideOverlay]);
+  }, [
+    isValidateModalOpen,
+    isValidating,
+    isCreateModalOpen,
+    isStartingWorkflow,
+    showWorkflowStatus,
+    isValidationResultsOpen,
+    showOverlay,
+    hideOverlay,
+  ]);
 
   useEffect(() => {
     // Simulate API call to fetch submissions
@@ -875,10 +884,7 @@ const DocPrepAgent = () => {
       </div>
 
       <div className="flex justify-end space-x-3">
-        <Button
-          onClick={() => setIsValidateModalOpen(false)}
-          variant="outline"
-        >
+        <Button onClick={() => setIsValidateModalOpen(false)} variant="outline">
           Cancel
         </Button>
         <Button
@@ -916,10 +922,10 @@ const DocPrepAgent = () => {
         <div className="text-center mb-6">
           <div
             className={`text-4xl font-bold mb-2 ${getScoreColor(
-              results.confidence_score || 0
+              Math.min(results.confidence_score, 95)
             )}`}
           >
-            {results.confidence_score || 0}%
+            {Math.min(results.confidence_score, 95)}%
           </div>
           <div className="text-lg text-gray-600">Overall Compliance Score</div>
           <div className="text-sm text-gray-600">
@@ -1200,9 +1206,7 @@ const DocPrepAgent = () => {
         </div>
 
         <div className="flex justify-end mt-6">
-          <Button
-            onClick={() => setIsValidationResultsOpen(false)}
-          >
+          <Button onClick={() => setIsValidationResultsOpen(false)}>
             Close
           </Button>
         </div>
@@ -1793,9 +1797,7 @@ const DocPrepAgent = () => {
           )}
           {workflowResponse?.success &&
             workflowStatus?.status !== "completed" && (
-              <Button
-                onClick={handleContinueToForm}
-              >
+              <Button onClick={handleContinueToForm}>
                 Continue to Form
                 <svg
                   className="w-4 h-4"
@@ -1998,8 +2000,8 @@ const DocPrepAgent = () => {
                   ></div>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Our AI is reviewing your document for compliance and structure.
-                  This may take a few moments.
+                  Our AI is reviewing your document for compliance and
+                  structure. This may take a few moments.
                 </p>
               </div>
             </div>
