@@ -1,3 +1,5 @@
+import AnimatedBackground from "../../components/AnimatedBackground";
+
 const Presubmission = () => {
   const rightArrow = new URL("../../assets/arrow-right.svg", import.meta.url)
     .href;
@@ -27,52 +29,55 @@ const Presubmission = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      {/* 1st screen */}
-      <div className="h-screen flex flex-col gap-12 pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
-        {/* Basic */}
-        <div className="flex flex-col gap-[16px]">
-          <div className="flex flex-col">
-            <span className="title text-2xl md:text-4xl font-medium">
-              Pre-Submission Strategy Agent
-            </span>
-            <span className="text-lg font-medium">
-              Navigating Regulatory Pathways with Confidence
-            </span>
-          </div>
-          <p>
-            The Pre-Submission Strategy agent is CHAAP’s AI-powered advisor for
-            selecting the right regulatory path, early and accurately. For
-            health innovators, biotech startups, drug and device developers,
-            this agent provides data-backed guidance that eliminates guesswork
-            and streamlines engagement with regulatory authorities. Built to
-            decode complex FDA pathways, simulate Q-submission interactions, and
-            surface regulatory precedents, the agent helps teams avoid missteps,
-            reduce rework, and prepare smarter.
-          </p>
-        </div>
-        {/* Challenges */}
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col">
-            <p className="text-lg md:text-4xl font-medium">
-              The Regulatory Challenge
-            </p>
-            <p className="text-[15px] md:text-[24px] font-bold">
-              Healthcare innovators often face:
+    <div className="relative min-h-screen">
+      <AnimatedBackground />
+      <div className="flex flex-col">
+        {/* 1st screen */}
+        <div className="h-screen flex flex-col gap-12 pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
+          {/* Basic */}
+          <div className="flex flex-col gap-[16px]">
+            <div className="flex flex-col">
+              <span className="title text-2xl md:text-4xl font-medium">
+                Pre-Submission Strategy Agent
+              </span>
+              <span className="text-lg font-medium">
+                Navigating Regulatory Pathways with Confidence
+              </span>
+            </div>
+            <p>
+              The Pre-Submission Strategy agent is CHAAP’s AI-powered advisor for
+              selecting the right regulatory path, early and accurately. For
+              health innovators, biotech startups, drug and device developers,
+              this agent provides data-backed guidance that eliminates guesswork
+              and streamlines engagement with regulatory authorities. Built to
+              decode complex FDA pathways, simulate Q-submission interactions, and
+              surface regulatory precedents, the agent helps teams avoid missteps,
+              reduce rework, and prepare smarter.
             </p>
           </div>
-          {/* challenge items */}
-          <ul className="flex flex-col gap-[2px]">
-            {regulatoryChallenges.map((item) => (
-              <ChallengeItem text={item} />
-            ))}
-          </ul>
+          {/* Challenges */}
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col">
+              <p className="text-lg md:text-4xl font-medium">
+                The Regulatory Challenge
+              </p>
+              <p className="text-[15px] md:text-[24px] font-bold">
+                Healthcare innovators often face:
+              </p>
+            </div>
+            {/* challenge items */}
+            <ul className="flex flex-col gap-[2px]">
+              {regulatoryChallenges.map((item) => (
+                <ChallengeItem text={item} />
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
-      {/* 2nd screen */}
-      <div className="h-screen">
-        <div className="pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
-          {/* wdhschywdsv */}
+        {/* 2nd screen */}
+        <div className="h-screen">
+          <div className="pt-[30px] md:pt-[48px] w-full max-w-[1260px] px-[20px] mx-auto">
+            {/* wdhschywdsv */}
+          </div>
         </div>
       </div>
     </div>

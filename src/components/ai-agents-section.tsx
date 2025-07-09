@@ -15,7 +15,8 @@ const agents = [
       "Generates timeline and resource plans"
     ],
     buttonText: "Try Pre-submission Agent",
-    buttonColor: "bg-gradient-to-r from-sky-400 to-blue-500"
+    buttonColor: "bg-gradient-to-r from-sky-400 to-blue-500",
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(56,189,248,0.7)]"
   },
   {
     id: 2,
@@ -29,7 +30,8 @@ const agents = [
       "Formats to FDA standards"
     ],
     buttonText: "Try Document Agent",
-    buttonColor: "bg-gradient-to-r from-orange-500 to-orange-600"
+    buttonColor: "bg-gradient-to-r from-orange-500 to-orange-600",
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(251,146,60,0.7)]"
   },
   {
     id: 3,
@@ -43,7 +45,8 @@ const agents = [
       "Analyzes past meeting outcomes"
     ],
     buttonText: "Try FDA Agent",
-    buttonColor: "bg-gradient-to-r from-purple-500 to-purple-600"
+    buttonColor: "bg-gradient-to-r from-purple-500 to-purple-600",
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]"
   },
   {
     id: 4,
@@ -57,21 +60,23 @@ const agents = [
       "Provides contextual recommendations"
     ],
     buttonText: "Try Knowledge Agent",
-    buttonColor: "bg-gradient-to-r from-pink-500 to-rose-500"
+    buttonColor: "bg-gradient-to-r from-pink-500 to-rose-500",
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(244,114,182,0.7)]"
   },
   {
     id: 5,
     name: "Post-Market Surveillance Agent",
     description: "AI-driven post-market monitoring system",
     icon: Shield,
-    iconBg: "bg-gradient-to-br from-sky-300 to-blue-400",
+    iconBg: "bg-gradient-to-br from-blue-600 to-blue-800",
     features: [
       "Monitors adverse events patterns",
       "Generates safety signal reports",
       "Automates regulatory reporting"
     ],
     buttonText: "Try Surveillance Agent",
-    buttonColor: "bg-gradient-to-r from-sky-400 to-blue-500"
+    buttonColor: "bg-gradient-to-r from-blue-600 to-blue-700",
+    shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(37,99,235,0.7)]"
   }
 ];
 
@@ -100,11 +105,12 @@ export default function AIAgentsSection() {
           {agents.map((agent, idx) => (
             <motion.div
               key={agent.id}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-lg transition-all duration-300"
+              className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-8 transition-all duration-500 ${agent.shadowColor}`}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 + idx * 0.12, ease: "easeOut" }}
               viewport={{ once: true }}
+              whileHover={{ y: -5 }}
             >
               {/* Icon and Title */}
               <div className="flex flex-col items-center text-center mb-8">

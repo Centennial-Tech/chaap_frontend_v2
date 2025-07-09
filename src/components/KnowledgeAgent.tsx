@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+import AnimatedBackground from "./AnimatedBackground";
 import {
   ContentCopyOutlined,
   StopRounded,
@@ -542,11 +543,12 @@ const KnowledgeAgent = () => {
         ease-[cubic-bezier(0.4,0,0.2,1)]
       `}
     >
+      <AnimatedBackground />
       <div 
         style={{
-          width: isMaximized ? '100%' : '700px',
+          width: isMaximized ? '100%' : '1000px',
           height: isMaximized ? '100%' : '500px',
-          maxWidth: isMaximized ? '1536px' : '700px',
+          maxWidth: isMaximized ? '1536px' : '1000px',
         }}
         className={`
           font-mono

@@ -23,6 +23,7 @@ import DocPrepAgent from "../pages/DocPrepAgent";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/ui/SideNav";
 import UserProfile from "../pages/UserProfile";
+import AnimatedBackground from "../components/AnimatedBackground";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const LayoutWithHeader = () => {
@@ -40,7 +41,8 @@ const LayoutWithHeader = () => {
   const isHome = location.pathname === "/";
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
+      {user && <AnimatedBackground />}
       <ScrollToHash />
       <div className="relative" style={{ zIndex: Z_INDEX.HEADER }}>{!user ? <Header2 /> : <Navbar />}</div>
       <main className="flex-grow flex">

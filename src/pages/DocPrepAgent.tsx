@@ -6,6 +6,7 @@ import api from "../api";
 import { useAuth } from "../provider/authProvider";
 import { extractText } from "../utils";
 import jsPDF from "jspdf";
+import AnimatedBackground from "../components/AnimatedBackground";
 
 const attachmentTypes = [
   {
@@ -1826,312 +1827,315 @@ const DocPrepAgent = () => {
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Document Preparation Agent
-          </h2>
-          <p className="text-gray-700 mt-1">
-            AI-powered assistance for preparing documentation
-          </p>
-        </div>
-      </div>
-
-      {/* Document Preparation Interface */}
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Card className="w-full max-w-2xl">
-          <div className="px-6 py-4 border-b border-ms-gray-300">
-            <h3 className="text-xl font-semibold text-ms-gray-900 text-center">
+    <div className="relative min-h-screen">
+      <AnimatedBackground />
+      <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">
               Document Preparation Agent
-            </h3>
-            <p className="text-gray-600 text-center mt-1">
-              Configure document generation parameters
+            </h2>
+            <p className="text-gray-700 mt-1">
+              AI-powered assistance for preparing documentation
             </p>
           </div>
+        </div>
 
-          <CardContent className="space-y-8 p-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="submission-select"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  1. Submission Name
-                </label>
-                <select
-                  id="submission-select"
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  onChange={(e) => {
-                    const submissionId = e.target.value;
-                    const submission = submissions.find(
-                      (s) => s.id === submissionId
-                    );
-                    setSelectedSubmission(submission);
-                  }}
-                >
-                  <option value="" disabled selected>
-                    Select a recent submission
-                  </option>
-                  {submissions.map((submission) => (
-                    <option
-                      key={submission.id}
-                      value={submission.id}
-                      selected={submission.id === selectedSubmission}
-                    >
-                      {submission.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="attachment-select"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  2. Attachment Type
-                </label>
-                <select
-                  id="attachment-select"
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedAttachmentType}
-                  onChange={(e) => setSelectedAttachmentType(e.target.value)}
-                >
-                  <option value="">Select document type to generate</option>
-                  {attachmentTypes.map(({ label, id }) => (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-center space-x-6 pt-6">
-              <button
-                onClick={handleValidate}
-                disabled={!isFormValid || isStartingWorkflow}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
-              >
-                Validate
-              </button>
-
-              <button
-                onClick={handleCreate}
-                disabled={!isFormValid || isStartingWorkflow}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors flex items-center gap-2"
-              >
-                {isStartingWorkflow ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Starting...
-                  </>
-                ) : (
-                  "Create"
-                )}
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Modals */}
-      <Modal
-        isOpen={isValidateModalOpen}
-        onClose={() => setIsValidateModalOpen(false)}
-        title="Upload Document for Validation"
-      >
-        {renderUploadModalContent()}
-      </Modal>
-
-      {/* Validation Loading Modal */}
-      <Modal
-        isOpen={isValidating}
-        onClose={() => {}} // Prevent closing during validation
-        title="Validating Document"
-        showCloseButton={false}
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col items-center justify-center py-8 px-4">
-          {/* Animated validation icon */}
-          <div className="relative mb-6">
-            <div className="w-16 h-16 border-4 border-blue-200 rounded-full">
-              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-blue-600 animate-pulse"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Loading text */}
-          <div className="text-center space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Analyzing Your Document
-            </h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
-              <p className="text-gray-600 text-sm">
-                Our AI is reviewing your document for compliance and structure.
-                This may take a few moments.
+        {/* Document Preparation Interface */}
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Card className="w-full max-w-2xl">
+            <div className="px-6 py-4 border-b border-ms-gray-300">
+              <h3 className="text-xl font-semibold text-ms-gray-900 text-center">
+                Document Preparation Agent
+              </h3>
+              <p className="text-gray-600 text-center mt-1">
+                Configure document generation parameters
               </p>
             </div>
-          </div>
 
-          {/* Progress indicators */}
-          <div className="mt-6 w-full space-y-3">
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Processing document content...</span>
-                <span>⚡</span>
+            <CardContent className="space-y-8 p-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="submission-select"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    1. Submission Name
+                  </label>
+                  <select
+                    id="submission-select"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => {
+                      const submissionId = e.target.value;
+                      const submission = submissions.find(
+                        (s) => s.id === submissionId
+                      );
+                      setSelectedSubmission(submission);
+                    }}
+                  >
+                    <option value="" disabled selected>
+                      Select a recent submission
+                    </option>
+                    {submissions.map((submission) => (
+                      <option
+                        key={submission.id}
+                        value={submission.id}
+                        selected={submission.id === selectedSubmission}
+                      >
+                        {submission.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="attachment-select"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    2. Attachment Type
+                  </label>
+                  <select
+                    id="attachment-select"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={selectedAttachmentType}
+                    onChange={(e) => setSelectedAttachmentType(e.target.value)}
+                  >
+                    <option value="">Select document type to generate</option>
+                    {attachmentTypes.map(({ label, id }) => (
+                      <option key={id} value={id}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full animate-pulse"
-                  style={{ width: "100%" }}
-                ></div>
+
+              <div className="flex justify-center space-x-6 pt-6">
+                <button
+                  onClick={handleValidate}
+                  disabled={!isFormValid || isStartingWorkflow}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
+                >
+                  Validate
+                </button>
+
+                <button
+                  onClick={handleCreate}
+                  disabled={!isFormValid || isStartingWorkflow}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors flex items-center gap-2"
+                >
+                  {isStartingWorkflow ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Starting...
+                    </>
+                  ) : (
+                    "Create"
+                  )}
+                </button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </Modal>
 
-      {/* Create Workflow Loading Modal */}
-      <Modal
-        isOpen={isStartingWorkflow}
-        onClose={() => {}} // Prevent closing during workflow creation
-        title={
-          workflowStage === "processing_responses"
-            ? "Processing Document Generation"
-            : "Preparing Document Creation"
-        }
-        showCloseButton={false}
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col items-center justify-center py-8 px-4">
-          {/* Animated creation icon */}
-          <div className="relative mb-6">
-            <div className="w-16 h-16 border-4 border-green-200 rounded-full">
-              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-green-600 rounded-full animate-spin"></div>
+        {/* Modals */}
+        <Modal
+          isOpen={isValidateModalOpen}
+          onClose={() => setIsValidateModalOpen(false)}
+          title="Upload Document for Validation"
+        >
+          {renderUploadModalContent()}
+        </Modal>
+
+        {/* Validation Loading Modal */}
+        <Modal
+          isOpen={isValidating}
+          onClose={() => {}} // Prevent closing during validation
+          title="Validating Document"
+          showCloseButton={false}
+          maxWidth="max-w-md"
+        >
+          <div className="flex flex-col items-center justify-center py-8 px-4">
+            {/* Animated validation icon */}
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full">
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-blue-600 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-green-600 animate-pulse"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
+
+            {/* Loading text */}
+            <div className="text-center space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Analyzing Your Document
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Our AI is reviewing your document for compliance and structure.
+                  This may take a few moments.
+                </p>
+              </div>
+            </div>
+
+            {/* Progress indicators */}
+            <div className="mt-6 w-full space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Processing document content...</span>
+                  <span>⚡</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full animate-pulse"
+                    style={{ width: "100%" }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
+        </Modal>
 
-          {/* Loading text */}
-          <div className="text-center space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {workflowStage === "processing_responses"
-                ? "Processing Your Responses"
-                : "Setting Up Document Creation"}
-            </h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
+        {/* Create Workflow Loading Modal */}
+        <Modal
+          isOpen={isStartingWorkflow}
+          onClose={() => {}} // Prevent closing during workflow creation
+          title={
+            workflowStage === "processing_responses"
+              ? "Processing Document Generation"
+              : "Preparing Document Creation"
+          }
+          showCloseButton={false}
+          maxWidth="max-w-md"
+        >
+          <div className="flex flex-col items-center justify-center py-8 px-4">
+            {/* Animated creation icon */}
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-green-200 rounded-full">
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-green-600 rounded-full animate-spin"></div>
               </div>
-              <p className="text-gray-600 text-sm">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-green-600 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Loading text */}
+            <div className="text-center space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {workflowStage === "processing_responses"
-                  ? "Your responses have been submitted and the document is being generated. This may take a few moments."
-                  : "Initializing the document creation workflow and preparing form questions. This will only take a moment."}
-              </p>
-            </div>
-          </div>
-
-          {/* Progress indicators */}
-          <div className="mt-6 w-full space-y-3">
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>
+                  ? "Processing Your Responses"
+                  : "Setting Up Document Creation"}
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+                <p className="text-gray-600 text-sm">
                   {workflowStage === "processing_responses"
-                    ? "Generating document..."
-                    : "Starting workflow..."}
-                </span>
-                <span>
-                  {workflowStage === "processing_responses" ? "📄" : "🚀"}
-                </span>
+                    ? "Your responses have been submitted and the document is being generated. This may take a few moments."
+                    : "Initializing the document creation workflow and preparing form questions. This will only take a moment."}
+                </p>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full animate-pulse"
-                  style={{ width: "100%" }}
-                ></div>
+            </div>
+
+            {/* Progress indicators */}
+            <div className="mt-6 w-full space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>
+                    {workflowStage === "processing_responses"
+                      ? "Generating document..."
+                      : "Starting workflow..."}
+                  </span>
+                  <span>
+                    {workflowStage === "processing_responses" ? "📄" : "🚀"}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full animate-pulse"
+                    style={{ width: "100%" }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
 
-      {/* Workflow Status Modal */}
-      <Modal
-        isOpen={showWorkflowStatus}
-        onClose={() => setShowWorkflowStatus(false)}
-        title="Workflow Status"
-        maxWidth="max-w-4xl"
-      >
-        {renderWorkflowStatusContent()}
-      </Modal>
+        {/* Workflow Status Modal */}
+        <Modal
+          isOpen={showWorkflowStatus}
+          onClose={() => setShowWorkflowStatus(false)}
+          title="Workflow Status"
+          maxWidth="max-w-4xl"
+        >
+          {renderWorkflowStatusContent()}
+        </Modal>
 
-      <Modal
-        isOpen={isValidationResultsOpen}
-        onClose={() => setIsValidationResultsOpen(false)}
-        title="Validation Results"
-        maxWidth="max-w-4xl"
-      >
-        {validationResults && renderValidationResultsContent()}
-      </Modal>
+        <Modal
+          isOpen={isValidationResultsOpen}
+          onClose={() => setIsValidationResultsOpen(false)}
+          title="Validation Results"
+          maxWidth="max-w-4xl"
+        >
+          {validationResults && renderValidationResultsContent()}
+        </Modal>
 
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseCreateModal}
-        title="Create New Document"
-        maxWidth="max-w-lg"
-        showCloseButton={!isGenerating}
-      >
-        {renderCreateModalContent()}
-      </Modal>
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={handleCloseCreateModal}
+          title="Create New Document"
+          maxWidth="max-w-lg"
+          showCloseButton={!isGenerating}
+        >
+          {renderCreateModalContent()}
+        </Modal>
+      </div>
     </div>
   );
 };
