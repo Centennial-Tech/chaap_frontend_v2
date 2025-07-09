@@ -305,7 +305,7 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="relative">
+    <div className="min-h-screen overflow-x-hidden">
       {/* TODO: Refactor to use global overlay provider for confirm dialog */}
       {confirmDeleteOpen && (
         <>
@@ -340,7 +340,7 @@ const Dashboard = () => {
           </Modal>
         </>
       )}
-      <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen transition-all duration-500 ease-in-out min-w-[calc(100vw-17rem)]">
+      <div className="space-y-8 flex flex-col flex-1 p-8 transition-all duration-500 ease-in-out">
         <div className="flex items-center justify-between transition-transform duration-500 ease-in-out">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
