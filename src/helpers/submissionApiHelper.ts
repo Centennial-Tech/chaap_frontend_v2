@@ -10,7 +10,7 @@ export interface Submission {
   submission_id: string;
   type: string;
   status: string;
-  progress: number;
+  progress?: number;
   created_at: string;
   updated_at: string;
   end_time?: string | null; // Maps to target submission date
@@ -52,7 +52,9 @@ export const getStatusConfig = (status: string) => {
 // Helper function to calculate statistics
 export const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
-  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
+  const in_progress = submissions.filter(
+    (s) => s.status === "in_progress"
+  ).length;
   const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
 
@@ -65,7 +67,9 @@ export const calculateStats = (submissions: Submission[]): Stats => {
 };
 
 // Helper function to sort submissions by date (most recent first)
-export const sortSubmissionsByDate = (submissions: Submission[]): Submission[] => {
+export const sortSubmissionsByDate = (
+  submissions: Submission[]
+): Submission[] => {
   return [...submissions].sort((a, b) => {
     const dateA = new Date(a.updated_at || a.created_at);
     const dateB = new Date(b.updated_at || b.created_at);
@@ -74,7 +78,9 @@ export const sortSubmissionsByDate = (submissions: Submission[]): Submission[] =
 };
 
 // API functions
-export const fetchSubmissions = async (userId: string): Promise<Submission[]> => {
+export const fetchSubmissions = async (
+  userId: string
+): Promise<Submission[]> => {
   try {
     const response = await api.get(`/applications/userId?user_id=${userId}`);
     return response.data;
@@ -84,7 +90,9 @@ export const fetchSubmissions = async (userId: string): Promise<Submission[]> =>
   }
 };
 
-export const createSubmission = async (submissionData: Partial<Submission>): Promise<Submission> => {
+export const createSubmission = async (
+  submissionData: Partial<Submission>
+): Promise<Submission> => {
   try {
     const response = await api.post("/applications/", submissionData);
     return response.data;
@@ -94,9 +102,15 @@ export const createSubmission = async (submissionData: Partial<Submission>): Pro
   }
 };
 
-export const updateSubmission = async (submissionId: string, submissionData: Partial<Submission>): Promise<Submission> => {
+export const updateSubmission = async (
+  submissionId: string,
+  submissionData: Partial<Submission>
+): Promise<Submission> => {
   try {
-    const response = await api.put(`/applications/${submissionId}`, submissionData);
+    const response = await api.put(
+      `/applications/${submissionId}`,
+      submissionData
+    );
     return response.data;
   } catch (error) {
     console.error("Error updating submission:", error);
@@ -113,7 +127,9 @@ export const deleteSubmission = async (submissionId: string): Promise<void> => {
   }
 };
 
-export const getSubmissionById = async (submissionId: string): Promise<Submission> => {
+export const getSubmissionById = async (
+  submissionId: string
+): Promise<Submission> => {
   try {
     const response = await api.get(`/applications/${submissionId}`);
     return response.data;
@@ -124,7 +140,10 @@ export const getSubmissionById = async (submissionId: string): Promise<Submissio
 };
 
 // Form suggestion API function
-export const getFormSuggestion = async (type: string, productDescription: string): Promise<{
+export const getFormSuggestion = async (
+  type: string,
+  productDescription: string
+): Promise<{
   questions: string[];
   suggestion: string;
 }> => {
@@ -139,5 +158,3 @@ export const getFormSuggestion = async (type: string, productDescription: string
     throw error;
   }
 };
-
- 

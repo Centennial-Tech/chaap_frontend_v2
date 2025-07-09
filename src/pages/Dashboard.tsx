@@ -49,7 +49,9 @@ const Dashboard = () => {
   const [submissions, setSubmissions] = React.useState<Submission[]>([]);
   const { user } = useAuth();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleConfirmDelete = async () => {
@@ -231,7 +233,6 @@ const Dashboard = () => {
           end_time: formData.end_time,
           productDescription: formData.productDescription,
           status: "draft",
-          progress: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           questionAnswers: questionAnswersRef.current,
@@ -312,18 +313,25 @@ const Dashboard = () => {
           <div className="fixed inset-0 bg-black/40 z-40"></div>
           <Modal
             isOpen={confirmDeleteOpen}
-            onClose={() => { setConfirmDeleteOpen(false); setConfirmDeleteId(null); }}
+            onClose={() => {
+              setConfirmDeleteOpen(false);
+              setConfirmDeleteId(null);
+            }}
             title="Confirm Deletion"
             maxWidth="max-w-md"
           >
             <div className="space-y-4">
               <p className="text-gray-600">
-                Are you sure you want to delete this submission? This action cannot be undone.
+                Are you sure you want to delete this submission? This action
+                cannot be undone.
               </p>
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
-                  onClick={() => { setConfirmDeleteOpen(false); setConfirmDeleteId(null); }}
+                  onClick={() => {
+                    setConfirmDeleteOpen(false);
+                    setConfirmDeleteId(null);
+                  }}
                   disabled={isDeleting}
                 >
                   Cancel
