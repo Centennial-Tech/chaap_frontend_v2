@@ -25,7 +25,7 @@ export default function ContactSection() {
       alert("Please fill in your name and email address.");
       return;
     }
-    
+
     setIsSubmitting(true);
     // Simulate form submission
     setTimeout(() => {
@@ -49,7 +49,7 @@ export default function ContactSection() {
     <section id="contact" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl lg:text-5xl font-500 text-[#0b0080] mb-6">
             Ready to <span className="text-orange-500">Get Started?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
@@ -70,11 +70,11 @@ export default function ContactSection() {
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a552f7] focus:border-[#a552f7] transition-colors duration-200"
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-gray-900 font-semibold mb-2">
                   Email Address *
@@ -85,11 +85,11 @@ export default function ContactSection() {
                   placeholder="john@company.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a552f7] focus:border-[#a552f7] transition-colors duration-200"
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="company" className="block text-gray-900 font-semibold mb-2">
                   Company
@@ -100,10 +100,10 @@ export default function ContactSection() {
                   placeholder="Your Company"
                   value={formData.company || ""}
                   onChange={(e) => handleInputChange("company", e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a552f7] focus:border-[#a552f7] transition-colors duration-200"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="phone" className="block text-gray-900 font-semibold mb-2">
                   Phone Number
@@ -114,10 +114,10 @@ export default function ContactSection() {
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone || ""}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a552f7] focus:border-[#a552f7] transition-colors duration-200"
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <label htmlFor="message" className="block text-gray-900 font-semibold mb-2">
                   Message
@@ -128,15 +128,15 @@ export default function ContactSection() {
                   placeholder="Tell us about your regulatory challenges and how CHAAP can help..."
                   value={formData.message || ""}
                   onChange={(e) => handleInputChange("message", e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a552f7] focus:border-[#a552f7] transition-colors duration-200"
                 />
               </div>
-              
+
               <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none inline-flex items-center justify-center"
+                  className="bg-[#a552f7] hover:bg-purple-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none inline-flex items-center justify-center"
                 >
                   {isSubmitting ? (
                     <>
@@ -152,7 +152,7 @@ export default function ContactSection() {
                 </button>
                 <button
                   type="button"
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 inline-flex items-center justify-center"
+                  className="border-2 border-[#a552f7] text-[#a552f7] hover:bg-purple-800 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 inline-flex items-center justify-center"
                 >
                   <Download className="mr-2" size={20} />
                   Download Brochure
