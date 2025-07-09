@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { Z_INDEX } from "../constants/zIndex";
+import { Button } from "./ui/Button";
 
 export default function Header3() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,75 +34,75 @@ export default function Header3() {
           </Link>
           <div className="hidden md:block pr-2">
             <div className="flex items-center space-x-2">
-              <button 
+              <Button 
                 onClick={() => scrollToSection('features')}
-                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
+                variant="default"
               >
-                <span className="relative z-10">Features</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-              </button>
-              <button 
+                Features
+              </Button>
+              <Button 
                 onClick={() => scrollToSection('ai-agents')}
-                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
+                variant="default"
               >
-                <span className="relative z-10">AI Agents</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-              </button>
-              <button 
+                AI Agents
+              </Button>
+              <Button 
                 onClick={() => scrollToSection('contact')}
-                className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
+                variant="default"
               >
-                <span className="relative z-10">Contact Us</span>
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-              </button>
+                Contact Us
+              </Button>
               <Link to="/login">
-                <button
-                  className="relative text-white bg-purple-500 hover:bg-purple-600 transition-all duration-200 px-3.5 py-1.5 text-base font-medium rounded-lg group"
-                >
-                  <span className="relative z-10">Login</span>
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-purple-600/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                </button>
+                <Button variant="default">
+                  Login
+                </Button>
               </Link>
             </div>
           </div>
           <div className="md:hidden pr-2">
-            <button
+            <Button
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-purple-500 hover:text-purple-600 p-2 rounded-lg focus:outline-none"
+              variant="ghost"
+              size="icon"
+              className="text-purple-500 hover:text-purple-600"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            </Button>
           </div>
         </div>
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-4 pb-6 bg-gradient-to-br from-white to-slate-50 border-t border-slate-200 flex flex-col space-y-2">
-              <button 
+              <Button 
                 onClick={() => scrollToSection('features')}
-                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                variant="default"
+                className="w-full justify-start"
               >
                 Features
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => scrollToSection('ai-agents')}
-                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                variant="default"
+                className="w-full justify-start"
               >
                 AI Agents
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => scrollToSection('contact')}
-                className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+                variant="default"
+                className="w-full justify-start"
               >
                 Demo
-              </button>
-              <Link to="/login">
-                <button
-                  className="text-white bg-purple-500 hover:bg-purple-600 block px-4 py-2.5 text-base font-medium w-full text-left rounded-lg transition-all duration-200"
+              </Button>
+              <Link to="/login" className="w-full">
+                <Button
+                  variant="default"
+                  className="w-full justify-start"
                 >
                   Login
-                </button>
+                </Button>
               </Link>
             </div>
           </div>

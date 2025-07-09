@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bot } from "lucide-react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
+import { Button } from "./ui/Button";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -360,9 +361,10 @@ const ChatBot = () => {
           </div>
 
           {/* Streaming toggle button */}
-          <button
+          <Button
             onClick={() => setStreaming(!streaming)}
-            className={`px-3 py-1 text-xs rounded-full transition-all ${
+            size="sm"
+            className={`rounded-full ${
               streaming
                 ? "bg-green-500 text-white"
                 : "bg-gray-300 text-gray-700"
@@ -370,7 +372,7 @@ const ChatBot = () => {
             title={streaming ? "Streaming ON" : "Streaming OFF"}
           >
             {streaming ? "⚡ Live" : "📝 Standard"}
-          </button>
+          </Button>
         </div>
 
         <div
@@ -403,12 +405,11 @@ const ChatBot = () => {
               }}
               disabled={loading || isTyping}
             />
-            <button
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50 bg-[#a855f7] hover:bg-[#7a31bd] h-9 md:h-10 px-4 py-2"
+            <Button
               disabled={loading || isTyping}
             >
               {loading ? "..." : isTyping ? "Typing..." : "Ask"}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

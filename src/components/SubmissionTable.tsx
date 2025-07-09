@@ -1,49 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
-import Modal from "./ui/Modal";
 import { Edit, Download, Trash2 } from "lucide-react";
-import { deleteSubmission } from "../helpers/submissionApiHelper";
 import type { Submission } from "../helpers/submissionApiHelper";
 
 interface SubmissionTableProps {
   submissions: Submission[];
   onDelete: (id: string) => Promise<void>; // Changed from number to string
+  setConfirmDeleteOpen: (open: boolean) => void;
+  setConfirmDeleteId: (id: string) => void;
 }
 
 const SubmissionTable: React.FC<SubmissionTableProps> = ({
   submissions,
-  onDelete,
+  setConfirmDeleteOpen,
+  setConfirmDeleteId,
 }) => {
-  const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(
-    null
-  );
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const handleDeleteClick = (id: string) => {
-    setShowConfirmDialog(id);
-  };
-
-  const handleConfirmDelete = async (id: string) => {
-    console.log("SubmissionTable: handleConfirmDelete called with ID:", id);
-    setIsDeleting(true);
-    try {
-      // Use the delete API helper
-      await deleteSubmission(id);
-      // Call the parent's onDelete callback to refresh the list
-      await onDelete(id);
-      console.log("SubmissionTable: Delete confirmation completed");
-    } catch (error) {
-      console.error("Error deleting submission:", error);
-      // You might want to show an error message to the user here
-    } finally {
-      setIsDeleting(false);
-      setShowConfirmDialog(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowConfirmDialog(null);
+    setConfirmDeleteId(id);
+    setConfirmDeleteOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -169,39 +144,6 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
           </tbody>
         </table>
       </div>
-
-      {/* Confirmation Dialog */}
-      <Modal
-        isOpen={!!showConfirmDialog}
-        onClose={handleCancelDelete}
-        title="Confirm Deletion"
-        maxWidth="max-w-md"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            Are you sure you want to delete this submission? This action
-            cannot be undone.
-          </p>
-          <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
-              onClick={handleCancelDelete}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                showConfirmDialog && handleConfirmDelete(showConfirmDialog)
-              }
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 };

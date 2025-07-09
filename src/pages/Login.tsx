@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../provider/authProvider"; // update path if needed
 import { useEffect, useState } from "react";
+import { Button } from "../components/ui/Button";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
@@ -103,39 +105,20 @@ const Login = () => {
           </div>
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full justify-center items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 transition-colors duration-200"
+              className="w-full"
             >
               {isSubmitting ? (
                 <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Signing in...
                 </>
               ) : (
                 "Sign in"
               )}
-            </button>
+            </Button>
           </div>
         </form>
 

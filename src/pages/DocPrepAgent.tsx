@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
 import { XCircle, Download } from "lucide-react";
 import Modal from "../components/ui/Modal";
 import api from "../api";
@@ -7,6 +8,7 @@ import { useAuth } from "../provider/authProvider";
 import { extractText } from "../utils";
 import jsPDF from "jspdf";
 import AnimatedBackground from "../components/AnimatedBackground";
+import { useOverlay } from "../provider/overleyProvider";
 
 const attachmentTypes = [
   {
@@ -268,6 +270,23 @@ const DocPrepAgent = () => {
   const { user } = useAuth();
 
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
+
+  const { showOverlay, hideOverlay } = useOverlay();
+
+  useEffect(() => {
+    if (
+      isValidateModalOpen ||
+      isValidating ||
+      isCreateModalOpen ||
+      isStartingWorkflow ||
+      showWorkflowStatus ||
+      isValidationResultsOpen
+    ) {
+      showOverlay();
+    } else {
+      hideOverlay();
+    }
+  }, [isValidateModalOpen, isValidating, isCreateModalOpen, isStartingWorkflow, showWorkflowStatus, isValidationResultsOpen, showOverlay, hideOverlay]);
 
   useEffect(() => {
     // Simulate API call to fetch submissions
@@ -856,13 +875,13 @@ const DocPrepAgent = () => {
       </div>
 
       <div className="flex justify-end space-x-3">
-        <button
+        <Button
           onClick={() => setIsValidateModalOpen(false)}
-          className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+          variant="outline"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleModalValidate}
           disabled={
             !uploadedFile ||
@@ -870,10 +889,9 @@ const DocPrepAgent = () => {
             isExtractingText ||
             !!extractionError
           }
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           Validate Document
-        </button>
+        </Button>
       </div>
     </>
   );
@@ -892,22 +910,6 @@ const DocPrepAgent = () => {
     }
 
     const results = validationResults;
-    // const results = {
-    //   confidence_score: 40,
-    //   detailed_analysis:
-    //     "The submitted NDA cover letter contains placeholder content, which is unacceptable for FDA submissions. Placeholder content significantly detracts from the document's credibility and compliance. The FDA requires specific and accurate information in all sections of the cover letter, including the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data. Additionally, the document does not demonstrate adherence to FDA formatting guidelines, which are critical for ensuring clarity and professionalism in regulatory submissions. The presence of placeholder content and lack of specific details result in a low confidence score and non-compliance with FDA requirements.",
-    //   is_compliant: false,
-    //   issues: [
-    //     "Placeholder content ({company_name}, {contact_info}, {regulatory_contact}, {submission_date}, {drug_name}, {generic_name}, {nda_number}, {application_type}, {supporting_data}) is present and unacceptable.",
-    //     "The document lacks specific details required for a compliant NDA cover letter, such as the actual company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
-    //     "No indication of adherence to formatting guidelines specified by the FDA for NDA cover letters.",
-    //   ],
-    //   recommendations: [
-    //     "Replace all placeholder content with actual, accurate information.",
-    //     "Ensure the cover letter includes all required elements, such as the company name, contact information, regulatory contact details, submission date, drug name, generic name, NDA number, application type, and supporting data.",
-    //     "Verify that the formatting adheres to FDA guidelines, including proper headers, spacing, and alignment.",
-    //   ],
-    // };
 
     return (
       <>
@@ -1198,12 +1200,11 @@ const DocPrepAgent = () => {
         </div>
 
         <div className="flex justify-end mt-6">
-          <button
+          <Button
             onClick={() => setIsValidationResultsOpen(false)}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Close
-          </button>
+          </Button>
         </div>
       </>
     );
@@ -1290,30 +1291,29 @@ const DocPrepAgent = () => {
           )}
 
           <div className="flex justify-end space-x-3">
-            <button
+            <Button
               onClick={handleCloseCreateModal}
-              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              variant="outline"
               disabled={isGenerating}
             >
               Cancel
-            </button>
+            </Button>
 
             {!isDocumentGenerated ? (
-              <button
+              <Button
                 onClick={handleModalCreate}
                 disabled={!isCreateFormValid() || isGenerating}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 {isGenerating ? "Processing..." : "Submit"}
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 onClick={() => handleDownload("pdf")}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+                className="bg-green-600 hover:bg-green-700"
               >
                 <Download className="w-4 h-4" />
                 Download Document
-              </button>
+              </Button>
             )}
           </div>
         </>
@@ -1739,8 +1739,8 @@ const DocPrepAgent = () => {
         )}
 
         {/* Action buttons */}
-        <div className="flex justify-center space-x-4 w-full">
-          <button
+        <div className="flex justify-center items-end space-x-4 w-full">
+          <Button
             onClick={() => {
               setShowWorkflowStatus(false);
               // Reset workflow state if completed
@@ -1754,45 +1754,47 @@ const DocPrepAgent = () => {
                 setWorkflowStage("starting");
               }
             }}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+            variant="outline"
           >
             Close
-          </button>
+          </Button>
           {workflowStatus?.status === "completed" && (
             <div className="flex flex-col space-y-2">
               <div className="text-sm font-medium text-gray-700 mb-2">
                 Download Options:
               </div>
               <div className="flex space-x-2">
-                <button
+                <Button
                   onClick={() => handleDownload("pdf")}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2 text-sm"
+                  variant="destructive"
+                  size="sm"
                 >
                   <Download className="w-4 h-4" />
                   PDF
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => handleDownload("doc")}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 text-sm"
+                  size="sm"
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
                   <Download className="w-4 h-4" />
                   DOC
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => handleDownload("txt")}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center gap-2 text-sm"
+                  variant="gray"
+                  size="sm"
                 >
                   <Download className="w-4 h-4" />
                   TXT
-                </button>
+                </Button>
               </div>
             </div>
           )}
           {workflowResponse?.success &&
             workflowStatus?.status !== "completed" && (
-              <button
+              <Button
                 onClick={handleContinueToForm}
-                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
               >
                 Continue to Form
                 <svg
@@ -1808,18 +1810,17 @@ const DocPrepAgent = () => {
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-              </button>
+              </Button>
             )}
           {!workflowResponse?.success && (
-            <button
+            <Button
               onClick={() => {
                 setShowWorkflowStatus(false);
                 // Reset any form state if needed
               }}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Try Again
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -1912,18 +1913,18 @@ const DocPrepAgent = () => {
               </div>
 
               <div className="flex justify-center space-x-6 pt-6">
-                <button
+                <Button
                   onClick={handleValidate}
                   disabled={!isFormValid || isStartingWorkflow}
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors"
+                  size="lg"
                 >
                   Validate
-                </button>
+                </Button>
 
-                <button
+                <Button
                   onClick={handleCreate}
                   disabled={!isFormValid || isStartingWorkflow}
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:bg-gray-300 transition-colors flex items-center gap-2"
+                  size="lg"
                 >
                   {isStartingWorkflow ? (
                     <>
@@ -1933,7 +1934,7 @@ const DocPrepAgent = () => {
                   ) : (
                     "Create"
                   )}
-                </button>
+                </Button>
               </div>
             </CardContent>
           </Card>

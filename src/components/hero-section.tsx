@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import backgroundVideo from "../assets/video3.mp4";
+import { Button } from "./ui/Button";
 
 export default function HeroSection() {
   const scrollToContact = () => {
@@ -36,20 +37,23 @@ export default function HeroSection() {
           <p className="text-base sm:text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0 px-2 sm:px-0">
             Streamline regulatory compliance with AI-powered agents that understand healthcare regulations and accelerate your submission processes with unprecedented accuracy.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start px-2 sm:px-0">
-            <button 
+          <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
+            <Button 
               onClick={scrollToContact}
-              className="bg-[#a855f7] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg inline-flex items-center justify-center"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
+              size="lg"
             >
               Book A Demo
-              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-            <button 
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
               onClick={scrollToFeatures}
-              className="border-2 border-[#a855f7] hover:border-orange-500 text-[#a855f7] hover:text-orange-500 hover:bg-orange-50 px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300"
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50"
+              size="lg"
             >
               Learn More
-            </button>
+            </Button>
           </div>
         </div>
 

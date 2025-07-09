@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
-import CustomButton from "../components/Button";
-import { Link } from "react-router-dom";
-import { Button, useMediaQuery, useTheme } from "@mui/material";
+import { Button } from "../components/ui/Button";
+import { Link, useNavigate } from "react-router-dom";
+import { useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
 import { Z_INDEX } from "../constants/zIndex";
 
 const Header2 = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
-  const menuItems = [
-    { name: "Home", path: "/" },
-    { name: "CHAAP Agents", path: "/#agents" },
-    { name: "Contact", path: "/contact" },
-  ];
+  // const menuItems = [
+  //   { name: "Home", path: "/" },
+  //   { name: "CHAAP Agents", path: "/#agents" },
+  //   { name: "Contact", path: "/contact" },
+  // ];
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -90,16 +91,22 @@ const Header2 = () => {
         </div>
         <span className="inline-flex gap-3 pr-4">
           <span className="hidden md:flex gap-2 items-center">
-            {menuItems.map(({ name, path }) => (
-              <CustomButton key={name} href={path} name={name} />
-            ))}
+            {/* {menuItems.map(({ name, path }) => (
+              <Button key={name} href={path} name={name} />
+            ))} */}
           </span>
 
           <Button
-            href={user ? "/logout" : "/login"}
-            variant="outlined"
+            onClick={() => {
+              if (user) {
+                logout();
+              } else {
+                navigate("/login");
+              }
+            }}
+            variant="outline"
             size={
-              useMediaQuery(theme.breakpoints.down("sm")) ? "small" : "medium"
+              useMediaQuery(theme.breakpoints.down("sm")) ? "sm" : "lg"
             }
             color="inherit"
             className="!font-extrabold hidden md:inline-flex"
@@ -115,14 +122,14 @@ const Header2 = () => {
           id="navbar-default"
         >
           <div className="mt-10 flex flex-col items-center gap-3">
-            {menuItems.map(({ name, path }) => (
-              <CustomButton
+            {/* {menuItems.map(({ name, path }) => (
+              <Button 
                 onClick={() => setIsOpen(false)}
                 key={name}
                 href={path}
                 name={name}
               />
-            ))}
+            ))} */}
           </div>
         </div>
       </div>

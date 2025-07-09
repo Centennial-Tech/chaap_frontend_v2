@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import Button from "./Button";
+import { Button } from "./ui/Button";
 import { Link } from "react-router-dom";
 import MobileToggle from "./MobileToggle";
 import { Z_INDEX } from "../constants/zIndex";
