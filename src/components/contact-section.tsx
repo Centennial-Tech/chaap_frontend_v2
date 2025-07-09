@@ -16,9 +16,11 @@ export default function ContactSection() {
     email: "",
     company: "",
     phone: "",
-    message: ""
+    message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const brochure = new URL("../assets/Brochure_CHAAP.pdf", import.meta.url)
+    .href;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +38,24 @@ export default function ContactSection() {
         email: "",
         company: "",
         phone: "",
-        message: ""
+        message: "",
       });
       alert("Demo request submitted! We'll be in touch soon.");
     }, 1000);
   };
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDownloadBrochure = () => {
+    const link = document.createElement("a");
+    link.href = brochure;
+    link.download = "CHAAP_Brochure.pdf";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -54,7 +66,8 @@ export default function ContactSection() {
             Ready to <span className="text-orange-500">Get Started?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Transform your regulatory compliance process with CHAAP. Book a demo to see how our AI agents can accelerate your submissions.
+            Transform your regulatory compliance process with CHAAP. Book a demo
+            to see how our AI agents can accelerate your submissions.
           </p>
         </div>
 
@@ -62,7 +75,10 @@ export default function ContactSection() {
           <div className="bg-white rounded-2xl shadow-xl p-8 lg:p-12">
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="name" className="block text-gray-900 font-semibold mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-gray-900 font-semibold mb-2"
+                >
                   Full Name *
                 </label>
                 <input
@@ -77,7 +93,10 @@ export default function ContactSection() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-gray-900 font-semibold mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-gray-900 font-semibold mb-2"
+                >
                   Email Address *
                 </label>
                 <input
@@ -92,7 +111,10 @@ export default function ContactSection() {
               </div>
 
               <div>
-                <label htmlFor="company" className="block text-gray-900 font-semibold mb-2">
+                <label
+                  htmlFor="company"
+                  className="block text-gray-900 font-semibold mb-2"
+                >
                   Company
                 </label>
                 <input
@@ -106,7 +128,10 @@ export default function ContactSection() {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-gray-900 font-semibold mb-2">
+                <label
+                  htmlFor="phone"
+                  className="block text-gray-900 font-semibold mb-2"
+                >
                   Phone Number
                 </label>
                 <input
@@ -120,7 +145,10 @@ export default function ContactSection() {
               </div>
 
               <div className="md:col-span-2">
-                <label htmlFor="message" className="block text-gray-900 font-semibold mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-gray-900 font-semibold mb-2"
+                >
                   Message
                 </label>
                 <textarea
@@ -137,7 +165,8 @@ export default function ContactSection() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#a552f7] hover:bg-purple-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none inline-flex items-center justify-center"
+                  className="transform hover:scale-105 hover:shadow-lg disabled:transform-none"
+                  size="lg"
                 >
                   {isSubmitting ? (
                     <>
@@ -153,7 +182,10 @@ export default function ContactSection() {
                 </Button>
                 <Button
                   type="button"
-                  className="border-2 border-[#a552f7] text-[#a552f7] hover:bg-purple-800 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 inline-flex items-center justify-center"
+                  variant="outline"
+                  className="border-purple-500 text-purple-500 "
+                  size="lg"
+                  onClick={handleDownloadBrochure}
                 >
                   <Download className="mr-2" size={20} />
                   Download Brochure

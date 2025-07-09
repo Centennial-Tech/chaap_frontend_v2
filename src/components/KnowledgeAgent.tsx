@@ -516,7 +516,6 @@ const KnowledgeAgent = () => {
         justify-center 
         items-center
         text-lg 
-        bg-gray-50
         ${isMaximized ? 'p-6' : 'p-0'}
         transition-[left,padding]
         duration-500
@@ -524,7 +523,7 @@ const KnowledgeAgent = () => {
         min-w-[calc(100vw-17rem)]
       `}
     >
-      <AnimatedBackground />
+      {/* <AnimatedBackground /> */}
       <div 
         style={{
           width: isMaximized ? '100%' : '1000px',
