@@ -16,6 +16,13 @@ export default {
           800: '#9c2417',
           900: '#7e2217',
         },
+        gradient: {
+          purple: 'hsl(257, 100%, 95%)',
+          green: 'hsl(160, 100%, 96%)',
+          red: 'hsl(0, 100%, 98%)',
+          blue: 'hsl(204, 100%, 97%)',
+        },
+
       },
       keyframes: {
         typing: {
@@ -35,9 +42,14 @@ export default {
             borderColor: "white",
           },
         },
+        "gradient-shift": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
       },
       animation: {
         typing: "typing 5s steps(50) infinite alternate, blink .7s infinite",
+        "gradient-shift": "gradient-shift 15s ease infinite",
       },
     },
   },

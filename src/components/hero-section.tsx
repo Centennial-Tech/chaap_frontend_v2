@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import backgroundVideo from "../assets/video3.mp4";
+import { Button } from "./ui/Button";
 
 export default function HeroSection() {
   const scrollToContact = () => {
@@ -37,19 +38,22 @@ export default function HeroSection() {
             Streamline regulatory compliance with AI-powered agents that understand healthcare regulations and accelerate your submission processes with unprecedented accuracy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
-            <button 
+            <Button 
               onClick={scrollToContact}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg inline-flex items-center justify-center"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 hover:shadow-2xl shadow-lg"
+              size="lg"
             >
               Book A Demo
               <ArrowRight className="ml-2 h-5 w-5" />
-            </button>
-            <button 
+            </Button>
+            <Button 
               onClick={scrollToFeatures}
-              className="border-2 border-blue-600 hover:border-orange-500 text-blue-600 hover:text-orange-500 hover:bg-orange-50 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300"
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50"
+              size="lg"
             >
               Learn More
-            </button>
+            </Button>
           </div>
         </div>
 

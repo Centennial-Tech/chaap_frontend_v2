@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Calendar, Download } from "lucide-react";
+import { Button } from "./ui/Button";
 
 interface ContactFormData {
   name: string;
@@ -133,10 +134,11 @@ export default function ContactSection() {
               </div>
               
               <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 justify-center">
-                <button
+                <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none inline-flex items-center justify-center"
+                  className="bg-orange-500 hover:bg-orange-600 transform hover:scale-105 hover:shadow-lg disabled:transform-none"
+                  size="lg"
                 >
                   {isSubmitting ? (
                     <>
@@ -149,14 +151,16 @@ export default function ContactSection() {
                       Book A Demo
                     </>
                   )}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 inline-flex items-center justify-center"
+                  variant="outline"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                  size="lg"
                 >
                   <Download className="mr-2" size={20} />
                   Download Brochure
-                </button>
+                </Button>
               </div>
             </form>
           </div>

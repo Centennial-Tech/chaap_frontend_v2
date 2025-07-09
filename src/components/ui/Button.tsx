@@ -21,12 +21,12 @@ export interface ButtonProps
 }
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
-  default: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500",
+  default: "bg-purple-500 text-white hover:bg-purple-600 focus:ring-2 focus:ring-purple-500 transition-all duration-200",
   destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500",
   outline: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500",
   secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-2 focus:ring-gray-500",
   ghost: "bg-transparent text-gray-900 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500",
-  link: "text-blue-600 underline hover:text-blue-800 bg-transparent focus:ring-2 focus:ring-blue-500",
+  link: "text-purple-600 underline hover:text-purple-800 bg-transparent focus:ring-2 focus:ring-purple-500",
   gray: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500",
 };
 
@@ -38,7 +38,7 @@ const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
