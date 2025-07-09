@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { useAuth } from "../provider/authProvider";
 import { Z_INDEX } from "../constants/zIndex";
 
 const Header2 = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
-  const menuItems = [
-    { name: "Home", path: "/" },
-    { name: "CHAAP Agents", path: "/#agents" },
-    { name: "Contact", path: "/contact" },
-  ];
+  // const menuItems = [
+  //   { name: "Home", path: "/" },
+  //   { name: "CHAAP Agents", path: "/#agents" },
+  //   { name: "Contact", path: "/contact" },
+  // ];
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -96,7 +97,13 @@ const Header2 = () => {
           </span>
 
           <Button
-            href={user ? "/logout" : "/login"}
+            onClick={() => {
+              if (user) {
+                logout();
+              } else {
+                navigate("/login");
+              }
+            }}
             variant="outline"
             size={
               useMediaQuery(theme.breakpoints.down("sm")) ? "sm" : "lg"

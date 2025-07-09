@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
@@ -446,45 +445,45 @@ const KnowledgeAgent = () => {
   };
 
   // Non-streaming function with typing effect
-  const askBot = async (message: string) => {
-    setLoading(true);
-    const aiMessageIndex = conversations.length + 1;
+  // const askBot = async (message: string) => {
+  //   setLoading(true);
+  //   const aiMessageIndex = conversations.length + 1;
 
-    try {
-      const res = await axios.post(`${Config.API}/agent/regulatory`, {
-        request: message,
-        stream: false,
-      });
+  //   try {
+  //     const res = await axios.post(`${Config.API}/agent/regulatory`, {
+  //       request: message,
+  //       stream: false,
+  //     });
 
-      setLoading(false);
-      // Add empty AI message after loading completes
-      setConversations((prev: any) => [
-        ...prev,
-        {
-          who: type.ai,
-          what: "",
-          isStreaming: true,
-          isTyping: false,
-        },
-      ]);
+  //     setLoading(false);
+  //     // Add empty AI message after loading completes
+  //     setConversations((prev: any) => [
+  //       ...prev,
+  //       {
+  //         who: type.ai,
+  //         what: "",
+  //         isStreaming: true,
+  //         isTyping: false,
+  //       },
+  //     ]);
 
-      // Start typing effect with the response
-      startTypingEffect(res.data.message, aiMessageIndex);
-    } catch (error) {
-      console.error("Error:", error);
-      setLoading(false);
-      // Add error message
-      setConversations((prev: any) => [
-        ...prev,
-        {
-          who: type.ai,
-          what: "Token limit reached. Please try again in a few seconds.",
-          isTyping: false,
-          isStreaming: false,
-        },
-      ]);
-    }
-  };
+  //     // Start typing effect with the response
+  //     startTypingEffect(res.data.message, aiMessageIndex);
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     setLoading(false);
+  //     // Add error message
+  //     setConversations((prev: any) => [
+  //       ...prev,
+  //       {
+  //         who: type.ai,
+  //         what: "Token limit reached. Please try again in a few seconds.",
+  //         isTyping: false,
+  //         isStreaming: false,
+  //       },
+  //     ]);
+  //   }
+  // };
 
   const handleSubmit = (e: any) => {
     e?.preventDefault();

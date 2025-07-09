@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
-import Modal from "./ui/Modal";
 import { Edit, Download, Trash2 } from "lucide-react";
-import { deleteSubmission } from "../helpers/submissionApiHelper";
 import type { Submission } from "../helpers/submissionApiHelper";
-import { useOverlay } from "../provider/overleyProvider";
 
 interface SubmissionTableProps {
   submissions: Submission[];
@@ -16,49 +13,12 @@ interface SubmissionTableProps {
 
 const SubmissionTable: React.FC<SubmissionTableProps> = ({
   submissions,
-  onDelete,
   setConfirmDeleteOpen,
   setConfirmDeleteId,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { showOverlay, hideOverlay } = useOverlay();
-
-  useEffect(() => {
-    if (setConfirmDeleteOpen) {
-      showOverlay();
-    } else {
-      hideOverlay();
-    }
-  }, [setConfirmDeleteOpen, showOverlay, hideOverlay]);
-
   const handleDeleteClick = (id: string) => {
     setConfirmDeleteId(id);
     setConfirmDeleteOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!setConfirmDeleteId) return;
-    console.log("SubmissionTable: handleConfirmDelete called with ID:", setConfirmDeleteId);
-    setIsDeleting(true);
-    try {
-      // Use the delete API helper
-      await deleteSubmission(setConfirmDeleteId);
-      // Call the parent's onDelete callback to refresh the list
-      await onDelete(setConfirmDeleteId);
-      console.log("SubmissionTable: Delete confirmation completed");
-    } catch (error) {
-      console.error("Error deleting submission:", error);
-      // You might want to show an error message to the user here
-    } finally {
-      setIsDeleting(false);
-      setConfirmDeleteId(null);
-      setConfirmDeleteOpen(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setConfirmDeleteId(null);
-    setConfirmDeleteOpen(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -184,8 +144,6 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
           </tbody>
         </table>
       </div>
-
-      {/* No modal or overlay rendering here */}
     </>
   );
 };
