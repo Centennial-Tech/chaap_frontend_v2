@@ -82,10 +82,7 @@ const Header2 = () => {
               )}
             </button>
           </div>
-          <Link
-            to={"/"}
-            className="w-[150px] items-center justify-center flex"
-          >
+          <Link to={"/"} className="w-[150px] items-center justify-center flex">
             <img src={logo} alt="Logo" />
           </Link>
         </div>
@@ -105,9 +102,7 @@ const Header2 = () => {
               }
             }}
             variant="outline"
-            size={
-              useMediaQuery(theme.breakpoints.down("sm")) ? "sm" : "lg"
-            }
+            size={useMediaQuery(theme.breakpoints.down("sm")) ? "sm" : "lg"}
             color="inherit"
             className="!font-extrabold hidden md:inline-flex"
           >
