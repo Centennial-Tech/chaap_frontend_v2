@@ -45,7 +45,7 @@ export default function FeaturesSection() {
         viewport={{ once: true }}
       >
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl lg:text-5xl font-400 text-[#0b0080] mb-6">
             Centennial Healthcare{" "}
             <span className="text-orange-500">AgenticAI Platform</span>
           </h2>
@@ -58,21 +58,25 @@ export default function FeaturesSection() {
           {features.map((feature, idx) => (
             <motion.div
               key={feature.title}
-              className="p-8 rounded-2xl shadow-lg border transition-all duration-300 group hover:shadow-xl hover:border-purple-300/50 bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:from-purple-100 hover:to-purple-150"
+              className="relative p-8 rounded-2xl shadow-lg border transition-all duration-300 group hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)] hover:border-purple-300/50 bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:from-purple-100 hover:to-purple-150"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 + idx * 0.12, ease: "easeOut" }}
               viewport={{ once: true }}
+              whileHover={{ y: -5 }}
             >
-              <div className="w-20 h-20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
-                <feature.icon className="text-white drop-shadow-sm" size={32} />
+              {/* Card content */}
+              <div className="relative z-10">
+                <div className="w-20 h-20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-[#a855f7] to-[#ff7875] shadow-lg">
+                  <feature.icon className="text-white drop-shadow-sm" size={32} />
+                </div>
+                <h3 className="text-2xl font-500 mb-4 transition-colors duration-300 text-[#0b0080] group-hover:text-purple-700">
+                  {feature.title}
+                </h3>
+                <p className="leading-relaxed text-[#0b0080]">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold mb-4 transition-colors duration-300 text-slate-800 group-hover:text-purple-700">
-                {feature.title}
-              </h3>
-              <p className="leading-relaxed text-slate-700">
-                {feature.description}
-              </p>
             </motion.div>
           ))}
         </div>
