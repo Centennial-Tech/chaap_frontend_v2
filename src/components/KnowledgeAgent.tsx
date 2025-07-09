@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Config } from "../constants";
 import ChatLoader from "./ChatLoader";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
-import AnimatedBackground from "./AnimatedBackground";
 import {
   ContentCopyOutlined,
   StopRounded,
