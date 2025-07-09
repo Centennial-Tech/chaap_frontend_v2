@@ -10,6 +10,7 @@ interface StatsCardProps {
   iconColor: string;
   subtitle?: string;
   subtitleColor?: string;
+  className?: string;
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
@@ -20,9 +21,10 @@ const StatsCard: React.FC<StatsCardProps> = ({
   iconColor,
   subtitle,
   subtitleColor = "text-gray-600",
+  className = "",
 }) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>

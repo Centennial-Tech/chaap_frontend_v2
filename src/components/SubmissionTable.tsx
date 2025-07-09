@@ -95,10 +95,10 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full transition-all duration-500 ease-in-out">
           <thead className="bg-ms-gray-100">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
+            <tr className="transition-colors duration-300 ease-in-out">
+              <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider transition-colors duration-300 ease-in-out">
                 Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-ms-gray-700 uppercase tracking-wider">
@@ -120,8 +120,8 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
           </thead>
           <tbody className="bg-white divide-y divide-ms-gray-300">
             {submissions.map((submission) => (
-              <tr key={submission.id || submission.submission_id}>
-                <td className="px-6 py-4 whitespace-nowrap">
+              <tr key={submission.id || submission.submission_id} className="transition-colors duration-300 ease-in-out hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap transition-colors duration-300 ease-in-out">
                   <div className="text-sm font-medium text-ms-gray-700">
                     {submission.name}
                   </div>

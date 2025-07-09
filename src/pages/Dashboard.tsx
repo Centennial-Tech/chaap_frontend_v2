@@ -284,8 +284,8 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 flex flex-col flex-1 p-6 min-h-screen transition-all duration-500 ease-in-out min-w-[calc(100vw-17rem)]">
+      <div className="flex items-center justify-between transition-transform duration-500 ease-in-out">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
           <p className="text-gray-600 mt-1">
@@ -293,7 +293,7 @@ const Dashboard = () => {
           </p>
         </div>
         <button
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
           onClick={handleOpen}
         >
           <svg
@@ -315,13 +315,14 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 transition-all duration-500 ease-in-out transform-gpu">
         <StatsCard
           title="Draft Submissions"
           value={stats?.drafts || 0}
           icon={FileText}
           iconBgColor="bg-blue-100"
           iconColor="text-blue-600"
+          className="transition-transform duration-500 ease-in-out"
         />
         <StatsCard
           title="Pending Review"
@@ -329,6 +330,7 @@ const Dashboard = () => {
           icon={Clock}
           iconBgColor="bg-orange-100"
           iconColor="text-orange-500"
+          className="transition-transform duration-500 ease-in-out"
         />
         <StatsCard
           title="Approved"
@@ -336,12 +338,13 @@ const Dashboard = () => {
           icon={CheckCircle}
           iconBgColor="bg-green-100"
           iconColor="text-green-600"
+          className="transition-transform duration-500 ease-in-out"
         />
       </div>
 
       {/* Submissions Table */}
-      <Card>
-        <div className="px-6 py-4 border-b border-ms-gray-300">
+      <Card className="transition-all duration-500 ease-in-out transform-gpu">
+        <div className="px-6 py-4 border-b border-ms-gray-300 transition-colors duration-300 ease-in-out">
           <h3 className="text-lg font-medium text-ms-gray-900">
             Recent Submissions
           </h3>
