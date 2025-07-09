@@ -11,14 +11,30 @@ import AnimatedBackground from "../components/AnimatedBackground";
 import { useOverlay } from "../provider/overleyProvider";
 
 const attachmentTypes = [
+  { id: "device-description", label: "Device Description" },
+  { id: "cover-letter", label: "Cover Letter" },
   {
-    id: "device-description",
-    label: "Device Description",
+    id: "advisory-committee-briefing-docs",
+    label: "Advisory Committee Briefing Docs",
   },
   {
-    id: "cover-letter",
-    label: "Cover Letter",
+    id: "analytical-validation-reports",
+    label: "Analytical Validation Reports",
   },
+  { id: "annual-reports", label: "Annual Reports" },
+  { id: "audit-reports", label: "Audit Reports" },
+  { id: "biocompatibility", label: "Biocompatibility" },
+  {
+    id: "cmc-chemistry-manufacturing-and-controls",
+    label: "CMC (Chemistry, Manufacturing and Controls)",
+  },
+  {
+    id: "clinicaltrials-gov-certification",
+    label: "ClinicalTrials.gov Certification",
+  },
+  { id: "clinical-protocols", label: "Clinical Protocols" },
+  { id: "clinical-study-reports", label: "Clinical Study Reports" },
+  { id: "cybersecurity-assessment", label: "Cybersecurity Assessment" },
 ];
 
 // Simplified mock API response for form questions
