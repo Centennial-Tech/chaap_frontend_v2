@@ -2,6 +2,7 @@ import { Bell } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useAuth } from "../provider/authProvider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Z_INDEX } from "../constants/zIndex";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -136,7 +137,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="fixed top-0 w-full bg-white border-b border-gray-300 py-3">
+    <nav className="fixed top-0 left-0 right-0 w-full bg-white border-b border-gray-300 py-3" style={{ zIndex: Z_INDEX.HEADER }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-6 pl-3">
           <div className="flex items-center space-x-3">

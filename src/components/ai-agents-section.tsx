@@ -19,7 +19,8 @@ const agents = [
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(56,189,248,0.7)]",
     satisfaction: 94,
     effectiveness: 89,
-    accuracy: 91
+    accuracy: 91,
+    path: "/agents/presubmission-strategy"
   },
   {
     id: 2,
@@ -37,7 +38,8 @@ const agents = [
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(251,146,60,0.7)]",
     satisfaction: 92,
     effectiveness: 95,
-    accuracy: 97
+    accuracy: 97,
+    path: "/agents/document-preparation"
   },
   {
     id: 3,
@@ -55,7 +57,8 @@ const agents = [
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]",
     satisfaction: 88,
     effectiveness: 91,
-    accuracy: 89
+    accuracy: 89,
+    path: "/agents/fda-meeting-prep"
   },
   {
     id: 4,
@@ -73,7 +76,8 @@ const agents = [
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(244,114,182,0.7)]",
     satisfaction: 96,
     effectiveness: 93,
-    accuracy: 95
+    accuracy: 95,
+    path: "/agents/regulatory-knowledge"
   },
   {
     id: 5,
@@ -91,7 +95,8 @@ const agents = [
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(37,99,235,0.7)]",
     satisfaction: 90,
     effectiveness: 87,
-    accuracy: 93
+    accuracy: 93,
+    path: "/agents/post-market-surveillance"
   }
 ];
 
@@ -192,7 +197,7 @@ export default function AIAgentsSection() {
               </div>
 
               {/* Button */}
-              <Link to="/login">
+              <Link to={agent.path || "/login"}>
                 <button 
                   className={`w-full text-white font-medium ${agent.buttonColor} hover:opacity-90 hover:brightness-90 transition-all duration-300 px-4 py-3 rounded-lg`}
                 >

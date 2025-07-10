@@ -306,7 +306,7 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="overflow-x-hidden">
       {/* TODO: Refactor to use global overlay provider for confirm dialog */}
       {confirmDeleteOpen && (
         <>

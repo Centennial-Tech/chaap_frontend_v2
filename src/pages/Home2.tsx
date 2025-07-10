@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import Header3 from "../components/Header3";
 import HeroSection from "../components/hero-section";
 import FeaturesSection from "../components/features-section";
 import AIAgentsSection from "../components/ai-agents-section";
@@ -23,8 +22,7 @@ export default function Home2() {
   }, []);
 
   return (
-    <div className="flex w-full h-full flex-col">
-      <Header3 />
+    <div className="flex w-full flex-col">
       {/* Hero Section - full width, full height */}
       <div className="w-full">
         <HeroSection />

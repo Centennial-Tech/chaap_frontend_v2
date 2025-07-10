@@ -220,7 +220,7 @@ const Home = () => {
         </div>
       </div>
       {/* Section 2 */}
-      <div className="w-full overflow-hidden">
+      <div id="features" className="w-full overflow-hidden scroll-m-[60px]">
         <div className="flex flex-col w-full max-w-7xl px-3 mx-auto py-6 md:py-20 gap-16">
           {/* Head */}
           <div className="flex flex-col gap-2">
@@ -274,7 +274,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div className="relative my-16 z-0">
+      <div id="why-chaap" className="relative my-16 z-0 scroll-m-[60px]">
         <div className="max-w-2xl mx-auto flex items-center justify-center flex-col gap-16 p-5 h-full">
           <div className="text-2xl md:text-4xl font-semibold">Why CHAAP?</div>
           <div

@@ -20,7 +20,7 @@ const mainNavItems = [
 const sectionItems = [
   {
     label: "Pre-Submission Strategy Agent",
-    path: "/pre-submission-strategy-agent",
+    path: "/agents/presubmission-strategy",
     icon: Bot,
   },
   {
@@ -30,17 +30,17 @@ const sectionItems = [
   },
   {
     label: "FDA Meeting Prep Agent",
-    path: "/fda-meeting-prep-agent",
+    path: "/agents/fda-meeting-prep",
     icon: Zap,
   },
   {
     label: "Regulatory Knowledge Agent",
-    path: "/agents/regulatory",
+    path: "/agents/regulatory-knowledge",
     icon: Brain,
   },
   {
     label: "Post Market Surveillance Agent",
-    path: "/post-market-surveillance-agent",
+    path: "/agents/post-market-surveillance",
     icon: Shield,
   },
 ];
@@ -88,14 +88,14 @@ export default function Sidebar() {
     <aside
       className={`${
         shouldShowFull ? "w-72" : "w-16"
-      } bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out fixed overflow-hidden h-screen left-0 top-0 z-40`}
+      } bg-white border-r border-gray-300 flex-shrink-0 transition-all duration-500 ease-in-out fixed overflow-hidden h-[calc(100vh-80px)] left-0 top-[80px] z-40`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Toggle Button */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className={`absolute top-[88px] right-2 p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-300 ease-in-out z-10 ${
+        className={`absolute top-[8px] right-2 p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-300 ease-in-out z-10 ${
           shouldShowFull
             ? "opacity-100 scale-100"
             : "opacity-0 scale-95 pointer-events-none"
@@ -112,7 +112,7 @@ export default function Sidebar() {
         )}
       </button>
 
-      <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
+      <div className="p-3 pt-16 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
         <div className="space-y-1">
           {mainNavItems.map((item) => (
             <Link

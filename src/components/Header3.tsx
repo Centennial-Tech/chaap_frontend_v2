@@ -22,7 +22,7 @@ export default function Header3() {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0" style={{ zIndex: Z_INDEX.HEADER }}>
+    <nav className="bg-white shadow-sm border-b border-slate-200 fixed top-0 left-0 right-0" style={{ zIndex: Z_INDEX.HEADER }}>
       <div className="w-full">
         <div className="flex justify-between items-center h-20">
           <Link to="/" className="w-[200px] flex pl-2">
