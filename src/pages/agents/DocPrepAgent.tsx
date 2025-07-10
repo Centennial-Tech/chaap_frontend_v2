@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
+import { Card, CardContent } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
 import { XCircle, Download } from "lucide-react";
-import Modal from "../components/ui/Modal";
-import api from "../api";
-import { useAuth } from "../provider/authProvider";
-import { extractText } from "../utils";
+import Modal from "../../components/ui/Modal";
+import api from "../../api";
+import { useAuth } from "../../provider/authProvider";
+import { extractText } from "../../utils";
 import jsPDF from "jspdf";
-import AnimatedBackground from "../components/AnimatedBackground";
-import { useOverlay } from "../provider/overleyProvider";
+import AnimatedBackground from "../../components/AnimatedBackground";
+import { useOverlay } from "../../provider/overleyProvider";
 
 const attachmentTypes = [
   { id: "device-description", label: "Device Description" },
