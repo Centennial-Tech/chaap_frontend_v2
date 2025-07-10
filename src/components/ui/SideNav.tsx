@@ -10,38 +10,51 @@ import {
   Shield,
   SquarePen,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const mainNavItems = [
-  { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { path: "/documents", label: "Document Manager", icon: FolderOpen },
-  { path: "/form-editor", label: "Form Editor", icon: SquarePen},
+interface NavItem {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+  enabled: boolean;
+}
+
+const mainNavItems: NavItem[] = [
+  { path: "/dashboard", label: "Dashboard", icon: BarChart3, enabled: true },
+  { path: "/documents", label: "Document Manager", icon: FolderOpen, enabled: false },
+  { path: "/form-editor", label: "Form Editor", icon: SquarePen, enabled: false },
 ];
 
-const sectionItems = [
+const sectionItems: NavItem[] = [
   {
     label: "Pre-Submission Strategy Agent",
     path: "/pre-submission-strategy-agent",
     icon: Bot,
+    enabled: false,
   },
   {
     label: "Document Prep Agent",
     path: "/agents/document-preparation",
     icon: Cpu,
+    enabled: true,
   },
   {
     label: "FDA Meeting Prep Agent",
     path: "/fda-meeting-prep-agent",
     icon: Zap,
+    enabled: false,
   },
   {
     label: "Regulatory Knowledge Agent",
     path: "/agents/regulatory",
     icon: Brain,
+    enabled: true,
   },
   {
     label: "Post Market Surveillance Agent",
     path: "/post-market-surveillance-agent",
     icon: Shield,
+    enabled: false,
   },
 ];
 
@@ -84,6 +97,65 @@ export default function Sidebar() {
     };
   }, [shouldShowFull]);
 
+  const renderNavItem = (item: NavItem) => {
+    if (!item.enabled) {
+      return (
+        <div
+          key={item.path}
+          className="flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-400 cursor-not-allowed"
+          title="Coming Soon"
+        >
+          <span className="p-1.5">
+            <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+          </span>
+          <span
+            className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+              shouldShowFull
+                ? "opacity-100 translate-x-0 max-w-xs"
+                : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+            }`}
+          >
+            {item.label}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={
+          location.pathname === item.path && !shouldShowFull
+            ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+            : location.pathname === item.path
+            ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+            : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
+        }
+        title={!shouldShowFull ? item.label : undefined}
+      >
+        <span
+          className={
+            location.pathname === item.path && !shouldShowFull
+              ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+              : "p-1.5"
+          }
+        >
+          <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+        </span>
+        <span
+          className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+            shouldShowFull
+              ? "opacity-100 translate-x-0 max-w-xs"
+              : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+          }`}
+        >
+          {item.label}
+        </span>
+      </Link>
+    );
+  };
+
   return (
     <aside
       className={`${
@@ -102,10 +174,8 @@ export default function Sidebar() {
         }`}
       >
         {isMinimized ? (
-          // Open dot
           <div className="w-4 h-4 rounded-full border-2 border-current transition-all duration-200 ease-in-out"></div>
         ) : (
-          // Closed dot
           <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center transition-all duration-200 ease-in-out">
             <div className="w-2 h-2 rounded-full bg-current"></div>
           </div>
@@ -114,39 +184,7 @@ export default function Sidebar() {
 
       <div className="p-3 pt-32 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
         <div className="space-y-1">
-          {mainNavItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={
-                location.pathname === item.path && !shouldShowFull
-                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
-                  : location.pathname === item.path
-                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
-                  : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
-              }
-              title={!shouldShowFull ? item.label : undefined}
-            >
-              <span
-                className={
-                  location.pathname === item.path && !shouldShowFull
-                    ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
-                    : "p-1.5"
-                }
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
-              </span>
-              <span
-                className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                  shouldShowFull
-                    ? "opacity-100 translate-x-0 max-w-xs"
-                    : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
-                }`}
-              >
-                {item.label}
-              </span>
-            </Link>
-          ))}
+          {mainNavItems.map(renderNavItem)}
         </div>
 
         {/* Agent Hub Sections */}
@@ -161,43 +199,7 @@ export default function Sidebar() {
             Agent Hub
           </h3>
           <div className="space-y-1 text-sm">
-            {sectionItems.map((section) => {
-              const isActive = location.pathname === section.path; // Updated active check
-
-              return (
-                <Link
-                  key={section.label}
-                  to={section.path} // Direct path instead of query parameter
-                  className={
-                    isActive && !shouldShowFull
-                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
-                      : isActive
-                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
-                      : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
-                  }
-                  title={!shouldShowFull ? section.label : undefined}
-                >
-                  <span
-                    className={
-                      isActive && !shouldShowFull
-                        ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
-                        : "p-1.5"
-                    }
-                  >
-                    <section.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
-                  </span>
-                  <span
-                    className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                      shouldShowFull
-                        ? "opacity-100 translate-x-0 max-w-xs"
-                        : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                </Link>
-              );
-            })}
+            {sectionItems.map(renderNavItem)}
           </div>
         </div>
       </div>
