@@ -7,7 +7,7 @@ import { useAuth } from "../provider/authProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import NoAccess from "../pages/NoAccess";
 import Home from "../pages/Home2";
-import PreSubmissionAgent from "../pages/agents/Pre-SubmissionAgent";
+import PreSubmissionStrategyAgent from "../pages/agents/PreSubmissionStrategyAgent";
 import Login from "../pages/Login";
 import KnowledgeAgent from "../pages/agents/KnowledgeAgent";
 import Logout from "../pages/Logout";
@@ -55,7 +55,7 @@ const Routes = () => {
               children: [
                 {
                   path: "pre-submission-strategy",
-                  element: <PreSubmissionAgent />,
+                  element: <PreSubmissionStrategyAgent />,
                 },
                 {
                   path: "regulatory-knowledge",

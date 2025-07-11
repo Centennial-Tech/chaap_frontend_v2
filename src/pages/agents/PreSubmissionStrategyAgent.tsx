@@ -1,8 +1,14 @@
 import { CheckCircle, Lightbulb } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import { PathwayRecommendation } from "../../components/PathwayRecommendation";
+import { PredicateMatching } from "../../components/PredicateMatching";
+import { TestingRoadmap } from "../../components/TestingRoadmap";
+import { TimelineGenerator } from "../../components/TimelineGenerator";
+import { SubmissionChecklist } from "../../components/SubmissionChecklist";
+import { ReviewerSimulation } from "../../components/ReviewerSimulation";
+import { AiInsights } from "../../components/AiInsights";
 
-const PreSubmissionAgent = () => {
+const PreSubmissionStrategyAgent = () => {
   return (
     <div className="min-h-screen">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -28,6 +34,22 @@ const PreSubmissionAgent = () => {
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">Testing Roadmap</span>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                    <span className="text-sm">Project Timeline</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                    <span className="text-sm">Submission Checklist</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                    <span className="text-sm">Reviewer Simulation</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                    <span className="text-sm">AI Strategic Insights</span>
+                  </div>
                 </div>
               </div>
               <div className="hidden lg:flex justify-center items-center">
@@ -38,9 +60,15 @@ const PreSubmissionAgent = () => {
         </Card>
 
         <PathwayRecommendation submissionId={1} />
+        <PredicateMatching submissionId={1} />
+        <TestingRoadmap submissionId={1} />
+        <TimelineGenerator submissionId={1} />
+        <SubmissionChecklist submissionId={1} />
+        <ReviewerSimulation submissionId={1} />
+        <AiInsights submissionId={1} />
       </main>
     </div>
   );
 };
 
-export default PreSubmissionAgent; 
+export default PreSubmissionStrategyAgent; 

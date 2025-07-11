@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "./ui/Button";
-import Progress from "./ui/Progress";
+import { Progress } from "./ui/Progress";
 import { Edit, Download, Trash2 } from "lucide-react";
 import type { Submission } from "../helpers/submissionApiHelper";
 
