@@ -1,7 +1,7 @@
 import ComingSoonSection from "../components/ComingSoonSection";
 
 const DocumentManager = () => {
-  return <ComingSoonSection agentName="Document Manager" />;
+  return <ComingSoonSection pageName="Document Manager" />;
 };
 
 export default DocumentManager; 

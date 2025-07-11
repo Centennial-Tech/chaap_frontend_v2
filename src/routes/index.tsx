@@ -2,6 +2,7 @@ import {
   RouterProvider,
   createBrowserRouter,
   type RouteObject,
+  Navigate,
 } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -19,23 +20,28 @@ import DocumentManager from "../pages/DocumentManager";
 import FormEditor from "../pages/FormEditor";
 import FdaMeetingPrepAgent from "../pages/agents/FdaMeetingPrepAgent";
 import PostMarketSurveillanceAgent from "../pages/agents/PostMarketSurveillanceAgent";
+import Signup from "../pages/Signup";
+
+// Wrapper for routes that should redirect to dashboard if user is logged in
+const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return null; // or a loading spinner
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const Routes = () => {
   const { user } = useAuth();
 
   // Public routes accessible to all
-  const routesForPublic: RouteObject[] = [
-    {
-      element: <Layout />,
-      children: [
-        { path: "/", element: <Home /> },
-      ],
-    },
-    {
-      path: "*",
-      element: <NoAccess />,
-    },
-  ];
+  const routesForPublic: RouteObject[] = [];
 
   // Routes for logged-in users
   const routesForAuthenticatedOnly: RouteObject[] = [
@@ -81,16 +87,39 @@ const Routes = () => {
     },
   ];
 
-  // Routes for not-logged-in users
-  const routesForNotAuthenticatedOnly: RouteObject[] = [
-    { path: "login", element: <Login /> },
+  // Routes that should redirect to dashboard if user is logged in
+  const publicOnlyRoutes: RouteObject[] = [
+    {
+      element: <Layout />,
+      children: [
+        { 
+          path: "/", 
+          element: <PublicOnlyRoute><Home /></PublicOnlyRoute>
+        },
+        { 
+          path: "login", 
+          element: <PublicOnlyRoute><Login /></PublicOnlyRoute>
+        },
+        { 
+          path: "signup", 
+          element: <PublicOnlyRoute><Signup /></PublicOnlyRoute>
+        },
+      ],
+    },
   ];
 
-  // Merge routes based on auth status
+  // Catch-all route for 404s
+  const catchAllRoute: RouteObject = {
+    path: "*",
+    element: <NoAccess />,
+  };
+
+  // Merge routes
   const router = createBrowserRouter([
     ...routesForPublic,
-    ...(!user ? routesForNotAuthenticatedOnly : []),
+    ...publicOnlyRoutes,
     ...routesForAuthenticatedOnly,
+    catchAllRoute,
   ]);
 
   return <RouterProvider router={router} />;

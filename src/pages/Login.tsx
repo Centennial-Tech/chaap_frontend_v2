@@ -6,18 +6,11 @@ import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
-  const { login, user, isLoading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Auto-redirect if already logged in
-  useEffect(() => {
-    if (!isLoading && user) {
-      navigate("/dashboard");
-    }
-  }, [user, isLoading]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,16 +18,15 @@ const Login = () => {
     setIsSubmitting(true);
 
     const form = new FormData(e.currentTarget);
-    const email = form.get("email")?.toString() ?? "";
+    const identifier = form.get("identifier")?.toString() ?? "";
     const password = form.get("password")?.toString() ?? "";
 
     try {
-      await login({ username: email, password });
+      await login({username: identifier, password: password});
       navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid credentials or server error.");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -57,19 +49,19 @@ const Login = () => {
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>
             <label
-              htmlFor="email"
+              htmlFor="identifier"
               className="block text-sm/6 font-medium text-gray-600"
             >
-              Email address
+              Username or Email
             </label>
             <div className="mt-2">
               <input
                 type="text"
-                name="email"
-                id="email"
+                name="identifier"
+                id="identifier"
                 required
                 autoFocus
-                autoComplete="username"
+                autoComplete="identifier"
                 className="block w-full rounded-md border bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-gray-500 sm:text-sm/6"
               />
             </div>
@@ -124,12 +116,12 @@ const Login = () => {
 
         <p className="mt-10 text-center text-sm/6 text-gray-500">
           Not a member?{" "}
-          <a
-            href="#"
+          <Link
+            to="/signup"
             className="font-semibold text-gray-600 hover:text-gray-700 transition-colors duration-200"
           >
-            Start a 14 day free trial
-          </a>
+            Sign up with a 14 day free trial
+          </Link>
         </p>
       </div>
     </div>

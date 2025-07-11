@@ -1,48 +1,56 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { Button } from "./ui/Button";
 
 interface ComingSoonSectionProps {
-  agentName: string;
+  pageName: string;
 }
 
-const ComingSoonSection = ({ agentName }: ComingSoonSectionProps) => {
+const ComingSoonSection = ({ pageName }: ComingSoonSectionProps) => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {agentName}
-          </h1>
-          <div className="w-20 h-1 bg-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-            Coming Soon
-          </h2>
-        </div>
-        
-        <p className="text-xl text-gray-600 mb-8">
-          We're working hard to bring you this exciting new feature. Stay tuned for updates!
-        </p>
-        
-        <div className="space-y-6">
-          <p className="text-gray-500">
-            In the meantime, explore our other available features
-          </p>
-          <div className="flex justify-center space-x-4">
-            <Link
-              to="/"
-              className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            >
-              Return Home
-            </Link>
-            <Link
-              to="/agents/presubmission-strategy"
-              className="px-6 py-3 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200"
-            >
-              Try Pre-submission Strategy
-            </Link>
+    <section className="relative w-full overflow-hidden min-h-[calc(100vh-5rem)]">
+      <motion.div 
+        className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]"
+        initial={{ y: 40 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-block text-purple-500 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-purple-500">
+            ✨ Coming Soon
           </div>
+          
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-400 leading-tight mb-6 text-[#0b0080]">
+            {pageName}
+          </h1>
+          
+          <div className="w-20 h-1 bg-purple-500 mx-auto mb-8"></div>
+          
+          <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+            We're working hard to bring you this exciting new feature. Our team is dedicated to creating innovative solutions that will transform your regulatory compliance experience.
+          </p>
+          
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <Button
+              asChild
+              className="bg-purple-500 hover:bg-purple-600 transform hover:scale-105 shadow-lg"
+              size="lg"
+            >
+              <Link to="/">
+                Return Home
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </section>
   );
 };
 

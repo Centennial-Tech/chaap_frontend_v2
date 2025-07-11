@@ -48,41 +48,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  
-
-  
     // Check session on app load
     useEffect(() => {
-      // // TEMPORARY: Dummy user for development
-      // const dummyUser: User = {
-      //   _attachments: "",
-      //   _etag: "",
-      //   _rid: "",
-      //   _self: "",
-      //   _ts: Date.now(),
-      //   active: 1,
-      //   created_at: new Date().toISOString(),
-      //   date_of_birth: null,
-      //   email: "dummy@example.com",
-      //   first_name: "John",
-      //   id: "dummy-id-123",
-      //   last_login: new Date().toISOString(),
-      //   last_name: "Doe",
-      //   organization_Id: null,
-      //   organization_name: null,
-      //   phone_number: null,
-      //   updated_at: null,
-      //   user_id: 123,
-      //   username: "johndoe"
-      // };
-      
-      // Simulate API delay
-      // setTimeout(() => {
-      //   setUser(dummyUser);
-      //   setIsLoading(false);
-      // }, 500);
-      
-      //ORIGINAL CODE (commented out):
+
+      //ORIGINAL CODE:
       api
         .get("/auth/me")
         .then((res) => setUser(res.data))
