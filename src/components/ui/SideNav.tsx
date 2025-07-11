@@ -13,14 +13,14 @@ import {
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { path: "/documents", label: "Document Manager", icon: FolderOpen },
+  { path: "/document-manager", label: "Document Manager", icon: FolderOpen },
   { path: "/form-editor", label: "Form Editor", icon: SquarePen},
 ];
 
 const sectionItems = [
   {
     label: "Pre-Submission Strategy Agent",
-    path: "/agents/presubmission-strategy",
+    path: "/agents/pre-submission-strategy",
     icon: Bot,
   },
   {

@@ -106,6 +106,7 @@ const Dashboard = () => {
   const [questionAnswers, setQuestionAnswers] = React.useState<{
     [q: string]: string;
   }>({});
+
   // Add ref to track latest questionAnswers for async operations
   const questionAnswersRef = useRef<{ [q: string]: string }>({});
   // Add loading state for API call
@@ -228,14 +229,15 @@ const Dashboard = () => {
       try {
         const newSubmission: Partial<Submission> = {
           name: formData.name,
-          type: formData.type,
+          //type: formData.type,
           submissionType: formData.submissionType,
           end_time: formData.end_time,
           productDescription: formData.productDescription,
-          status: "draft",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          questionAnswers: questionAnswersRef.current,
+          // status: "draft", -- this is set by the backend
+          // created_at: new Date().toISOString(),
+          // updated_at: new Date().toISOString(),
+          
+          //questionAnswers: questionAnswersRef.current,
         };
 
         await createSubmission(newSubmission);
