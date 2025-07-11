@@ -11,6 +11,10 @@ import {
   SquarePen,
 } from "lucide-react";
 
+interface SidebarProps {
+  onExpandChange?: (expanded: boolean) => void;
+}
+
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { path: "/document-manager", label: "Document Manager", icon: FolderOpen },
@@ -45,44 +49,16 @@ const sectionItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onExpandChange }: SidebarProps) {
   const location = useLocation();
   const [isMinimized, setIsMinimized] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
   const shouldShowFull = !isMinimized || isHovered;
 
-  // Dispatch custom event when sidebar state changes
   useEffect(() => {
-    const event = new CustomEvent('sidebarToggle', {
-      detail: { expanded: shouldShowFull }
-    });
-    window.dispatchEvent(event);
-  }, [shouldShowFull]);
-
-  // Adjust main content margin instead of body margin
-  useEffect(() => {
-    const mainContent =
-      document.querySelector("[data-main-content]") ||
-      document.querySelector("main");
-    if (mainContent) {
-      const marginLeft = shouldShowFull ? "16rem" : "4rem";
-      (mainContent as HTMLElement).style.marginLeft = marginLeft;
-      (mainContent as HTMLElement).style.transition =
-        "margin-left 410ms ease-in-out";
-    }
-
-    // Cleanup function
-    return () => {
-      const mainContent =
-        document.querySelector("[data-main-content]") ||
-        document.querySelector("main");
-      if (mainContent) {
-        (mainContent as HTMLElement).style.marginLeft = "";
-        (mainContent as HTMLElement).style.transition = "";
-      }
-    };
-  }, [shouldShowFull]);
+    onExpandChange?.(shouldShowFull);
+  }, [shouldShowFull, onExpandChange]);
 
   return (
     <aside
@@ -102,10 +78,8 @@ export default function Sidebar() {
         }`}
       >
         {isMinimized ? (
-          // Open dot
           <div className="w-4 h-4 rounded-full border-2 border-current transition-all duration-200 ease-in-out"></div>
         ) : (
-          // Closed dot
           <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center transition-all duration-200 ease-in-out">
             <div className="w-2 h-2 rounded-full bg-current"></div>
           </div>

@@ -186,7 +186,6 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: Resp
 const KnowledgeAgent = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [request, setRequest] = useState<string>("");
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
   const [isMaximized, setIsMaximized] = useState<boolean>(true);
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
@@ -298,7 +297,7 @@ const KnowledgeAgent = () => {
   // Listen for sidebar toggle event
   useEffect(() => {
     const handleSidebarToggle = (event: CustomEvent) => {
-      setIsSidebarExpanded(event.detail.expanded);
+      setIsOpen(event.detail.expanded);
     };
 
     window.addEventListener('sidebarToggle' as any, handleSidebarToggle);
@@ -504,39 +503,8 @@ const KnowledgeAgent = () => {
   };
 
   return (
-    <div 
-      className={`
-        fixed 
-        top-[60px] 
-        ${isSidebarExpanded ? 'left-[17rem]' : 'left-[4rem]'}
-        right-0
-        bottom-0
-        flex 
-        justify-center 
-        items-center
-        text-lg 
-        ${isMaximized ? 'p-6' : 'p-0'}
-        transition-[left,padding]
-        duration-500
-        ease-in-out
-        min-w-[calc(100vw-17rem)]
-      `}
-    >
-      {/* <AnimatedBackground /> */}
-      <div 
-        style={{
-          width: isMaximized ? '100%' : '1000px',
-          height: isMaximized ? '100%' : '500px',
-          maxWidth: isMaximized ? '1536px' : '1000px',
-        }}
-        className={`
-          transition-[width,height,max-width]
-          duration-500
-          ease-in-out
-          will-change-[width,height,max-width]
-          min-w-[calc(100vw-20rem)]
-        `}
-      >
+    <div className={`flex flex-col h-[calc(100vh-5rem)] w-full ${isMaximized ? 'p-6' : 'p-0'} transition-all duration-500 ease-in-out`}>
+      <div className="relative flex flex-col flex-grow w-full h-full bg-white rounded-lg shadow-lg overflow-hidden">
         <div
           style={{
             background: "white",

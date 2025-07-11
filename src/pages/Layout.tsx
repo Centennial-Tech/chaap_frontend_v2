@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Z_INDEX } from "../constants/zIndex";
 import { useAuth } from "../provider/authProvider";
@@ -12,6 +12,7 @@ const Layout = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => {
     if (user && location.pathname === "/") {
@@ -25,9 +26,14 @@ const Layout = () => {
       <div style={{ zIndex: Z_INDEX.HEADER }} className="relative">
         {!user ? <Header3 /> : <Navbar />}
       </div>
-      <main className="flex flex-1">
-        {user && <Sidebar />}
-        <div className={`flex flex-col flex-1 ${user ? 'pt-20 px-4 md:px-8' : 'pt-20'}`}>
+      <main className="flex flex-1 relative">
+        {user && <Sidebar onExpandChange={setIsSidebarExpanded} />}
+        <div 
+          data-main-content 
+          className={`flex flex-col flex-1 transition-all duration-500 ease-in-out ${
+            user ? `pt-20 px-4 md:px-8 ${isSidebarExpanded ? 'ml-72' : 'ml-16'}` : 'pt-20'
+          }`}
+        >
           <Outlet />
         </div>
       </main>
