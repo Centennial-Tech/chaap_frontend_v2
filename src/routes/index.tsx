@@ -38,7 +38,6 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Routes = () => {
-  const { user } = useAuth();
 
   // Public routes accessible to all
   const routesForPublic: RouteObject[] = [];
