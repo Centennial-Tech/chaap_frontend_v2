@@ -54,7 +54,7 @@ const Routes = () => {
               path: "agents",
               children: [
                 {
-                  path: "presubmission-strategy",
+                  path: "pre-submission-strategy",
                   element: <PreSubmissionAgent />,
                 },
                 {
