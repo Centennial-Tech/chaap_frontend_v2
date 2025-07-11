@@ -1,3 +1,15 @@
+interface InputProps {
+  label?: string;
+  type?: string;
+  name?: string;
+  id?: string;
+  placeholder?: string;
+  required?: boolean;
+  textarea?: boolean;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
 const Input = ({
   label = "",
   type = "text",
@@ -6,8 +18,9 @@ const Input = ({
   placeholder = "",
   required = false,
   textarea = false,
+  value = "",
   onChange = () => {},
-}) => {
+}: InputProps) => {
   return (
     <div>
       <label
@@ -22,6 +35,7 @@ const Input = ({
           rows={4}
           name={name}
           id={id}
+          value={value}
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           placeholder={placeholder}
           required={required}
@@ -32,6 +46,7 @@ const Input = ({
           type={type}
           name={name}
           id={id}
+          value={value}
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           placeholder={placeholder}
           required={required}
