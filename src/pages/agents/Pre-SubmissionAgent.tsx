@@ -32,43 +32,61 @@ const PreSubmissionStrategyAgent = () => {
   const [isProjectTimelineLoading, setIsProjectTimelineLoading] =
     useState(false);
 
-  const callApi = async (type: string) => {
+  const [pathwayRecommendation, setPathwayRecommendation] = useState({});
+  const [isPathwayLoading, setIsPathwayLoading] = useState(false);
+
+  const callApi = async (type: string, formData: any) => {
+    const {
+      productType,
+      riskClassification,
+      intendedUse,
+      technologicalCharacteristics,
+      predicateDevice,
+    } = formData;
+
     const response = await api.post(`/agent/pre_submission?type=${type}`, {
-      productType: "Wireless Continuous Glucose Monitoring System",
-      riskClassification: "Class II",
-      intendedUse:
-        "The Wireless Continuous Glucose Monitoring System is intended for use by individuals with diabetes mellitus for continuous, real-time measurement of interstitial fluid glucose levels in order to help manage insulin therapy. Data are transmitted wirelessly to a compatible mobile application for trend analysis and alerting of hypo- or hyperglycemic excursions.",
-      technologicalCharacteristics:
-        "Subcutaneous, disposable enzyme-based electrochemical sensor using a platinum electrode and glucose oxidase chemistry.",
+      productType: productType,
+      riskClassification: riskClassification,
+      intendedUse: intendedUse,
+      technologicalCharacteristics: technologicalCharacteristics,
+      predicateDevice: predicateDevice,
     });
     return response.data.messages[0];
   };
 
-  const handleTestingRoadmap = async () => {
+  const handleTestingRoadmap = async (formData: any) => {
     setIsTestingRoadmapLoading(true);
-    const data = await callApi("TESTING_ROADMAP");
+    const data = await callApi("TESTING_ROADMAP", formData);
     setTestingRequirements(data?.testingRequirements || []);
     setIsTestingRoadmapLoading(false);
   };
-  const handleSubmissionChecklist = async () => {
+  const handleSubmissionChecklist = async (formData: any) => {
     setIsSubmissionChecklistLoading(true);
-    const data = await callApi("SUBMISSION_CHECKLIST");
+    const data = await callApi("SUBMISSION_CHECKLIST", formData);
     setSubmissionChecklistData(data?.documentChecklist || []);
     setIsSubmissionChecklistLoading(false);
   };
 
-  const handleProjectTimeline = async () => {
+  const handleProjectTimeline = async (formData: any) => {
     setIsProjectTimelineLoading(true);
-    const data = await callApi("PROJECT_TIMELINE");
+    const data = await callApi("PROJECT_TIMELINE", formData);
     setProjectTimelineItems(data?.timeline || []);
     setIsProjectTimelineLoading(false);
   };
 
-  const handleSubmit = async () => {
+  const handlePathwayRecommendation = async (formData: any) => {
+    setIsPathwayLoading(true);
+    const data = await callApi("PATHWAY_RECOMMENDATION", formData);
+    setPathwayRecommendation(data || []);
+    setIsPathwayLoading(false);
+  };
+
+  const handleSubmit = async (formData: any) => {
     await Promise.allSettled([
-      handleTestingRoadmap(),
-      handleSubmissionChecklist(),
-      handleProjectTimeline(),
+      handleTestingRoadmap(formData),
+      handleSubmissionChecklist(formData),
+      handleProjectTimeline(formData),
+      handlePathwayRecommendation(formData),
     ]);
   };
   return (
@@ -163,7 +181,11 @@ const PreSubmissionStrategyAgent = () => {
           </CardContent>
         </Card>
 
-        <PathwayRecommendation callback={handleSubmit} />
+        <PathwayRecommendation
+          callback={handleSubmit}
+          recommendation={pathwayRecommendation}
+          isLoading={isPathwayLoading}
+        />
         <PredicateMatching submissionId={1} />
         <TestingRoadmap
           testingRequirements={testingRequirements}

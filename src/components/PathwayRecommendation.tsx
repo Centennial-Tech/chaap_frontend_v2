@@ -3,19 +3,7 @@ import { Route, Sparkles, Info, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "./ui/Card";
 import { Button } from "./ui/Button";
 import Input from "./Input";
-import { Badge } from "./ui/Badge";
-
-interface PathwayRecommendationProps {
-  submissionId: number;
-}
-
-interface RecommendationResponse {
-  pathway: string;
-  confidence: number;
-  timeline: string;
-  explanation: string;
-}
-
+import { Badge } from "./ui";
 // Temporary mock data for demonstration
 const mockSubmission = {
   productType: "Medical Device",
@@ -25,7 +13,11 @@ const mockSubmission = {
   predicateDevice: "K123456",
 };
 
-export function PathwayRecommendation({ callback = () => {} }: any) {
+export function PathwayRecommendation({
+  recommendation,
+  isLoading = false,
+  callback = () => {},
+}: any) {
   const [formData, setFormData] = useState({
     productType: "",
     riskClassification: "",
@@ -34,10 +26,6 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
     predicateDevice: "",
   });
 
-  const [recommendation, setRecommendation] =
-    useState<RecommendationResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     // Simulating data fetch
     setFormData(mockSubmission);
@@ -45,20 +33,7 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    callback();
-    setIsLoading(true);
-
-    // Simulating API call
-    setTimeout(() => {
-      setRecommendation({
-        pathway: "510(k)",
-        confidence: 95,
-        timeline: "3-6 months",
-        explanation:
-          "Based on your inputs, a 510(k) submission is recommended due to the device classification and technological characteristics.",
-      });
-      setIsLoading(false);
-    }, 2000);
+    callback(formData);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -88,8 +63,7 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Input
-                label="Product Type *"
-                value={formData.productType}
+                label="Product Type"
                 onChange={
                   ((e: any) =>
                     handleInputChange("productType", e.target.value)) as any
@@ -100,7 +74,7 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
 
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Risk Classification *
+                  Risk Classification
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {["Class I", "Class II", "Class III"].map(
@@ -134,9 +108,9 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
 
               <Input
                 label="Predicate Device (Optional)"
-                value={formData.predicateDevice}
-                onChange={(e) =>
-                  handleInputChange("predicateDevice", e.target.value)
+                onChange={
+                  ((e: any) =>
+                    handleInputChange("predicateDevice", e.target.value)) as any
                 }
                 placeholder="Enter K-number or device name"
               />
@@ -144,10 +118,11 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
 
             <div className="space-y-4">
               <Input
-                label="Intended Use *"
-                value={formData.intendedUse}
-                onChange={(e) =>
-                  handleInputChange("intendedUse", e.target.value)
+                label="Intended Use"
+                // value={formData.intendedUse}
+                onChange={
+                  ((e: any) =>
+                    handleInputChange("intendedUse", e.target.value)) as any
                 }
                 placeholder="Describe the intended use of your device..."
                 textarea
@@ -156,12 +131,13 @@ export function PathwayRecommendation({ callback = () => {} }: any) {
 
               <Input
                 label="Technological Characteristics *"
-                value={formData.technologicalCharacteristics}
-                onChange={(e) =>
-                  handleInputChange(
-                    "technologicalCharacteristics",
-                    e.target.value
-                  )
+                // value={formData.technologicalCharacteristics as any}
+                onChange={
+                  ((e: any) =>
+                    handleInputChange(
+                      "technologicalCharacteristics",
+                      e.target.value
+                    )) as any
                 }
                 placeholder="Describe key technological features..."
                 textarea
