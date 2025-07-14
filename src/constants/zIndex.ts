@@ -18,7 +18,7 @@ export const Z_INDEX = {
   DROPDOWN: 40,
   
   // Overlays and modals
-  OVERLAY: 200,
+  OVERLAY: 50,
   MODAL: 60,
   MODAL_STACK: 70, // For multiple modals
   

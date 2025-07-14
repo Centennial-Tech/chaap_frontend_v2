@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useOverlay } from "../provider/overleyProvider";
+import { Z_INDEX } from "../constants/zIndex";
 
 const Overlay: React.FC = () => {
   const { isVisible, hideOverlay } = useOverlay();
@@ -17,9 +18,9 @@ const Overlay: React.FC = () => {
   return (
     <div
       id="global_overlay"
+      style={{ zIndex: Z_INDEX.OVERLAY }}
       className="
           fixed inset-0
-          z-40
           bg-black/40
           flex items-center justify-center
         "

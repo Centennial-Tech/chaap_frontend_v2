@@ -34,47 +34,44 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       showOverlay();
-    } else {
-      hideOverlay();
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      hideOverlay();
+      if (isOpen) {
+        hideOverlay();
+      }
     };
   }, [isOpen, onClose, showOverlay, hideOverlay]);
 
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Modal Content */}
+    <div 
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ zIndex: Z_INDEX.MODAL }}
+    >
       <div 
-        className="fixed inset-0 flex items-center justify-center p-4"
-        style={{ zIndex: Z_INDEX.MODAL }}
+        className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div 
-          className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 text-xl"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          {/* Content */}
-          {children}
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {showCloseButton && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ×
+            </button>
+          )}
         </div>
+
+        {/* Content */}
+        {children}
       </div>
-    </>
+    </div>
   );
 };
 
