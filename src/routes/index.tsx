@@ -38,7 +38,6 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Routes = () => {
-
   // Public routes accessible to all
   const routesForPublic: RouteObject[] = [];
 
@@ -53,9 +52,13 @@ const Routes = () => {
             { path: "logout", element: <Logout /> },
             { path: "dashboard", element: <Dashboard /> },
             { path: "profile", element: <UserProfile /> },
+            
+            // Document management routes
             { path: "document-manager", element: <DocumentManager /> },
             { path: "form-editor", element: <FormEditor /> },
-            {
+            
+            // AI Agent routes
+            { 
               path: "agents",
               children: [
                 {
@@ -78,8 +81,8 @@ const Routes = () => {
                   path: "post-market-surveillance",
                   element: <PostMarketSurveillanceAgent />,
                 },
-              ],
-            },
+              ]
+            }
           ],
         },
       ],
