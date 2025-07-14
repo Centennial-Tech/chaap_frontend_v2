@@ -9,6 +9,7 @@ import { SubmissionChecklist } from "../../components/SubmissionChecklist";
 import { ReviewerSimulation } from "../../components/ReviewerSimulation";
 import { AiInsights } from "../../components/AiInsights";
 import { useState } from "react";
+import api from "../../api";
 
 const PreSubmissionStrategyAgent = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
@@ -19,6 +20,31 @@ const PreSubmissionStrategyAgent = () => {
     setShowExportOptions(false);
   };
 
+  const [isTestingRoadmapLoading, setIsTestingRoadmapLoading] = useState(false);
+
+  const [testingRequirements, setTestingRequirements] = useState([]);
+
+  const handleTestingRoadmap = async () => {
+    setIsTestingRoadmapLoading(true);
+    const response = await api.post(
+      "/agent/pre_submission?type=TESTING_ROADMAP",
+      {
+        productType: "Wireless Continuous Glucose Monitoring System",
+        riskClassification: "Class II",
+        intendedUse:
+          "The Wireless Continuous Glucose Monitoring System is intended for use by individuals with diabetes mellitus for continuous, real-time measurement of interstitial fluid glucose levels in order to help manage insulin therapy. Data are transmitted wirelessly to a compatible mobile application for trend analysis and alerting of hypo- or hyperglycemic excursions.",
+        technologicalCharacteristics:
+          "Subcutaneous, disposable enzyme-based electrochemical sensor using a platinum electrode and glucose oxidase chemistry.",
+      }
+    );
+
+    setTestingRequirements(response.data.messages[0]?.testingRequirements);
+    setIsTestingRoadmapLoading(false);
+  };
+
+  const handleSubmit = async () => {
+    await handleTestingRoadmap();
+  };
   return (
     <div className="min-h-screen">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -111,9 +137,13 @@ const PreSubmissionStrategyAgent = () => {
           </CardContent>
         </Card>
 
-        <PathwayRecommendation submissionId={1} />
+        <PathwayRecommendation callback={handleSubmit} />
         <PredicateMatching submissionId={1} />
-        <TestingRoadmap submissionId={1} />
+        <TestingRoadmap
+          testingRequirements={testingRequirements}
+          isLoading={isTestingRoadmapLoading}
+          setIsLoading={setIsTestingRoadmapLoading}
+        />
         <TimelineGenerator submissionId={1} />
         <SubmissionChecklist submissionId={1} />
         <ReviewerSimulation submissionId={1} />

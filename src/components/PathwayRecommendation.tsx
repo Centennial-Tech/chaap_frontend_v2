@@ -25,9 +25,7 @@ const mockSubmission = {
   predicateDevice: "K123456",
 };
 
-export function PathwayRecommendation({
-  submissionId,
-}: PathwayRecommendationProps) {
+export function PathwayRecommendation({ callback = () => {} }: any) {
   const [formData, setFormData] = useState({
     productType: "",
     riskClassification: "",
@@ -43,10 +41,11 @@ export function PathwayRecommendation({
   useEffect(() => {
     // Simulating data fetch
     setFormData(mockSubmission);
-  }, [submissionId]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    callback();
     setIsLoading(true);
 
     // Simulating API call

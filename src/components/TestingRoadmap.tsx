@@ -18,87 +18,15 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-interface TestingRoadmapProps {
-  submissionId: number;
-}
-
-interface TestingRequirement {
-  id: number;
-  testType: string;
-  standard: string;
-  priority: string;
-  duration: string;
-  status: string;
-  notes: string;
-}
-
-// Mock data
-const mockTestingRequirements: TestingRequirement[] = [
-  {
-    id: 1,
-    testType: "Biocompatibility",
-    standard: "ISO 10993-1",
-    priority: "Critical",
-    duration: "8-12 weeks",
-    status: "pending",
-    notes: "Required for skin contact devices",
-  },
-  {
-    id: 2,
-    testType: "Electrical Safety",
-    standard: "IEC 60601-1",
-    priority: "High",
-    duration: "4-6 weeks",
-    status: "pending",
-    notes: "Basic safety requirements",
-  },
-  {
-    id: 3,
-    testType: "EMC & Wireless",
-    standard: "IEC 60601-1-2",
-    priority: "Medium",
-    duration: "3-4 weeks",
-    status: "pending",
-    notes: "EMC compatibility testing",
-  },
-  {
-    id: 4,
-    testType: "Performance Testing",
-    standard: "Device Specific",
-    priority: "Critical",
-    duration: "6-8 weeks",
-    status: "pending",
-    notes: "Accuracy and reliability validation",
-  },
-  {
-    id: 5,
-    testType: "Cybersecurity",
-    standard: "FDA Guidance",
-    priority: "High",
-    duration: "4-5 weeks",
-    status: "pending",
-    notes: "Security assessment required",
-  },
-];
-
-export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
-  const [testingRequirements, setTestingRequirements] = useState<
-    TestingRequirement[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulating API call
-    setTimeout(() => {
-      setTestingRequirements(mockTestingRequirements);
-      setIsLoading(false);
-    }, 1000);
-  }, [submissionId]);
-
+export function TestingRoadmap({
+  testingRequirements,
+  isLoading = false,
+  setIsLoading = () => {},
+}: any) {
   const getTestIcon = (testType: string) => {
     if (!testType) return <FlaskConical className="h-4 w-4 text-gray-600" />;
 
-    switch (testType.toLowerCase()) {
+    switch (testType?.toLowerCase()) {
       case "biocompatibility":
         return <Shield className="h-4 w-4 text-red-600" />;
       case "electrical safety":
@@ -117,7 +45,7 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
   const getTestIconBg = (testType: string) => {
     if (!testType) return "bg-gray-100";
 
-    switch (testType.toLowerCase()) {
+    switch (testType?.toLowerCase()) {
       case "biocompatibility":
         return "bg-red-100";
       case "electrical safety":
@@ -134,26 +62,18 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "critical":
+    switch (priority?.toString()?.toLowerCase()) {
+      case "1":
         return "bg-red-100 text-red-800";
-      case "high":
+      case "2":
         return "bg-orange-100 text-orange-800";
-      case "medium":
+      case "3":
         return "bg-yellow-100 text-yellow-800";
-      case "low":
+      case "4":
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
-
-  const handleStatusChange = (testingId: number, newStatus: string) => {
-    setTestingRequirements((prev) =>
-      prev.map((req) =>
-        req.id === testingId ? { ...req, status: newStatus } : req
-      )
-    );
   };
 
   if (isLoading) {
@@ -176,11 +96,12 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
   }
 
   const criticalTests =
-    testingRequirements?.filter((req) => req.priority === "Critical") || [];
+    testingRequirements?.filter((req: any) => req.priority === "Critical") ||
+    [];
   const totalDuration =
-    testingRequirements?.reduce((acc, req) => {
+    testingRequirements?.reduce((acc: any, req: any) => {
       // Extract the first number from strings like "8-12 weeks"
-      const weeks = parseInt(req.duration.split("-")[0]) || 0;
+      const weeks = parseInt(req.duration?.split("-")[0]) || 0;
       return acc + weeks;
     }, 0) || 0;
 
@@ -230,7 +151,7 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {testingRequirements.map((requirement) => (
+                  {testingRequirements.map((requirement: any) => (
                     <TableRow key={requirement.id} className="hover:bg-gray-50">
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -239,7 +160,7 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
                               requirement.testType
                             )}`}
                           >
-                            {getTestIcon(requirement.testType)}
+                            {getTestIcon("")}
                           </div>
                           <div>
                             <div className="font-medium text-gray-900">
@@ -263,7 +184,7 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
                       <TableCell>
                         <div className="text-sm">
                           <div className="font-medium text-gray-900">
-                            {requirement.standard}
+                            {requirement.standardsOrGuideline}
                           </div>
                           <div className="text-gray-500">
                             {requirement.testType === "Biocompatibility" &&
@@ -287,15 +208,17 @@ export function TestingRoadmap({ submissionId }: TestingRoadmapProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-gray-900">
-                        {requirement.duration}
+                        {requirement.duration || "8-12 weeks"}
                       </TableCell>
                       <TableCell>
                         <select
                           value={requirement.status ?? "pending"}
-                          onChange={(e) =>
-                            handleStatusChange(requirement.id, e.target.value)
-                          }
+                          //   onChange={
+                          //     // (e) =>
+                          //     // handleStatusChange(requirement.id, e.target.value)
+                          //   }
                           className="text-sm border border-gray-300 rounded px-2 py-1"
+                          disabled
                         >
                           <option value="pending">Pending</option>
                           <option value="in_progress">In Progress</option>
