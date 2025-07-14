@@ -11,10 +11,6 @@ import {
   Circle,
 } from "lucide-react";
 
-interface TimelineGeneratorProps {
-  submissionId: number;
-}
-
 interface TimelineItem {
   id: number;
   phase: string;
@@ -56,22 +52,9 @@ const mockTimelineItems: TimelineItem[] = [
   },
 ];
 
-export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
-  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulating API call with mock data
-    const loadData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setTimelineItems(mockTimelineItems);
-      setIsLoading(false);
-    };
-    loadData();
-  }, [submissionId]);
-
+export function TimelineGenerator({ timelineItems, isLoading }: any) {
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return <CheckCircle className="h-4 w-4 text-white" />;
       case "in_progress":
@@ -84,7 +67,7 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "bg-teal-600";
       case "in_progress":
@@ -97,7 +80,7 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "✓ Completed";
       case "in_progress":
@@ -110,11 +93,11 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
   };
 
   const handleStatusChange = (timelineId: number, newStatus: string) => {
-    setTimelineItems((prev) =>
-      prev.map((item) =>
-        item.id === timelineId ? { ...item, status: newStatus } : item
-      )
-    );
+    // setTimelineItems((prev) =>
+    //   prev.map((item) =>
+    //     item.id === timelineId ? { ...item, status: newStatus } : item
+    //   )
+    // );
   };
 
   if (isLoading) {
@@ -143,7 +126,7 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
     );
   }
 
-  const totalDuration = timelineItems.reduce((acc, item) => {
+  const totalDuration = timelineItems.reduce((acc: any, item: any) => {
     const weeks = parseInt(item.duration) || 0;
     return acc + weeks;
   }, 0);
@@ -173,7 +156,7 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
               <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
 
               <div className="space-y-6">
-                {timelineItems.map((item) => (
+                {timelineItems.map((item: any) => (
                   <div
                     key={item.id}
                     className="relative flex items-start space-x-4"
@@ -191,11 +174,11 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
                           {item.phase}
                         </h4>
                         <span className="text-sm text-gray-500">
-                          {item.weekRange}
+                          {item.weekRange || item.duration}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        {item.description}
+                        {item.description || "No description available."}
                       </p>
                       <div className="flex items-center space-x-4 text-sm">
                         <Badge
@@ -210,7 +193,7 @@ export function TimelineGenerator({ submissionId }: TimelineGeneratorProps) {
                           {getStatusLabel(item.status)}
                         </Badge>
                         <span className="text-gray-500">
-                          Target: {item.targetDate}
+                          Target: {item.targetCompletionDate}
                         </span>
                         <select
                           value={item.status}

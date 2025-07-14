@@ -28,6 +28,10 @@ const PreSubmissionStrategyAgent = () => {
   const [isSubmissionChecklistLoading, setIsSubmissionChecklistLoading] =
     useState(false);
 
+  const [projectTimelineItems, setProjectTimelineItems] = useState([]);
+  const [isProjectTimelineLoading, setIsProjectTimelineLoading] =
+    useState(false);
+
   const callApi = async (type: string) => {
     const response = await api.post(`/agent/pre_submission?type=${type}`, {
       productType: "Wireless Continuous Glucose Monitoring System",
@@ -53,10 +57,18 @@ const PreSubmissionStrategyAgent = () => {
     setIsSubmissionChecklistLoading(false);
   };
 
+  const handleProjectTimeline = async () => {
+    setIsProjectTimelineLoading(true);
+    const data = await callApi("PROJECT_TIMELINE");
+    setProjectTimelineItems(data?.timeline || []);
+    setIsProjectTimelineLoading(false);
+  };
+
   const handleSubmit = async () => {
     await Promise.allSettled([
       handleTestingRoadmap(),
       handleSubmissionChecklist(),
+      handleProjectTimeline(),
     ]);
   };
   return (
@@ -157,7 +169,10 @@ const PreSubmissionStrategyAgent = () => {
           testingRequirements={testingRequirements}
           isLoading={isTestingRoadmapLoading}
         />
-        <TimelineGenerator submissionId={1} />
+        <TimelineGenerator
+          timelineItems={projectTimelineItems}
+          isLoading={isProjectTimelineLoading}
+        />
         <SubmissionChecklist
           checklistItems={SubmissionChecklistData}
           isLoading={isSubmissionChecklistLoading}
