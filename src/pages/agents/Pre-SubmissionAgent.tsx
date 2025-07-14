@@ -24,26 +24,40 @@ const PreSubmissionStrategyAgent = () => {
 
   const [testingRequirements, setTestingRequirements] = useState([]);
 
+  const [SubmissionChecklistData, setSubmissionChecklistData] = useState([]);
+  const [isSubmissionChecklistLoading, setIsSubmissionChecklistLoading] =
+    useState(false);
+
+  const callApi = async (type: string) => {
+    const response = await api.post(`/agent/pre_submission?type=${type}`, {
+      productType: "Wireless Continuous Glucose Monitoring System",
+      riskClassification: "Class II",
+      intendedUse:
+        "The Wireless Continuous Glucose Monitoring System is intended for use by individuals with diabetes mellitus for continuous, real-time measurement of interstitial fluid glucose levels in order to help manage insulin therapy. Data are transmitted wirelessly to a compatible mobile application for trend analysis and alerting of hypo- or hyperglycemic excursions.",
+      technologicalCharacteristics:
+        "Subcutaneous, disposable enzyme-based electrochemical sensor using a platinum electrode and glucose oxidase chemistry.",
+    });
+    return response.data.messages[0];
+  };
+
   const handleTestingRoadmap = async () => {
     setIsTestingRoadmapLoading(true);
-    const response = await api.post(
-      "/agent/pre_submission?type=TESTING_ROADMAP",
-      {
-        productType: "Wireless Continuous Glucose Monitoring System",
-        riskClassification: "Class II",
-        intendedUse:
-          "The Wireless Continuous Glucose Monitoring System is intended for use by individuals with diabetes mellitus for continuous, real-time measurement of interstitial fluid glucose levels in order to help manage insulin therapy. Data are transmitted wirelessly to a compatible mobile application for trend analysis and alerting of hypo- or hyperglycemic excursions.",
-        technologicalCharacteristics:
-          "Subcutaneous, disposable enzyme-based electrochemical sensor using a platinum electrode and glucose oxidase chemistry.",
-      }
-    );
-
-    setTestingRequirements(response.data.messages[0]?.testingRequirements);
+    const data = await callApi("TESTING_ROADMAP");
+    setTestingRequirements(data?.testingRequirements || []);
     setIsTestingRoadmapLoading(false);
+  };
+  const handleSubmissionChecklist = async () => {
+    setIsSubmissionChecklistLoading(true);
+    const data = await callApi("SUBMISSION_CHECKLIST");
+    setSubmissionChecklistData(data?.documentChecklist || []);
+    setIsSubmissionChecklistLoading(false);
   };
 
   const handleSubmit = async () => {
-    await handleTestingRoadmap();
+    await Promise.allSettled([
+      handleTestingRoadmap(),
+      handleSubmissionChecklist(),
+    ]);
   };
   return (
     <div className="min-h-screen">
@@ -142,10 +156,12 @@ const PreSubmissionStrategyAgent = () => {
         <TestingRoadmap
           testingRequirements={testingRequirements}
           isLoading={isTestingRoadmapLoading}
-          setIsLoading={setIsTestingRoadmapLoading}
         />
         <TimelineGenerator submissionId={1} />
-        <SubmissionChecklist submissionId={1} />
+        <SubmissionChecklist
+          checklistItems={SubmissionChecklistData}
+          isLoading={isSubmissionChecklistLoading}
+        />
         <ReviewerSimulation submissionId={1} />
         <AiInsights submissionId={1} />
       </main>

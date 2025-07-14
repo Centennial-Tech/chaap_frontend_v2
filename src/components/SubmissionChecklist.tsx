@@ -12,11 +12,6 @@ import {
   Info,
   ExternalLink,
 } from "lucide-react";
-// import type { ChecklistItem } from "../types/schema";
-
-interface SubmissionChecklistProps {
-  submissionId: number;
-}
 
 // Calculate progress based on completed items
 const calculateProgress = (items: any[]): number => {
@@ -53,23 +48,11 @@ const mockChecklistItems: any[] = [
 ];
 
 export function SubmissionChecklist({
-  submissionId,
-}: SubmissionChecklistProps) {
-  const [checklistItems, setChecklistItems] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulating API call with mock data
-    const loadData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setChecklistItems(mockChecklistItems);
-      setIsLoading(false);
-    };
-    loadData();
-  }, [submissionId]);
-
+  checklistItems,
+  isLoading = false,
+}: any) {
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return <CheckCircle2 className="h-5 w-5 text-teal-600" />;
       case "review_needed":
@@ -82,7 +65,7 @@ export function SubmissionChecklist({
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "COMPLETED";
       case "review_needed":
@@ -95,7 +78,7 @@ export function SubmissionChecklist({
   };
 
   const getStatusBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "bg-teal-100 text-teal-800";
       case "review_needed":
@@ -108,7 +91,7 @@ export function SubmissionChecklist({
   };
 
   const getCardBgColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "healthcare-checklist-completed";
       case "review_needed":
@@ -120,13 +103,13 @@ export function SubmissionChecklist({
     }
   };
 
-  const handleStatusChange = (itemId: number, newStatus: string) => {
-    setChecklistItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, status: newStatus } : item
-      )
-    );
-  };
+  //   const handleStatusChange = (itemId: number, newStatus: string) => {
+  //     setChecklistItems((prev) =>
+  //       prev.map((item) =>
+  //         item.id === itemId ? { ...item, status: newStatus } : item
+  //       )
+  //     );
+  //   };
 
   if (isLoading) {
     return (
@@ -185,7 +168,7 @@ export function SubmissionChecklist({
 
             {/* Checklist items */}
             <div className="space-y-4">
-              {checklistItems.map((item) => (
+              {checklistItems.map((item: any) => (
                 <div
                   key={item.id}
                   className={`flex items-start space-x-3 p-4 rounded-lg border ${getCardBgColor(
@@ -214,9 +197,9 @@ export function SubmissionChecklist({
                         </Badge>
                         <select
                           value={item.status}
-                          onChange={(e) =>
-                            handleStatusChange(item.id, e.target.value)
-                          }
+                          //   onChange={(e) =>
+                          //     handleStatusChange(item.id, e.target.value)
+                          //   }
                           className="text-xs border border-gray-300 rounded px-2 py-1"
                         >
                           <option value="todo">To Do</option>
@@ -278,29 +261,29 @@ export function SubmissionChecklist({
                   <AlertDescription className="text-blue-700">
                     {
                       checklistItems.filter(
-                        (item) => item.status === "completed"
+                        (item: any) => item.status === "completed"
                       ).length
                     }{" "}
                     of {checklistItems.length} sections completed.
                     {checklistItems.filter(
-                      (item) => item.status === "review_needed"
+                      (item: any) => item.status === "review_needed"
                     ).length > 0 && (
                       <>
                         {" "}
                         {
                           checklistItems.filter(
-                            (item) => item.status === "review_needed"
+                            (item: any) => item.status === "review_needed"
                           ).length
                         }{" "}
                         section
                         {checklistItems.filter(
-                          (item) => item.status === "review_needed"
+                          (item: any) => item.status === "review_needed"
                         ).length > 1
                           ? "s"
                           : ""}{" "}
                         need
                         {checklistItems.filter(
-                          (item) => item.status === "review_needed"
+                          (item: any) => item.status === "review_needed"
                         ).length === 1
                           ? "s"
                           : ""}{" "}

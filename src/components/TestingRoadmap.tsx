@@ -21,7 +21,6 @@ import {
 export function TestingRoadmap({
   testingRequirements,
   isLoading = false,
-  setIsLoading = () => {},
 }: any) {
   const getTestIcon = (testType: string) => {
     if (!testType) return <FlaskConical className="h-4 w-4 text-gray-600" />;
