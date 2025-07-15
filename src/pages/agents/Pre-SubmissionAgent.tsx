@@ -10,13 +10,18 @@ import { ReviewerSimulation } from "../../components/ReviewerSimulation";
 import { AiInsights } from "../../components/AiInsights";
 import { useState } from "react";
 import api from "../../api";
+import { usePDF } from "react-to-pdf";
 
 const PreSubmissionStrategyAgent = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const { toPDF, targetRef } = usePDF({ filename: "FDA_SUBMISSION_PLAN.pdf" });
 
   const handleExport = (format: string) => {
     // TODO: Implement export functionality
     console.log(`Exporting as ${format}`);
+    if (format === "pdf") {
+      toPDF();
+    }
     setShowExportOptions(false);
   };
 
@@ -91,7 +96,10 @@ const PreSubmissionStrategyAgent = () => {
   };
   return (
     <div className="min-h-screen">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main
+        ref={targetRef}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
+      >
         <div className="flex justify-end mb-6">
           <div className="relative">
             <Button
@@ -112,7 +120,7 @@ const PreSubmissionStrategyAgent = () => {
                   <Download className="h-4 w-4 text-[#9333EA]" />
                   <span>Export as PDF</span>
                 </button>
-                <button
+                {/* <button
                   onClick={() => handleExport("txt")}
                   className="w-full text-left px-4 py-2 hover:bg-purple-50 text-gray-700 text-sm flex items-center gap-3"
                 >
@@ -125,7 +133,7 @@ const PreSubmissionStrategyAgent = () => {
                 >
                   <Download className="h-4 w-4 text-[#9333EA]" />
                   <span>Export as DOCX</span>
-                </button>
+                </button> */}
               </div>
             )}
           </div>
