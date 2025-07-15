@@ -1,4 +1,3 @@
-import React from "react";
 import type { FormQuestion } from "../../types/form";
 
 interface DynamicFormFieldProps {

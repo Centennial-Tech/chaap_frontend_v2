@@ -3,8 +3,7 @@ import { FormSection } from "../components/ui/FormSection";
 import { FormField } from "../components/ui/FormField";
 import { DynamicFormField } from "../components/ui/DynamicFormField";
 import { Button } from "../components/ui/Button";
-import { useSubmission } from "../provider/submissionProvider";
-import type { FormTemplate, FormQuestion, FormData } from "../types/form";
+import type { FormTemplate, FormData } from "../types/form";
 
 // Mock form template data
 const mockFormTemplate: FormTemplate = {
@@ -13,30 +12,35 @@ const mockFormTemplate: FormTemplate = {
   sections: [
     {
       id: "basic-info",
+      form_id: "fda-ind-template",
       title: "Basic Information",
       description: "Enter the basic details about your IND application",
       order_by: 1
     },
     {
       id: "drug-details",
+      form_id: "fda-ind-template",
       title: "Drug Details",
       description: "Provide detailed information about your investigational drug",
       order_by: 2
     },
     {
       id: "clinical-protocol",
+      form_id: "fda-ind-template",
       title: "Clinical Protocol",
       description: "Clinical study design and protocol information",
       order_by: 3
     },
     {
       id: "manufacturing",
+      form_id: "fda-ind-template",
       title: "Manufacturing Information",
       description: "Drug manufacturing and quality control details",
       order_by: 4
     },
     {
       id: "safety-data",
+      form_id: "fda-ind-template",
       title: "Safety Data",
       description: "Preclinical safety and toxicology information",
       order_by: 5
@@ -46,6 +50,7 @@ const mockFormTemplate: FormTemplate = {
     // Section 1: Basic Information
     {
       id: "ind-title",
+      form_id: "fda-ind-template",
       section_id: "basic-info",
       label: "IND Application Title",
       type: "Text Box",
@@ -53,6 +58,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "sponsor-name",
+      form_id: "fda-ind-template",
       section_id: "basic-info",
       label: "Sponsor Name",
       type: "Text Box",
@@ -60,6 +66,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "ind-type",
+      form_id: "fda-ind-template",
       section_id: "basic-info",
       label: "IND Type",
       type: "Select",
@@ -68,6 +75,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "submission-date",
+      form_id: "fda-ind-template",
       section_id: "basic-info",
       label: "Target Submission Date",
       type: "Date",
@@ -75,6 +83,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "description",
+      form_id: "fda-ind-template",
       section_id: "basic-info",
       label: "Drug Description",
       type: "Textarea",
@@ -85,6 +94,7 @@ const mockFormTemplate: FormTemplate = {
     // Section 2: Drug Details
     {
       id: "drug-name",
+      form_id: "fda-ind-template",
       section_id: "drug-details",
       label: "Drug Name",
       type: "Text Box",
@@ -92,6 +102,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "chemical-name",
+      form_id: "fda-ind-template",
       section_id: "drug-details",
       label: "Chemical Name",
       type: "Text Box",
@@ -99,6 +110,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "drug-class",
+      form_id: "fda-ind-template",
       section_id: "drug-details",
       label: "Drug Classification",
       type: "Radio Btn",
@@ -107,6 +119,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "indication",
+      form_id: "fda-ind-template",
       section_id: "drug-details",
       label: "Proposed Indication",
       type: "Textarea",
@@ -114,6 +127,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "mechanism-action",
+      form_id: "fda-ind-template",
       section_id: "drug-details",
       label: "Mechanism of Action",
       type: "Textarea",
@@ -123,6 +137,7 @@ const mockFormTemplate: FormTemplate = {
     // Section 3: Clinical Protocol
     {
       id: "study-title",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Study Title",
       type: "Text Box",
@@ -130,6 +145,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "study-phase",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Study Phase",
       type: "Select",
@@ -138,6 +154,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "study-design",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Study Design",
       type: "Radio Btn",
@@ -146,6 +163,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "primary-endpoint",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Primary Endpoint",
       type: "Textarea",
@@ -153,6 +171,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "secondary-endpoints",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Secondary Endpoints",
       type: "Textarea",
@@ -160,6 +179,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "sample-size",
+      form_id: "fda-ind-template",
       section_id: "clinical-protocol",
       label: "Planned Sample Size",
       type: "Text Box",
@@ -169,6 +189,7 @@ const mockFormTemplate: FormTemplate = {
     // Section 4: Manufacturing
     {
       id: "manufacturing-site",
+      form_id: "fda-ind-template",
       section_id: "manufacturing",
       label: "Manufacturing Site",
       type: "Text Box",
@@ -176,6 +197,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "manufacturing-process",
+      form_id: "fda-ind-template",
       section_id: "manufacturing",
       label: "Manufacturing Process",
       type: "Textarea",
@@ -183,6 +205,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "quality-control",
+      form_id: "fda-ind-template",
       section_id: "manufacturing",
       label: "Quality Control Methods",
       type: "Textarea",
@@ -190,6 +213,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "stability-data",
+      form_id: "fda-ind-template",
       section_id: "manufacturing",
       label: "Stability Data Available",
       type: "Check Box",
@@ -198,6 +222,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "batch-size",
+      form_id: "fda-ind-template",
       section_id: "manufacturing",
       label: "Planned Batch Size",
       type: "Text Box",
@@ -207,6 +232,7 @@ const mockFormTemplate: FormTemplate = {
     // Section 5: Safety Data
     {
       id: "preclinical-studies",
+      form_id: "fda-ind-template",
       section_id: "safety-data",
       label: "Preclinical Studies Completed",
       type: "Check Box",
@@ -215,6 +241,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "safety-profile",
+      form_id: "fda-ind-template",
       section_id: "safety-data",
       label: "Safety Profile Summary",
       type: "Textarea",
@@ -222,6 +249,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "adverse-events",
+      form_id: "fda-ind-template",
       section_id: "safety-data",
       label: "Known Adverse Events",
       type: "Textarea",
@@ -229,6 +257,7 @@ const mockFormTemplate: FormTemplate = {
     },
     {
       id: "risk-assessment",
+      form_id: "fda-ind-template",
       section_id: "safety-data",
       label: "Risk Assessment",
       type: "Textarea",
@@ -238,7 +267,6 @@ const mockFormTemplate: FormTemplate = {
 };
 
 export default function FormEditor() {
-  const { activeSubmission } = useSubmission();
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
   const [showValidationErrors, setShowValidationErrors] = useState(false);

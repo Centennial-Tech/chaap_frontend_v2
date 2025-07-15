@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useAuth } from './authProvider';
 import { fetchSubmissions, type Submission } from '../helpers/submissionApiHelper';
 
