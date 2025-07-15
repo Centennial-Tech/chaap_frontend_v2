@@ -200,6 +200,7 @@ const KnowledgeAgent = () => {
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
@@ -304,7 +305,7 @@ const KnowledgeAgent = () => {
   // Streaming function using Server-Sent Events with real-time updates
   const askBotStreaming = async (message: string) => {
     setLoading(true);
-    
+
     // Add empty AI message immediately
     setConversations((prev) => [
       ...prev,
@@ -315,7 +316,7 @@ const KnowledgeAgent = () => {
         isTyping: true,
       },
     ]);
-    
+
     setLoading(false); // Stop loading since we now have the message placeholder
 
     try {
@@ -327,6 +328,7 @@ const KnowledgeAgent = () => {
         body: JSON.stringify({
           request: message,
           stream: true,
+          session_id: sessionId || undefined, // Use sessionId if available
         }),
       });
 
@@ -372,7 +374,7 @@ const KnowledgeAgent = () => {
 
                 if (data.content) {
                   accumulatedContent += data.content;
-                  
+
                   // Update the last AI message with accumulated content
                   setConversations((prev) => {
                     const newConversations = [...prev];
@@ -391,6 +393,7 @@ const KnowledgeAgent = () => {
 
                 if (data.done) {
                   // Finalize the message
+                  setSessionId(data.session_id || null); // Update sessionId if provided
                   setConversations((prev) => {
                     const newConversations = [...prev];
                     const lastIndex = newConversations.length - 1;
