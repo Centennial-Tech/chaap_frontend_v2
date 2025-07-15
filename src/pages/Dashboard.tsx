@@ -115,14 +115,6 @@ const Dashboard = () => {
   // Track if user can skip suggestion and go to create after error
   const [allowManualCreate, setAllowManualCreate] = React.useState(false);
 
-  // Derived state - Sort submissions by last updated (most recent first)
-  const sortedSubmissions = React.useMemo(() => {
-    return [...submissions].sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    );
-  }, [submissions]);
-
   const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
 
   // Update readyToCreate when formSuggestion is set
