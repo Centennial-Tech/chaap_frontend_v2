@@ -2,20 +2,19 @@ import React from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
 import { Edit, Download, Trash2 } from "lucide-react";
-import type { Submission } from "../helpers/submissionApiHelper";
+import { useSubmission } from "../provider/submissionProvider";
 
 interface SubmissionTableProps {
-  submissions: Submission[];
   onDelete: (id: string) => Promise<void>; // Changed from number to string
   setConfirmDeleteOpen: (open: boolean) => void;
   setConfirmDeleteId: (id: string) => void;
 }
 
 const SubmissionTable: React.FC<SubmissionTableProps> = ({
-  submissions,
   setConfirmDeleteOpen,
   setConfirmDeleteId,
 }) => {
+  const { submissions } = useSubmission();
   const handleDeleteClick = (id: string) => {
     setConfirmDeleteId(id);
     setConfirmDeleteOpen(true);

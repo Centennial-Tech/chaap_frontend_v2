@@ -5,10 +5,9 @@ import React, { useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
-import { useAuth } from "../provider/authProvider";
+import { useSubmission } from "../provider/submissionProvider";
 import { useLocation } from "react-router-dom";
 import {
-  fetchSubmissions,
   createSubmission,
   deleteSubmission,
   type Submission,
@@ -29,9 +28,7 @@ interface Stats {
 
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
-  const in_progress = submissions.filter(
-    (s) => s.status === "in_progress"
-  ).length;
+  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
   const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
   const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -48,6 +45,7 @@ const Dashboard = () => {
   const location = useLocation();
   const [showMessage, setShowMessage] = React.useState(false);
   const [message, setMessage] = React.useState("");
+  const {submissions, refreshSubmissions } = useSubmission();
 
   // Check for redirect message
   useEffect(() => {
@@ -61,12 +59,8 @@ const Dashboard = () => {
 
   // State management
   const [open, setOpen] = React.useState(false);
-  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
-  const { user } = useAuth();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(
-    null
-  );
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleConfirmDelete = async () => {
@@ -74,7 +68,7 @@ const Dashboard = () => {
       setIsDeleting(true);
       try {
         await deleteSubmission(confirmDeleteId);
-        await fetchSubmissionsData();
+        await refreshSubmissions();
       } catch (error) {
         console.error("Error deleting submission:", error);
       } finally {
@@ -85,22 +79,8 @@ const Dashboard = () => {
     }
   };
 
-  const fetchSubmissionsData = async () => {
-    if (!user) return;
-    try {
-      const data = await fetchSubmissions(user.id);
-      setSubmissions(data);
-    } catch (error) {
-      console.error("Error fetching submissions:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubmissionsData();
-  }, [user]);
-
   // Form state (update type to match new fields)
-  type FormData = {
+  type SubmissionFormData = {
     name: string;
     type: string;
     submissionType: string;
@@ -108,7 +88,7 @@ const Dashboard = () => {
     productDescription: string;
   };
 
-  const [formData, setFormData] = React.useState<FormData>({
+  const [formData, setFormData] = React.useState<SubmissionFormData>({
     name: "",
     type: "",
     submissionType: "",
@@ -179,7 +159,7 @@ const Dashboard = () => {
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
     try {
       await deleteSubmission(id);
-      await fetchSubmissionsData();
+      await refreshSubmissions();
     } catch (error) {
       console.error("Error deleting submission:", error);
     }
@@ -256,7 +236,7 @@ const Dashboard = () => {
         };
 
         await createSubmission(newSubmission);
-        await fetchSubmissionsData();
+        await refreshSubmissions();
         handleClose();
       } catch (error) {
         console.error("Error creating submission:", error);
@@ -309,7 +289,7 @@ const Dashboard = () => {
   );
 
   const handleInputChange = React.useCallback(
-    (field: keyof FormData, value: string) => {
+    (field: keyof SubmissionFormData, value: string) => {
       setFormData((prev) => {
         const updated = { ...prev, [field]: value };
         // Reset submission type when type changes
@@ -411,7 +391,7 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 transition-all duration-500 ease-in-out transform-gpu">
           <StatsCard
-            title="Draft Submissions"
+            title="Drafts"
             value={stats?.drafts || 0}
             icon={FileText}
             iconBgColor="bg-blue-100"
@@ -444,7 +424,6 @@ const Dashboard = () => {
             </h3>
           </div>
           <SubmissionTable
-            submissions={sortedSubmissions}
             onDelete={handleDeleteSubmission}
             setConfirmDeleteOpen={setConfirmDeleteOpen}
             setConfirmDeleteId={setConfirmDeleteId}
