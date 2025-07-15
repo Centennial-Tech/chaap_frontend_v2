@@ -4,11 +4,11 @@ import { Button } from "../../components/ui/Button";
 import { XCircle, Download } from "lucide-react";
 import Modal from "../../components/ui/Modal";
 import api from "../../api";
-import { useAuth } from "../../provider/authProvider";
 import { extractText } from "../../utils";
 import jsPDF from "jspdf";
 import AnimatedBackground from "../../components/AnimatedBackground";
 import { useOverlay } from "../../provider/overleyProvider";
+import { useSubmission } from "../../provider/submissionProvider";
 
 const attachmentTypes = [
   { id: "device-description", label: "Device Description" },
@@ -241,7 +241,7 @@ const mockFormQuestions = {
 };
 
 const DocPrepAgent = () => {
-  const [selectedSubmission, setSelectedSubmission] = useState({} as any);
+  const {submissions, activeSubmission, setActiveSubmission} = useSubmission();
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
@@ -249,9 +249,7 @@ const DocPrepAgent = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [validationResults, setValidationResults] = useState<any>(null);
   const [formQuestions, setFormQuestions] = useState<any[]>([]);
-  const [formResponses, setFormResponses] = useState<Record<string, string>>(
-    {}
-  );
+  const [formResponses, setFormResponses] = useState<Record<string, string>>({});
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDocumentGenerated, setIsDocumentGenerated] = useState(false);
@@ -280,10 +278,8 @@ const DocPrepAgent = () => {
   >({});
   const [showFullDocument, setShowFullDocument] = useState(false);
 
-  const isFormValid = selectedSubmission && selectedAttachmentType;
+  const isFormValid = activeSubmission && selectedAttachmentType;
 
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const { user } = useAuth();
 
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
 
@@ -312,19 +308,6 @@ const DocPrepAgent = () => {
     showOverlay,
     hideOverlay,
   ]);
-
-  useEffect(() => {
-    // Simulate API call to fetch submissions
-    const fetchSubmissions = async () => {
-      const response = await api.get(
-        `/applications/userId?user_id=${user?.id}`
-      );
-      const data = response.data;
-      setSubmissions(data);
-    };
-
-    fetchSubmissions();
-  }, [user?.id]);
 
   // Debug effect to monitor validation results changes
   useEffect(() => {
@@ -369,7 +352,7 @@ const DocPrepAgent = () => {
       setCurrentSessionId(sessionId);
 
       const response = await api.post("/agents/document_prep/start-workflow", {
-        fda_document_type: (selectedSubmission as any).submissionType || "IND",
+        fda_document_type: activeSubmission?.submissionType || "IND",
         attachment_type: selectedAttachmentType,
         session_id: sessionId,
       });
@@ -516,17 +499,10 @@ const DocPrepAgent = () => {
       console.log("Preparing validation payload...", extractedText);
       const validationPayload = {
         document_content: extractedText,
-        document_type: (selectedSubmission as any).submissionType || "IND",
+        document_type: (activeSubmission as any).submissionType || "IND",
         attachment_type: selectedAttachmentType, // This can be dynamic based on your requirements
         session_id: "string",
       };
-
-      //       {
-      //   "document_content": "The New Drug Application cover letter from {company_name} is being submitted by {contact_info} with {regulatory_contact} designated as the regulatory point of contact, and it is dated {submission_date}. It pertains to the new drug named {drug_name} (generic name: {generic_name}), assigned NDA number {nda_number}. This submission is classified as {application_type} and is supported by {supporting_data}. The entire application has been prepared in full compliance with all FDA requirements for NDA submissions.",
-      //   "document_type": "NDA",       // optional
-      //   "attachment_type": "cover_letter", // optional
-      //   "session_id": "string"        // optional
-      // }
 
       // Call the validation API
       const response = await api.post(
@@ -642,7 +618,7 @@ const DocPrepAgent = () => {
       // If we have the final document content from completed workflow
       if (workflowStatus?.final_document) {
         downloadFile(
-          selectedSubmission.name,
+          activeSubmission?.name || "Document",
           workflowStatus.final_document,
           format
         );
@@ -1889,7 +1865,9 @@ const DocPrepAgent = () => {
                       const submission = submissions.find(
                         (s) => s.id === submissionId
                       );
-                      setSelectedSubmission(submission);
+                      if (submission) {
+                        setActiveSubmission(submission);
+                      }
                     }}
                   >
                     <option value="" disabled selected>
@@ -1899,7 +1877,7 @@ const DocPrepAgent = () => {
                       <option
                         key={submission.id}
                         value={submission.id}
-                        selected={submission.id === selectedSubmission}
+                          selected={submission.id === activeSubmission?.id}
                       >
                         {submission.name}
                       </option>
