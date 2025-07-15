@@ -58,7 +58,7 @@ const agents = [
     satisfaction: 88,
     effectiveness: 91,
     accuracy: 89,
-    path: "/agents/fda-meeting-prep"
+    path: "/agents/FDA-Meeting-Prep"
   },
   {
     id: 4,

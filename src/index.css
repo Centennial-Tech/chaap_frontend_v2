@@ -1,8 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Calendar base styles */
+.rdp {
+  margin: 0;
+}
+
+.rdp-months {
+  width: 100%;
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-table {
+  width: 100%;
+}
+
+.rdp-cell {
+  padding: 0;
+}
+
+.rdp-head_cell,
+.rdp-cell {
+  text-align: center;
+}
+
+.rdp-day {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+}
+
+/* Hide elements for devices that are not screen readers */
+.rdp-vhidden {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute !important;
+  top: 0;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  border: 0 !important;
+}
+
 body {
   /* background: linear-gradient(180deg,rgba(223,239,240,1) 0%,rgba(255,255,255,1) 100%) */
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 html,
 body {

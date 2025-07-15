@@ -34,7 +34,7 @@ const sectionItems = [
   },
   {
     label: "FDA Meeting Prep Agent",
-    path: "/agents/fda-meeting-prep",
+    path: "/agents/FDA-Meeting-Prep",
     icon: Zap,
   },
   {
