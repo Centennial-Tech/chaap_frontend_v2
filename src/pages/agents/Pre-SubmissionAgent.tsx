@@ -6,7 +6,6 @@ import { PredicateMatching } from "../../components/PredicateMatching";
 import { TestingRoadmap } from "../../components/TestingRoadmap";
 import { TimelineGenerator } from "../../components/TimelineGenerator";
 import { SubmissionChecklist } from "../../components/SubmissionChecklist";
-import { ReviewerSimulation } from "../../components/ReviewerSimulation";
 import { AiInsights } from "../../components/AiInsights";
 import { useState } from "react";
 import api from "../../api";
@@ -222,7 +221,6 @@ const PreSubmissionStrategyAgent = () => {
           checklistItems={SubmissionChecklistData}
           isLoading={isSubmissionChecklistLoading}
         />
-        <ReviewerSimulation submissionId={1} />
         <AiInsights submissionId={1} />
       </main>
     </div>
