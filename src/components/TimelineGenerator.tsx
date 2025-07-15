@@ -178,7 +178,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        {item.description || "No description available."}
+                        {item.description}
                       </p>
                       <div className="flex items-center space-x-4 text-sm">
                         <Badge
@@ -193,7 +193,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                           {getStatusLabel(item.status)}
                         </Badge>
                         <span className="text-gray-500">
-                          Target: {item.targetCompletionDate}
+                          Target: {item.targetDate}
                         </span>
                         <select
                           value={item.status}

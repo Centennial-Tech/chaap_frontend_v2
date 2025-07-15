@@ -40,6 +40,9 @@ const PreSubmissionStrategyAgent = () => {
   const [pathwayRecommendation, setPathwayRecommendation] = useState({});
   const [isPathwayLoading, setIsPathwayLoading] = useState(false);
 
+  const [predicateMatches, setPredicateMatches] = useState([]);
+  const [isPredicateLoading, setIsPredicateLoading] = useState(false);
+
   const callApi = async (type: string, formData: any) => {
     const {
       productType,
@@ -86,12 +89,21 @@ const PreSubmissionStrategyAgent = () => {
     setIsPathwayLoading(false);
   };
 
+  const handlePredicateMatching = async (formData: any) => {
+    setIsPredicateLoading(true);
+    const data = await callApi("PREDICATE_MATCHING", formData);
+    console.log("Predicate Matches:", data);
+    setPredicateMatches(data || []);
+    setIsPredicateLoading(false);
+  };
+
   const handleSubmit = async (formData: any) => {
     await Promise.allSettled([
       handleTestingRoadmap(formData),
       handleSubmissionChecklist(formData),
       handleProjectTimeline(formData),
       handlePathwayRecommendation(formData),
+      handlePredicateMatching(formData),
     ]);
   };
   return (
@@ -194,7 +206,10 @@ const PreSubmissionStrategyAgent = () => {
           recommendation={pathwayRecommendation}
           isLoading={isPathwayLoading}
         />
-        <PredicateMatching submissionId={1} />
+        <PredicateMatching
+          predicateMatches={predicateMatches}
+          isLoading={isPredicateLoading}
+        />
         <TestingRoadmap
           testingRequirements={testingRequirements}
           isLoading={isTestingRoadmapLoading}

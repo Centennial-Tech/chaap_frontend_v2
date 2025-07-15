@@ -53,26 +53,13 @@ const mockPredicates: PredicateMatch[] = [
   },
 ];
 
-export function PredicateMatching({ submissionId }: PredicateMatchingProps) {
-  const [predicateMatches, setPredicateMatches] = useState<PredicateMatch[]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulating API call
-    setTimeout(() => {
-      setPredicateMatches(mockPredicates);
-      setIsLoading(false);
-    }, 1000);
-  }, [submissionId]);
-
+export function PredicateMatching({ predicateMatches, isLoading }: any) {
   const handlePredicateSelect = (predicateId: number, isSelected: boolean) => {
-    setPredicateMatches((prev) =>
-      prev.map((match) =>
-        match.id === predicateId ? { ...match, isSelected } : match
-      )
-    );
+    // setPredicateMatches((prev) =>
+    //   prev.map((match) =>
+    //     match.id === predicateId ? { ...match, isSelected } : match
+    //   )
+    // );
   };
 
   const getMatchTypeColor = (matchType: string) => {
@@ -147,7 +134,7 @@ export function PredicateMatching({ submissionId }: PredicateMatchingProps) {
         {predicateMatches && predicateMatches.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {predicateMatches.map((match) => (
+              {predicateMatches.map((match: any) => (
                 <div
                   key={match.id}
                   className={`border rounded-lg p-4 transition-all duration-200 hover:shadow-md ${
@@ -217,8 +204,9 @@ export function PredicateMatching({ submissionId }: PredicateMatchingProps) {
                   <p className="text-blue-700">
                     The{" "}
                     {
-                      predicateMatches.find((m) => m.matchType === "primary")
-                        ?.deviceName
+                      predicateMatches.find(
+                        (m: any) => m.matchType === "primary"
+                      )?.deviceName
                     }{" "}
                     shows the strongest technological similarity to your device.
                     Consider reviewing their predicate comparison table and
