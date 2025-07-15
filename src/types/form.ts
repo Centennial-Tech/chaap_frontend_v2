@@ -17,11 +17,10 @@ export interface FormSection {
   order_by: number;
 }
 
-export interface FormTemplate {
+export interface FormTemplate { // TODO: rename to Form/Remove
   id: string;
   name: string;
   sections: FormSection[];
-  questions: FormQuestion[];
 }
 
 export interface FormData {

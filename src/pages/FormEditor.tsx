@@ -1,283 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormSection } from "../components/ui/FormSection";
 import { FormField } from "../components/ui/FormField";
 import { DynamicFormField } from "../components/ui/DynamicFormField";
 import { Button } from "../components/ui/Button";
-import type { FormTemplate, FormData } from "../types/form";
+import type { FormTemplate, FormData, FormQuestion } from "../types/form";
 
 // Mock form template data
 const mockFormTemplate: FormTemplate = {
   id: "fda-ind-template",
-  name: "FDA IND (Investigational New Drug) Application Form",
+  name: "FDA IND (Investigational New Drug) Submission",
   sections: [
     {
-      id: "basic-info",
+      id: "FDA 3926", // TODO: UUID
       form_id: "fda-ind-template",
-      title: "Basic Information",
-      description: "Enter the basic details about your IND application",
+      title: "FDA 3926",
+      description: "Individual Patient Expanded Access Investigational New Drug Application",
       order_by: 1
     },
     {
-      id: "drug-details",
+      id: "FDA 3455", // TODO: UUID
       form_id: "fda-ind-template",
-      title: "Drug Details",
-      description: "Provide detailed information about your investigational drug",
+      title: "FDA 3455",
+      description: "DISCLOSURE: FINANCIAL INTERESTS AND ARRANGEMENTS OF CLINICAL INVESTIGATORS",
       order_by: 2
     },
-    {
-      id: "clinical-protocol",
-      form_id: "fda-ind-template",
-      title: "Clinical Protocol",
-      description: "Clinical study design and protocol information",
-      order_by: 3
-    },
-    {
-      id: "manufacturing",
-      form_id: "fda-ind-template",
-      title: "Manufacturing Information",
-      description: "Drug manufacturing and quality control details",
-      order_by: 4
-    },
-    {
-      id: "safety-data",
-      form_id: "fda-ind-template",
-      title: "Safety Data",
-      description: "Preclinical safety and toxicology information",
-      order_by: 5
-    }
   ],
-  questions: [
-    // Section 1: Basic Information
-    {
-      id: "ind-title",
-      form_id: "fda-ind-template",
-      section_id: "basic-info",
-      label: "IND Application Title",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "sponsor-name",
-      form_id: "fda-ind-template",
-      section_id: "basic-info",
-      label: "Sponsor Name",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "ind-type",
-      form_id: "fda-ind-template",
-      section_id: "basic-info",
-      label: "IND Type",
-      type: "Select",
-      required: true,
-      options: ["Commercial IND", "Research IND", "Emergency Use IND", "Treatment IND"]
-    },
-    {
-      id: "submission-date",
-      form_id: "fda-ind-template",
-      section_id: "basic-info",
-      label: "Target Submission Date",
-      type: "Date",
-      required: true
-    },
-    {
-      id: "description",
-      form_id: "fda-ind-template",
-      section_id: "basic-info",
-      label: "Drug Description",
-      type: "Textarea",
-      required: false,
-      help_text: "Provide a detailed description of your investigational drug"
-    },
-    
-    // Section 2: Drug Details
-    {
-      id: "drug-name",
-      form_id: "fda-ind-template",
-      section_id: "drug-details",
-      label: "Drug Name",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "chemical-name",
-      form_id: "fda-ind-template",
-      section_id: "drug-details",
-      label: "Chemical Name",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "drug-class",
-      form_id: "fda-ind-template",
-      section_id: "drug-details",
-      label: "Drug Classification",
-      type: "Radio Btn",
-      required: true,
-      options: ["Small Molecule", "Biologic", "Gene Therapy", "Cell Therapy", "Other"]
-    },
-    {
-      id: "indication",
-      form_id: "fda-ind-template",
-      section_id: "drug-details",
-      label: "Proposed Indication",
-      type: "Textarea",
-      required: true
-    },
-    {
-      id: "mechanism-action",
-      form_id: "fda-ind-template",
-      section_id: "drug-details",
-      label: "Mechanism of Action",
-      type: "Textarea",
-      required: true
-    },
-    
-    // Section 3: Clinical Protocol
-    {
-      id: "study-title",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Study Title",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "study-phase",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Study Phase",
-      type: "Select",
-      required: true,
-      options: ["Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 1/2", "Phase 2/3"]
-    },
-    {
-      id: "study-design",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Study Design",
-      type: "Radio Btn",
-      required: true,
-      options: ["Single Arm", "Randomized", "Double-Blind", "Open Label", "Crossover"]
-    },
-    {
-      id: "primary-endpoint",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Primary Endpoint",
-      type: "Textarea",
-      required: true
-    },
-    {
-      id: "secondary-endpoints",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Secondary Endpoints",
-      type: "Textarea",
-      required: false
-    },
-    {
-      id: "sample-size",
-      form_id: "fda-ind-template",
-      section_id: "clinical-protocol",
-      label: "Planned Sample Size",
-      type: "Text Box",
-      required: true
-    },
-    
-    // Section 4: Manufacturing
-    {
-      id: "manufacturing-site",
-      form_id: "fda-ind-template",
-      section_id: "manufacturing",
-      label: "Manufacturing Site",
-      type: "Text Box",
-      required: true
-    },
-    {
-      id: "manufacturing-process",
-      form_id: "fda-ind-template",
-      section_id: "manufacturing",
-      label: "Manufacturing Process",
-      type: "Textarea",
-      required: true
-    },
-    {
-      id: "quality-control",
-      form_id: "fda-ind-template",
-      section_id: "manufacturing",
-      label: "Quality Control Methods",
-      type: "Textarea",
-      required: true
-    },
-    {
-      id: "stability-data",
-      form_id: "fda-ind-template",
-      section_id: "manufacturing",
-      label: "Stability Data Available",
-      type: "Check Box",
-      required: false,
-      options: ["Yes", "No"]
-    },
-    {
-      id: "batch-size",
-      form_id: "fda-ind-template",
-      section_id: "manufacturing",
-      label: "Planned Batch Size",
-      type: "Text Box",
-      required: true
-    },
-    
-    // Section 5: Safety Data
-    {
-      id: "preclinical-studies",
-      form_id: "fda-ind-template",
-      section_id: "safety-data",
-      label: "Preclinical Studies Completed",
-      type: "Check Box",
-      required: false,
-      options: ["Toxicology", "Pharmacokinetics", "Pharmacodynamics", "Carcinogenicity", "Genotoxicity"]
-    },
-    {
-      id: "safety-profile",
-      form_id: "fda-ind-template",
-      section_id: "safety-data",
-      label: "Safety Profile Summary",
-      type: "Textarea",
-      required: true
-    },
-    {
-      id: "adverse-events",
-      form_id: "fda-ind-template",
-      section_id: "safety-data",
-      label: "Known Adverse Events",
-      type: "Textarea",
-      required: false
-    },
-    {
-      id: "risk-assessment",
-      form_id: "fda-ind-template",
-      section_id: "safety-data",
-      label: "Risk Assessment",
-      type: "Textarea",
-      required: true
-    }
-  ]
 };
 
 export default function FormEditor() {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [questions, setQuestions] = useState<FormQuestion[]>([]);
 
   // Sort sections by order_by
   const sortedSections = mockFormTemplate.sections.sort((a, b) => a.order_by - b.order_by);
   const currentSection = sortedSections[currentSectionIndex];
-  
+
+
+  useEffect(() => {
+    fetchQuestions();;
+  }, []);
+
+  const fetchQuestions = async () => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/questions`); 
+    const data = await response.json();
+    setQuestions(data);
+  }
+
+
   // Get questions for current section (with visibility filtering)
-  const currentSectionQuestions = mockFormTemplate.questions
-    .filter(q => q.section_id === currentSection.id)
+  const currentSectionQuestions = 
+    questions.filter(q => q.section_id === currentSection.id) 
     .sort((a, b) => a.label.localeCompare(b.label));
 
   const handleInputChange = (questionId: string, value: string | string[]) => {
@@ -311,7 +85,7 @@ export default function FormEditor() {
 
   // Check if a section is completed
   const isSectionCompleted = (sectionId: string): boolean => {
-    const sectionQuestions = mockFormTemplate.questions
+    const sectionQuestions = questions
       .filter(q => q.section_id === sectionId);
     
     return sectionQuestions.every(question => {
