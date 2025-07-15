@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
-import { ProtectedRoute, SubmissionProtectedRoute } from "./ProtectedRoute";
+import { ProtectedRoute } from "./ProtectedRoute";
 import NoAccess from "../pages/NoAccess";
 import Home from "../pages/Home2";
 import PreSubmissionAgent from "../pages/agents/Pre-SubmissionAgent";
@@ -52,39 +52,32 @@ const Routes = () => {
             { path: "logout", element: <Logout /> },
             { path: "dashboard", element: <Dashboard /> },
             { path: "profile", element: <UserProfile /> },
-            
-            // Document management routes - protected by submission
-            {
-              element: <SubmissionProtectedRoute />,
+            { path: "document-manager", element: <DocumentManager /> },
+            { path: "form-editor", element: <FormEditor /> },
+            // AI Agent routes
+            { 
+              path: "agents",
               children: [
-                { path: "document-manager", element: <DocumentManager /> },
-                { path: "form-editor", element: <FormEditor /> },
-                // AI Agent routes
-                { 
-                  path: "agents",
-                  children: [
-                    {
-                      path: "pre-submission-strategy",
-                      element: <PreSubmissionAgent />,
-                    },
-                    {
-                      path: "regulatory-knowledge",
-                      element: <KnowledgeAgent />,
-                    },
-                    {
-                      path: "document-preparation",
-                      element: <DocPrepAgent />,
-                    },
-                    {
-                      path: "fda-meeting-prep",
-                      element: <FdaMeetingPrepAgent />,
-                    },
-                    {
-                      path: "post-market-surveillance",
-                      element: <PostMarketSurveillanceAgent />,
-                    },
-                  ]
-                }
+                {
+                  path: "pre-submission-strategy",
+                  element: <PreSubmissionAgent />,
+                },
+                {
+                  path: "regulatory-knowledge",
+                  element: <KnowledgeAgent />,
+                },
+                {
+                  path: "document-preparation",
+                  element: <DocPrepAgent />,
+                },
+                {
+                  path: "fda-meeting-prep",
+                  element: <FdaMeetingPrepAgent />,
+                },
+                {
+                  path: "post-market-surveillance",
+                  element: <PostMarketSurveillanceAgent />,
+                },
               ]
             }
           ],
