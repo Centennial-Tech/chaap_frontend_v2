@@ -1,40 +1,42 @@
-import { Bell } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useAuth } from "../provider/authProvider";
+import { useSubmission } from "../provider/submissionProvider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Z_INDEX } from "../constants/zIndex";
+import { useState, useRef, useEffect } from "react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
+  const { activeSubmission, submissions, setActiveSubmission } = useSubmission();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  const LogoutButton: React.FC = () => {
-    const handleLogout = async () => {
-      await logout();
-      navigate("/login");
-    };
-    return (
-      <button
-        onClick={handleLogout}
-        className="group relative flex items-center justify-start w-11 h-11 rounded-full overflow-hidden shadow-md transition-all duration-300 ease-in-out hover:w-32 hover:rounded-[2.5rem] active:translate-x-0.5 active:translate-y-0.5 bg-red-600 hover:bg-red-700 text-white"
-        aria-label="Logout"
-      >
-        <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 transition-all duration-300 ease-in-out group-hover:w-11 group-hover:pl-3">
-          <svg
-            viewBox="0 0 512 512"
-            className="w-4 h-4 fill-current text-white"
-            aria-hidden="true"
-          >
-            <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z" />
-          </svg>
-        </div>
-        <span className="absolute left-11 w-0 opacity-0 text-white font-semibold text-sm transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:w-auto group-hover:pr-3 whitespace-nowrap">
-          Logout
-        </span>
-      </button>
-    );
+  // Hide submission dropdown on specific routes
+  const hideSubmissionDropdown = ["/", "/dashboard", "/profile"].includes(location.pathname);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   const userName = `${user?.first_name} ${user?.last_name}` || "Loading...";
@@ -137,7 +139,10 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 w-full bg-white border-b border-gray-300 py-3" style={{ zIndex: Z_INDEX.HEADER }}>
+    <nav
+      className="fixed top-0 left-0 right-0 w-full bg-white border-b border-gray-300 py-3"
+      style={{ zIndex: Z_INDEX.HEADER }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-6 pl-3">
           <div className="flex items-center space-x-3">
@@ -147,10 +152,6 @@ export default function Navbar() {
             >
               <img src={logo} alt="Logo" />
             </Link>
-
-            {/* <h1 className="text-xl font-semibold text-gray-900">
-              MedDevice Compliance Suite
-            </h1> */}
           </div>
           <div className="hidden md:flex items-center space-x-1 text-sm text-gray-600 bg-gray-50/50 rounded-lg px-3 py-2 backdrop-blur-sm border border-gray-200/50">
             {formattedPath}
@@ -158,6 +159,48 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center space-x-4 pr-6">
+          {/* Submission Selector */}
+          {!hideSubmissionDropdown && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`
+                  flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
+                  ${activeSubmission ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}
+                  transition-colors duration-200 border border-gray-200
+                `}
+              >
+                <span>{activeSubmission?.name || 'Select Submission'}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-[300px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                  {submissions?.length > 0 ? (
+                    submissions.map((submission) => (
+                      <button
+                        key={submission.id}
+                        onClick={() => {
+                          setActiveSubmission(submission);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`
+                          w-full text-left px-2 py-2 text-sm
+                          ${activeSubmission?.id === submission.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}
+                          transition-colors duration-200
+                        `}
+                      >
+                        <div className="font-medium">{submission.name}</div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-sm text-gray-500">No submissions available</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5 text-gray-600" />
@@ -165,12 +208,11 @@ export default function Navbar() {
               3
             </span>
           </Button>
-          {/* <Button /> */}
 
-          {/* User Profile */}
-          <div className="flex items-center space-x-3">
-            <Link
-              to="/profile"
+          {/* Profile Dropdown */}
+          <div className="relative" ref={profileDropdownRef}>
+            <button
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               className="flex items-center space-x-3 hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200"
             >
               <div className="text-right text-sm">
@@ -179,17 +221,40 @@ export default function Navbar() {
                   {user?.organization_name || "Centennial Technologies"}
                 </div>
               </div>
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-                {userName
-                  ? userName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                  : "U"}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                  {userName
+                    ? userName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                    : "U"}
+                </div>
+                <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isProfileDropdownOpen ? 'transform rotate-180' : ''}`} />
               </div>
-            </Link>
+            </button>
+
+            {isProfileDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <Link
+                  to="/profile"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                >
+                  <span>Profile</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                >
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
           </div>
-          <LogoutButton />
         </div>
       </div>
     </nav>
