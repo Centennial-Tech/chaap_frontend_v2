@@ -1,60 +1,10 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Badge } from "./ui/Badge";
 import { Search, ExternalLink, CheckCircle, Lightbulb } from "lucide-react";
 
-interface PredicateMatchingProps {
-  submissionId: number;
-}
-
-interface PredicateMatch {
-  id: number;
-  deviceName: string;
-  kNumber: string;
-  summary: string;
-  approvalDate: string;
-  similarity: number;
-  matchType: string;
-  isSelected: boolean;
-}
-
-// Temporary mock data for demonstration
-const mockPredicates: PredicateMatch[] = [
-  {
-    id: 1,
-    deviceName: "Example Medical Device 1",
-    kNumber: "K123456",
-    summary: "A similar device with comparable technological characteristics",
-    approvalDate: "2023-01-15",
-    similarity: 95,
-    matchType: "primary",
-    isSelected: false,
-  },
-  {
-    id: 2,
-    deviceName: "Example Medical Device 2",
-    kNumber: "K789012",
-    summary: "Another device with some matching features",
-    approvalDate: "2022-11-30",
-    similarity: 85,
-    matchType: "secondary",
-    isSelected: false,
-  },
-  {
-    id: 3,
-    deviceName: "Example Medical Device 3",
-    kNumber: "K345678",
-    summary: "An alternative device with similar intended use",
-    approvalDate: "2022-09-20",
-    similarity: 75,
-    matchType: "alternative",
-    isSelected: false,
-  },
-];
-
 export function PredicateMatching({ predicateMatches, isLoading }: any) {
-  const handlePredicateSelect = (predicateId: number, isSelected: boolean) => {
+  const handlePredicateSelect = (_predicateId: number, _isSelected: boolean) => {
     // setPredicateMatches((prev) =>
     //   prev.map((match) =>
     //     match.id === predicateId ? { ...match, isSelected } : match

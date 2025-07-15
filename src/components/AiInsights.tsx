@@ -9,21 +9,6 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
-
-interface AiInsight {
-  id: number | string;
-  title: string;
-  description: string;
-  insightType: string;
-  confidence?: number;
-  metadata?: Record<string, unknown>;
-  actionable: boolean;
-}
-
-interface AiInsightsProps {
-  submissionId: number;
-}
 
 export function AiInsights({ aiInsights, isLoading }: any) {
   //   const { data: aiInsights, isLoading } = useQuery<AiInsight[]>({
