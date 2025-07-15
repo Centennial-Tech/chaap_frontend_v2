@@ -162,7 +162,7 @@ export function PathwayRecommendation({
           </div>
         </form>
 
-        {recommendation && (
+        {recommendation && recommendation.pathway && (
           <div className="mt-6 bg-teal-50 border border-teal-200 rounded-lg p-4">
             <div className="flex items-start space-x-3">
               <div className="bg-teal-100 p-2 rounded-lg">
