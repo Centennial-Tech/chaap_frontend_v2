@@ -42,6 +42,9 @@ const PreSubmissionStrategyAgent = () => {
   const [predicateMatches, setPredicateMatches] = useState([]);
   const [isPredicateLoading, setIsPredicateLoading] = useState(false);
 
+  const [aiInsights, setAiInsights] = useState([]);
+  const [isAiInsightsLoading, setIsAiInsightsLoading] = useState(false);
+
   const callApi = async (type: string, formData: any) => {
     const {
       productType,
@@ -96,6 +99,13 @@ const PreSubmissionStrategyAgent = () => {
     setIsPredicateLoading(false);
   };
 
+  const handleAiInsights = async (formData: any) => {
+    setIsAiInsightsLoading(true);
+    const data = await callApi("AI_INSIGHTS", formData);
+    setAiInsights(data || []);
+    setIsAiInsightsLoading(false);
+  };
+
   const handleSubmit = async (formData: any) => {
     await Promise.allSettled([
       handleTestingRoadmap(formData),
@@ -103,6 +113,7 @@ const PreSubmissionStrategyAgent = () => {
       handleProjectTimeline(formData),
       handlePathwayRecommendation(formData),
       handlePredicateMatching(formData),
+      handleAiInsights(formData),
     ]);
   };
   return (
@@ -221,7 +232,7 @@ const PreSubmissionStrategyAgent = () => {
           checklistItems={SubmissionChecklistData}
           isLoading={isSubmissionChecklistLoading}
         />
-        <AiInsights submissionId={1} />
+        <AiInsights aiInsights={aiInsights} isLoading={isAiInsightsLoading} />
       </main>
     </div>
   );

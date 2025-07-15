@@ -130,7 +130,7 @@ export function PathwayRecommendation({
               />
 
               <Input
-                label="Technological Characteristics *"
+                label="Technological Characteristics"
                 // value={formData.technologicalCharacteristics as any}
                 onChange={
                   ((e: any) =>
