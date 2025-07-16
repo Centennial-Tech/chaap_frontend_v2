@@ -194,10 +194,10 @@ const PreSubmissionStrategyAgent = () => {
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">Submission Checklist</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">Reviewer Simulation</span>
-                  </div>
+                  </div> */}
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">AI Strategic Insights</span>
