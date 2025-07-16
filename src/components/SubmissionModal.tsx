@@ -112,8 +112,10 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               <option value="" disabled>
                 Select type
               </option>
-              <option value="Device">Device</option>
               <option value="Drug">Drug</option>
+              <option value="Biologic">Biologic</option>
+              <option value="Medical Device">Medical Device</option>
+              <option value="Combination Product">Combination Product</option>
             </select>
           </div>
           {/* Product Description */}

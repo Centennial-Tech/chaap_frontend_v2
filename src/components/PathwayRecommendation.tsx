@@ -39,6 +39,8 @@ export function PathwayRecommendation({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const isMedicalDevice = formData.productType === "Medical Device";
+
   return (
     <Card className="border-2 border-purple-100">
       <CardHeader>
@@ -61,60 +63,73 @@ export function PathwayRecommendation({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <Input
-                label="Product Type"
-                onChange={
-                  ((e: any) =>
-                    handleInputChange("productType", e.target.value)) as any
-                }
-                placeholder="Enter product type"
-                required
-                value={formData.productType}
-              />
-
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Risk Classification
+                  Product Type
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Class I", "Class II", "Class III"].map(
-                    (classification) => (
-                      <Button
-                        key={classification}
-                        type="button"
-                        variant={
-                          formData.riskClassification === classification
-                            ? "default"
-                            : "outline"
-                        }
-                        className={`text-sm ${
-                          formData.riskClassification === classification
-                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                            : "hover:bg-gray-50"
-                        }`}
-                        onClick={() =>
-                          handleInputChange(
-                            "riskClassification",
-                            classification
-                          )
-                        }
-                      >
-                        {classification}
-                      </Button>
-                    )
-                  )}
-                </div>
+                <select
+                  value={formData.productType}
+                  onChange={(e) => handleInputChange("productType", e.target.value)}
+                  required
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
+                >
+                  <option value="" disabled>
+                    Select product type
+                  </option>
+                  <option value="Drug">Drug</option>
+                  <option value="Biologic">Biologic</option>
+                  <option value="Medical Device">Medical Device</option>
+                  <option value="Combination Product">Combination Product</option>
+                </select>
               </div>
 
-              <Input
-                label="Predicate Device (Optional)"
-                onChange={
-                  ((e: any) =>
-                    handleInputChange("predicateDevice", e.target.value)) as any
-                }
-                placeholder="Enter K-number or device name"
-                value={formData.predicateDevice}
-              />
+              {isMedicalDevice && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Risk Classification
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["Class I", "Class II", "Class III"].map(
+                        (classification) => (
+                          <Button
+                            key={classification}
+                            type="button"
+                            variant={
+                              formData.riskClassification === classification
+                                ? "default"
+                                : "outline"
+                            }
+                            className={`text-sm ${
+                              formData.riskClassification === classification
+                                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                : "hover:bg-gray-50"
+                            }`}
+                            onClick={() =>
+                              handleInputChange(
+                                "riskClassification",
+                                classification
+                              )
+                            }
+                          >
+                            {classification}
+                          </Button>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <Input
+                    label="Predicate Device (Optional)"
+                    onChange={
+                      ((e: any) =>
+                        handleInputChange("predicateDevice", e.target.value)) as any
+                    }
+                    placeholder="Enter K-number or device name"
+                    value={formData.predicateDevice}
+                  />
+                </>
+              )}
             </div>
 
             <div className="space-y-4">
