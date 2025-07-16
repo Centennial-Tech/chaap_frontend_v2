@@ -1,10 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
-import { Badge } from "./ui/Badge";
-import { Alert, AlertDescription } from "./ui/Alert";
 import {
-  CheckCircle2,
-  AlertCircle,
   Circle,
   CheckCircle,
   Info,
