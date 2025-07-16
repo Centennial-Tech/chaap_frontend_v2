@@ -120,9 +120,9 @@ const PreSubmissionStrategyAgent = () => {
     <div className="min-h-screen">
       <main
         ref={targetRef}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative"
       >
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 sticky top-[93px] right-[93px] z-50">
           <div className="relative">
             <Button
               onClick={() => setShowExportOptions(!showExportOptions)}
