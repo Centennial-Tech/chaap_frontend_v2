@@ -4,7 +4,10 @@ import { Badge } from "./ui/Badge";
 import { Search, ExternalLink, CheckCircle, Lightbulb } from "lucide-react";
 
 export function PredicateMatching({ predicateMatches, isLoading }: any) {
-  const handlePredicateSelect = (_predicateId: number, _isSelected: boolean) => {
+  const handlePredicateSelect = (
+    _predicateId: number,
+    _isSelected: boolean
+  ) => {
     // setPredicateMatches((prev) =>
     //   prev.map((match) =>
     //     match.id === predicateId ? { ...match, isSelected } : match
@@ -108,10 +111,14 @@ export function PredicateMatching({ predicateMatches, isLoading }: any) {
 
                   <p className="text-sm text-gray-600 mb-3">
                     <strong>K-Number:</strong>{" "}
-                    <button className="text-purple-600 hover:text-purple-700 font-medium">
+                    <a
+                      target="_blank"
+                      href={`https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=${match.kNumber}`}
+                      className="text-purple-600 hover:text-purple-700 font-medium"
+                    >
                       {match.kNumber}
                       <ExternalLink className="h-3 w-3 inline ml-1" />
-                    </button>
+                    </a>
                   </p>
 
                   <p className="text-sm text-gray-600 mb-4">{match.summary}</p>
