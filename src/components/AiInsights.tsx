@@ -79,7 +79,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
       case "real_world_evidence":
         return "bg-blue-500";
       default:
-        return "bg-gray-500";
+        return "bg-orange-500";
     }
   };
 
@@ -94,7 +94,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
       case "real_world_evidence":
         return "healthcare-insight-info";
       default:
-        return "bg-gradient-to-r from-gray-50 to-gray-100";
+        return "bg-gradient-to-r from-orange-50 to-orange-100";
     }
   };
 
@@ -133,7 +133,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
   }
 
   return (
-    <Card className="healthcare-card healthcare-fade-in">
+    <Card className="healthcare-card healthcare-fade-in !shadow-2xl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -157,7 +157,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
                 key={insight.id}
                 className={`${getInsightBgGradient(
                   insight.insightType
-                )} rounded-lg p-4 transition-all duration-200 hover:shadow-sm`}
+                )} rounded-lg p-4 transition-all duration-200 shadow-lg hover:shadow-2xl`}
               >
                 <div className="flex items-start space-x-3">
                   <div
