@@ -52,11 +52,8 @@ const Routes = () => {
             { path: "logout", element: <Logout /> },
             { path: "dashboard", element: <Dashboard /> },
             { path: "profile", element: <UserProfile /> },
-            
-            // Document management routes
             { path: "document-manager", element: <DocumentManager /> },
             { path: "form-editor", element: <FormEditor /> },
-            
             // AI Agent routes
             { 
               path: "agents",

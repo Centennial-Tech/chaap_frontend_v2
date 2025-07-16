@@ -7,6 +7,7 @@ const Input = ({
   required = false,
   textarea = false,
   onChange = () => {},
+  value = "",
 }) => {
   return (
     <div>
@@ -26,6 +27,7 @@ const Input = ({
           placeholder={placeholder}
           required={required}
           onChange={onChange}
+          value={value}
         />
       ) : (
         <input
@@ -36,6 +38,7 @@ const Input = ({
           placeholder={placeholder}
           required={required}
           onChange={onChange}
+          value={value}
         />
       )}
     </div>

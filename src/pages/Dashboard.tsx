@@ -5,9 +5,9 @@ import React, { useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
-import { useAuth } from "../provider/authProvider";
+import { useSubmission } from "../provider/submissionProvider";
+import { useLocation } from "react-router-dom";
 import {
-  fetchSubmissions,
   createSubmission,
   deleteSubmission,
   type Submission,
@@ -44,10 +44,23 @@ const calculateStats = (submissions: Submission[]): Stats => {
 };
 
 const Dashboard = () => {
+  const location = useLocation();
+  const [showMessage, setShowMessage] = React.useState(false);
+  const [message, setMessage] = React.useState("");
+  const { submissions, refreshSubmissions } = useSubmission();
+
+  // Check for redirect message
+  useEffect(() => {
+    if (location.state?.message) {
+      setMessage(location.state.message);
+      setShowMessage(true);
+      // Clear the message from location state after showing it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   // State management
   const [open, setOpen] = React.useState(false);
-  const [submissions, setSubmissions] = React.useState<Submission[]>([]);
-  const { user } = useAuth();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(
     null
@@ -59,7 +72,7 @@ const Dashboard = () => {
       setIsDeleting(true);
       try {
         await deleteSubmission(confirmDeleteId);
-        await fetchSubmissionsData();
+        await refreshSubmissions();
       } catch (error) {
         console.error("Error deleting submission:", error);
       } finally {
@@ -70,22 +83,8 @@ const Dashboard = () => {
     }
   };
 
-  const fetchSubmissionsData = async () => {
-    if (!user) return;
-    try {
-      const data = await fetchSubmissions(user.id);
-      setSubmissions(data);
-    } catch (error) {
-      console.error("Error fetching submissions:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubmissionsData();
-  }, [user]);
-
   // Form state (update type to match new fields)
-  type FormData = {
+  type SubmissionFormData = {
     name: string;
     type: string;
     submissionType: string;
@@ -93,7 +92,7 @@ const Dashboard = () => {
     productDescription: string;
   };
 
-  const [formData, setFormData] = React.useState<FormData>({
+  const [formData, setFormData] = React.useState<SubmissionFormData>({
     name: "",
     type: "",
     submissionType: "",
@@ -119,14 +118,6 @@ const Dashboard = () => {
   const [readyToCreate, setReadyToCreate] = React.useState(false);
   // Track if user can skip suggestion and go to create after error
   const [allowManualCreate, setAllowManualCreate] = React.useState(false);
-
-  // Derived state - Sort submissions by last updated (most recent first)
-  const sortedSubmissions = React.useMemo(() => {
-    return [...submissions].sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    );
-  }, [submissions]);
 
   const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
 
@@ -164,7 +155,7 @@ const Dashboard = () => {
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
     try {
       await deleteSubmission(id);
-      await fetchSubmissionsData();
+      await refreshSubmissions();
     } catch (error) {
       console.error("Error deleting submission:", error);
     }
@@ -230,18 +221,19 @@ const Dashboard = () => {
         const newSubmission: Partial<Submission> = {
           name: formData.name,
           //type: formData.type,
-          submissionType: formData.submissionType,
+          submission_type: formData.submissionType,
           end_time: formData.end_time,
-          productDescription: formData.productDescription,
+          intended_use: formData.productDescription,
+          product_type: formData.type,
           // status: "draft", -- this is set by the backend
           // created_at: new Date().toISOString(),
           // updated_at: new Date().toISOString(),
-          
+
           //questionAnswers: questionAnswersRef.current, TODO: add this back in
         };
 
         await createSubmission(newSubmission);
-        await fetchSubmissionsData();
+        await refreshSubmissions();
         handleClose();
       } catch (error) {
         console.error("Error creating submission:", error);
@@ -294,7 +286,7 @@ const Dashboard = () => {
   );
 
   const handleInputChange = React.useCallback(
-    (field: keyof FormData, value: string) => {
+    (field: keyof SubmissionFormData, value: string) => {
       setFormData((prev) => {
         const updated = { ...prev, [field]: value };
         // Reset submission type when type changes
@@ -309,6 +301,50 @@ const Dashboard = () => {
 
   return (
     <div className="overflow-x-hidden">
+      {/* Message Alert */}
+      {showMessage && (
+        <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-blue-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">{message}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <div className="-mx-1.5 -my-1.5">
+                <button
+                  onClick={() => setShowMessage(false)}
+                  className="inline-flex rounded-md p-1.5 text-blue-500 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* TODO: Refactor to use global overlay provider for confirm dialog */}
       {confirmDeleteOpen && (
         <>
@@ -366,7 +402,7 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 transition-all duration-500 ease-in-out transform-gpu">
           <StatsCard
-            title="Draft Submissions"
+            title="Drafts"
             value={stats?.drafts || 0}
             icon={FileText}
             iconBgColor="bg-blue-100"
@@ -399,7 +435,6 @@ const Dashboard = () => {
             </h3>
           </div>
           <SubmissionTable
-            submissions={sortedSubmissions}
             onDelete={handleDeleteSubmission}
             setConfirmDeleteOpen={setConfirmDeleteOpen}
             setConfirmDeleteId={setConfirmDeleteId}

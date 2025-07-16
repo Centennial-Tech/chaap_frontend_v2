@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "./ui/Card";
 import { Button } from "./ui/Button";
 import Input from "./Input";
 import { Badge } from "./ui";
+import { useSubmission } from "../provider/submissionProvider";
 // Temporary mock data for demonstration
 const mockSubmission = {
   productType: "Medical Device",
@@ -26,10 +27,21 @@ export function PathwayRecommendation({
     predicateDevice: "",
   });
 
+  const { activeSubmission } = useSubmission();
+
   useEffect(() => {
     // Simulating data fetch
-    setFormData(mockSubmission);
-  }, []);
+    // setFormData(mockSubmission);
+    const temp = {
+      ...formData,
+    };
+    setFormData((prev: any) => ({
+      ...prev,
+      productType: activeSubmission?.product_type,
+      intendedUse: activeSubmission?.intended_use,
+    }));
+    // console.log("Active Submission:", activeSubmission);
+  }, [activeSubmission]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,6 +82,7 @@ export function PathwayRecommendation({
                 }
                 placeholder="Enter product type"
                 required
+                value={formData.productType}
               />
 
               <div>
@@ -113,6 +126,7 @@ export function PathwayRecommendation({
                     handleInputChange("predicateDevice", e.target.value)) as any
                 }
                 placeholder="Enter K-number or device name"
+                value={formData.predicateDevice}
               />
             </div>
 
@@ -127,10 +141,11 @@ export function PathwayRecommendation({
                 placeholder="Describe the intended use of your device..."
                 textarea
                 required
+                value={formData.intendedUse}
               />
 
               <Input
-                label="Technological Characteristics *"
+                label="Technological Characteristics"
                 // value={formData.technologicalCharacteristics as any}
                 onChange={
                   ((e: any) =>
@@ -142,6 +157,7 @@ export function PathwayRecommendation({
                 placeholder="Describe key technological features..."
                 textarea
                 required
+                value={formData.technologicalCharacteristics}
               />
             </div>
           </div>

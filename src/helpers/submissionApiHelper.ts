@@ -10,18 +10,19 @@ export interface Submission {
   submission_id: string; //unused, maps to application_id in the backend
   type: string; //does not exist in the backend
   status: string; //set by the backend
-  progress?: number; 
+  progress?: number;
   created_at: string; //set by the backend
   updated_at: string; //set by the backend
   end_time?: string | null; // Maps to target submission date
-  productDescription: string;
-  submissionType?: string; //form id for now
+  intended_use?: string;
+  submission_type?: string; //form id for now
   // Additional fields for form suggestions
-  formSuggestion?: string; 
+  formSuggestion?: string;
   suggestionError?: string;
   // Questions and answers
   questions?: string[];
   questionAnswers?: { [q: string]: string };
+  product_type?: string;
 }
 
 // Stats interface
@@ -94,7 +95,7 @@ export const createSubmission = async (
   submissionData: Partial<Submission>
 ): Promise<Submission> => {
   try {
-    submissionData
+    submissionData;
     const response = await api.post("/applications/", submissionData);
     return response.data;
   } catch (error) {

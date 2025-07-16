@@ -6,7 +6,6 @@ import { PredicateMatching } from "../../components/PredicateMatching";
 import { TestingRoadmap } from "../../components/TestingRoadmap";
 import { TimelineGenerator } from "../../components/TimelineGenerator";
 import { SubmissionChecklist } from "../../components/SubmissionChecklist";
-import { ReviewerSimulation } from "../../components/ReviewerSimulation";
 import { AiInsights } from "../../components/AiInsights";
 import { useState } from "react";
 import api from "../../api";
@@ -43,6 +42,9 @@ const PreSubmissionStrategyAgent = () => {
   const [predicateMatches, setPredicateMatches] = useState([]);
   const [isPredicateLoading, setIsPredicateLoading] = useState(false);
 
+  const [aiInsights, setAiInsights] = useState([]);
+  const [isAiInsightsLoading, setIsAiInsightsLoading] = useState(false);
+
   const callApi = async (type: string, formData: any) => {
     const {
       productType,
@@ -78,7 +80,8 @@ const PreSubmissionStrategyAgent = () => {
   const handleProjectTimeline = async (formData: any) => {
     setIsProjectTimelineLoading(true);
     const data = await callApi("PROJECT_TIMELINE", formData);
-    setProjectTimelineItems(data?.timeline || []);
+    console.log("Project Timeline Data:", data);
+    setProjectTimelineItems(data || []);
     setIsProjectTimelineLoading(false);
   };
 
@@ -97,6 +100,13 @@ const PreSubmissionStrategyAgent = () => {
     setIsPredicateLoading(false);
   };
 
+  const handleAiInsights = async (formData: any) => {
+    setIsAiInsightsLoading(true);
+    const data = await callApi("AI_INSIGHTS", formData);
+    setAiInsights(data || []);
+    setIsAiInsightsLoading(false);
+  };
+
   const handleSubmit = async (formData: any) => {
     await Promise.allSettled([
       handleTestingRoadmap(formData),
@@ -104,6 +114,7 @@ const PreSubmissionStrategyAgent = () => {
       handleProjectTimeline(formData),
       handlePathwayRecommendation(formData),
       handlePredicateMatching(formData),
+      handleAiInsights(formData),
     ]);
   };
   return (
@@ -222,8 +233,7 @@ const PreSubmissionStrategyAgent = () => {
           checklistItems={SubmissionChecklistData}
           isLoading={isSubmissionChecklistLoading}
         />
-        <ReviewerSimulation submissionId={1} />
-        <AiInsights submissionId={1} />
+        <AiInsights aiInsights={aiInsights} isLoading={isAiInsightsLoading} />
       </main>
     </div>
   );

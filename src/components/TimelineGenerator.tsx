@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Badge } from "./ui/Badge";
@@ -10,47 +9,6 @@ import {
   Clock,
   Circle,
 } from "lucide-react";
-
-interface TimelineItem {
-  id: number;
-  phase: string;
-  description: string;
-  status: string;
-  weekRange: string;
-  targetDate: string;
-  duration: string;
-}
-
-// Mock data for development
-const mockTimelineItems: TimelineItem[] = [
-  {
-    id: 1,
-    phase: "Initial Documentation",
-    description: "Prepare and organize device documentation",
-    status: "completed",
-    weekRange: "Weeks 1-2",
-    targetDate: "2024-03-15",
-    duration: "2",
-  },
-  {
-    id: 2,
-    phase: "Testing Phase",
-    description: "Complete required testing protocols",
-    status: "in_progress",
-    weekRange: "Weeks 3-8",
-    targetDate: "2024-04-30",
-    duration: "6",
-  },
-  {
-    id: 3,
-    phase: "Pre-submission Meeting",
-    description: "FDA consultation and feedback",
-    status: "pending",
-    weekRange: "Weeks 9-10",
-    targetDate: "2024-05-15",
-    duration: "2",
-  },
-];
 
 export function TimelineGenerator({ timelineItems, isLoading }: any) {
   const getStatusIcon = (status: string) => {
@@ -92,7 +50,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
     }
   };
 
-  const handleStatusChange = (timelineId: number, newStatus: string) => {
+  const handleStatusChange = (_timelineId: number, _newStatus: string) => {
     // setTimelineItems((prev) =>
     //   prev.map((item) =>
     //     item.id === timelineId ? { ...item, status: newStatus } : item
@@ -126,7 +84,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
     );
   }
 
-  const totalDuration = timelineItems.reduce((acc: any, item: any) => {
+  const totalDuration = timelineItems?.reduce((acc: any, item: any) => {
     const weeks = parseInt(item.duration) || 0;
     return acc + weeks;
   }, 0);
@@ -171,7 +129,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900">
-                          {item.phase}
+                          {item.phaseName}
                         </h4>
                         <span className="text-sm text-gray-500">
                           {item.weekRange || item.duration}
@@ -192,9 +150,9 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                         >
                           {getStatusLabel(item.status)}
                         </Badge>
-                        <span className="text-gray-500">
+                        {/* <span className="text-gray-500">
                           Target: {item.targetDate}
-                        </span>
+                        </span> */}
                         <select
                           value={item.status}
                           onChange={(e) =>

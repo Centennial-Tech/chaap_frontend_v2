@@ -9,64 +9,49 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
 
-interface AiInsight {
-  id: number | string;
-  title: string;
-  description: string;
-  insightType: string;
-  confidence?: number;
-  metadata?: Record<string, unknown>;
-  actionable: boolean;
-}
-
-interface AiInsightsProps {
-  submissionId: number;
-}
-
-export function AiInsights({ submissionId }: AiInsightsProps) {
+export function AiInsights({ aiInsights, isLoading }: any) {
   //   const { data: aiInsights, isLoading } = useQuery<AiInsight[]>({
   //     queryKey: ["/api/submissions", submissionId, "insights"],
   //     enabled: !!submissionId,
   //   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [aiInsights, setAiInsights] = useState<AiInsight[]>([
-    {
-      id: 1,
-      title: "Success Probability",
-      description:
-        "High likelihood of successful submission based on current data.",
-      insightType: "success_probability",
-      confidence: 85,
-      actionable: true,
-    },
-    {
-      id: 2,
-      title: "Timeline Optimization",
-      description:
-        "Potential to reduce review time by 20% with additional data.",
-      insightType: "timeline_optimization",
-      metadata: { time_saved: "2 months" },
-      actionable: true,
-    },
-    {
-      id: 3,
-      title: "Regulatory Risk",
-      description:
-        "Identified potential regulatory risks in the device classification.",
-      insightType: "regulatory_risk",
-      actionable: true,
-    },
-    {
-      id: 4,
-      title: "Real-World Evidence",
-      description:
-        "Incorporating real-world evidence could enhance the submission's strength.",
-      insightType: "real_world_evidence",
-      actionable: true,
-    },
-  ]);
+  //   const [isLoading, setIsLoading] = useState(false);
+  //   const [aiInsights, setAiInsights] = useState<AiInsight[]>([
+  //     {
+  //       id: 1,
+  //       title: "Success Probability",
+  //       description:
+  //         "High likelihood of successful submission based on current data.",
+  //       insightType: "success_probability",
+  //       confidence: 85,
+  //       actionable: true,
+  //     },
+  //     {
+  //       id: 2,
+  //       title: "Timeline Optimization",
+  //       description:
+  //         "Potential to reduce review time by 20% with additional data.",
+  //       insightType: "timeline_optimization",
+  //       metadata: { time_saved: "2 months" },
+  //       actionable: true,
+  //     },
+  //     {
+  //       id: 3,
+  //       title: "Regulatory Risk",
+  //       description:
+  //         "Identified potential regulatory risks in the device classification.",
+  //       insightType: "regulatory_risk",
+  //       actionable: true,
+  //     },
+  //     {
+  //       id: 4,
+  //       title: "Real-World Evidence",
+  //       description:
+  //         "Incorporating real-world evidence could enhance the submission's strength.",
+  //       insightType: "real_world_evidence",
+  //       actionable: true,
+  //     },
+  //   ]);
 
   const getInsightIcon = (insightType: string) => {
     switch (insightType) {
@@ -167,7 +152,7 @@ export function AiInsights({ submissionId }: AiInsightsProps) {
       <CardContent>
         {aiInsights && aiInsights.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {aiInsights.map((insight) => (
+            {aiInsights.map((insight: any) => (
               <div
                 key={insight.id}
                 className={`${getInsightBgGradient(

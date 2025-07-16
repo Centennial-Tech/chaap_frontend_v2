@@ -24,13 +24,13 @@ interface ReviewerSimulationProps {
   submissionId: number;
 }
 
-export function ReviewerSimulation({ submissionId }: ReviewerSimulationProps) {
+export function ReviewerSimulation({ submissionId: _submissionId }: ReviewerSimulationProps) {
   //   const { data: reviewerQuestions, isLoading } = useQuery<ReviewerQuestion[]>({
   //     queryKey: ["/api/submissions", submissionId, "questions"],
   //     enabled: !!submissionId,
   //   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const reviewerQuestions: ReviewerQuestion[] = [
     {
       id: 1,

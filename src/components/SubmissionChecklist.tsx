@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Badge } from "./ui/Badge";
@@ -21,31 +20,6 @@ const calculateProgress = (items: any[]): number => {
   ).length;
   return Math.round((completedCount / items.length) * 100);
 };
-
-// Mock data for development
-const mockChecklistItems: any[] = [
-  {
-    id: 1,
-    section: "Device Description",
-    description:
-      "Comprehensive description of the device including principles of operation",
-    status: "completed",
-    aiNotes: "All required elements present, including clear diagrams",
-  },
-  {
-    id: 2,
-    section: "Predicate Comparison Table",
-    description: "Side-by-side comparison with identified predicate device",
-    status: "review_needed",
-    aiNotes: "Missing comparison of technological characteristics",
-  },
-  {
-    id: 3,
-    section: "Performance Testing",
-    description: "Summary of all bench testing performed",
-    status: "todo",
-  },
-];
 
 export function SubmissionChecklist({
   checklistItems,
