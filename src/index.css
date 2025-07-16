@@ -95,6 +95,47 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Breathing gradient animation */
+@keyframes breathing {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+.breathing-gradient {
+  animation: breathing 3s ease-in-out infinite;
+}
+
+/* Moving gradient animation */
+@keyframes gradient-move {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.4;
+    transform: scale(1.01);
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.2;
+    transform: scale(1);
+  }
+}
+
+.breathing-gradient-move {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #dc2626, #ea580c, #3b82f6);
+  background-size: 400% 100%;
+  animation: gradient-move 4s ease-in-out infinite;
+}
+
 
 
 @layer utilities {

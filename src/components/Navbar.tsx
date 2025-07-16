@@ -165,13 +165,24 @@ export default function Navbar() {
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={`
-                  flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
-                  ${activeSubmission ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}
-                  transition-colors duration-200 border border-gray-200
+                  flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium relative overflow-hidden
+                  ${activeSubmission ? 'text-blue-700 hover:text-blue-800' : 'text-gray-700 hover:text-gray-800'}
+                  transition-all duration-300 border border-purple-500
+                  ${activeSubmission ? 'shadow-lg' : 'shadow-md'}
                 `}
               >
-                <span>{activeSubmission?.name || 'Select Submission'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
+                {/* Breathing gradient background */}
+                <div className={`
+                  absolute inset-0 rounded-lg transition-all duration-300
+                  ${activeSubmission 
+                    ? 'breathing-gradient-move' 
+                    : 'bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300'
+                  }
+                  opacity-20 hover:opacity-30
+                `} />
+                {/* Content */}
+                <span className="relative z-10">{activeSubmission?.name || 'Select Submission'}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 relative z-10 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
               </button>
 
               {isDropdownOpen && (
