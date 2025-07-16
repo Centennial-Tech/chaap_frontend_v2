@@ -3,9 +3,11 @@ import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
 import { Edit, Download, Trash2 } from "lucide-react";
 import { useSubmission } from "../provider/submissionProvider";
+import { useNavigate } from "react-router-dom";
+import type { Submission } from "../helpers/submissionApiHelper";
 
 interface SubmissionTableProps {
-  onDelete: (id: string) => Promise<void>; // Changed from number to string
+  onDelete: (id: string) => Promise<void>;
   setConfirmDeleteOpen: (open: boolean) => void;
   setConfirmDeleteId: (id: string) => void;
 }
@@ -14,11 +16,19 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
   setConfirmDeleteOpen,
   setConfirmDeleteId,
 }) => {
-  const { submissions } = useSubmission();
+  const { submissions, setActiveSubmission } = useSubmission();
+  const navigate = useNavigate();
+
   const handleDeleteClick = (id: string) => {
     setConfirmDeleteId(id);
     setConfirmDeleteOpen(true);
   };
+
+  const handleEditClick = (submission: Submission) => {
+    setActiveSubmission(submission);
+    navigate("/form-editor");
+  };
+
 
   const formatDate = (dateString: string) => {
     try {
@@ -120,7 +130,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   {formatDate(submission.updated_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(submission)}>
                     <Edit className="w-4 h-4 text-blue-600 hover:text-blue-700" />
                   </Button>
                   <Button variant="ghost" size="icon">
@@ -131,7 +141,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        handleDeleteClick(submission.id || submission.submission_id)
+                        handleDeleteClick(submission.id || submission?.submission_id || "")
                       }
                     >
                       <Trash2 className="w-4 h-4 text-red-600 hover:text-red-700" />

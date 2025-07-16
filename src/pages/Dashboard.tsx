@@ -216,15 +216,9 @@ const Dashboard = () => {
       try {
         const newSubmission: Partial<Submission> = {
           name: formData.name,
-          //type: formData.type,
-          submissionType: formData.submissionType,
+          form_id: "ind", //TODO: have a map or api to get the form_id from the submissionType
           end_time: formData.end_time,
-          productDescription: formData.productDescription,
-          // status: "draft", -- this is set by the backend
-          // created_at: new Date().toISOString(),
-          // updated_at: new Date().toISOString(),
-          
-          //questionAnswers: questionAnswersRef.current, TODO: add this back in
+          submissionType: formData.submissionType,
         };
 
         await createSubmission(newSubmission);
