@@ -52,7 +52,7 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
       style={{ zIndex: Z_INDEX.MODAL }}
     >
       <div 
-        className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative`}
+        className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative mt-20`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

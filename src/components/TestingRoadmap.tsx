@@ -141,9 +141,6 @@ export function TestingRoadmap({
                       Duration
                     </TableHead>
                     <TableHead className="text-left font-medium text-gray-900">
-                      Status
-                    </TableHead>
-                    <TableHead className="text-left font-medium text-gray-900">
                       Notes
                     </TableHead>
                   </TableRow>
@@ -207,21 +204,6 @@ export function TestingRoadmap({
                       </TableCell>
                       <TableCell className="text-sm text-gray-900">
                         {requirement.duration || "8-12 weeks"}
-                      </TableCell>
-                      <TableCell>
-                        <select
-                          value={requirement.status ?? "pending"}
-                          //   onChange={
-                          //     // (e) =>
-                          //     // handleStatusChange(requirement.id, e.target.value)
-                          //   }
-                          className="text-sm border border-gray-300 rounded px-2 py-1"
-                          disabled
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
                       </TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {requirement.notes}
