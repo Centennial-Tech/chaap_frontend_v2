@@ -20,27 +20,25 @@ const FdaMeetingPrepAgent = () => {
   const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(null);
 
+  const resetForm = () => {
+    setFormData({ productType: '', developmentStage: '', productName: '', regulatoryObjective: '' });
+    setAiRecommendation(null);
+    setMeetingDate('');
+    setShowRecommendation(false);
+    setEditingSubmissionId(null);
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleGetAIRecommendation = () => {
-    // Simple object structure for AI team to populate
     const recommendation = {
       recommendedMeetingType: "End of Phase 2 (EOP2)",
-      confidence: "High",
-      reasoning: "Based on your Phase 2 clinical data and regulatory objectives, an EOP2 meeting is recommended to discuss trial design and endpoints for Phase 3.",
-      keyTopics: [
-        "Phase 3 trial design discussion",
-        "Primary endpoint selection",
-        "Safety monitoring plan",
-        "Statistical analysis approach"
-      ],
-      timeline: "4-6 weeks to prepare",
       icon: "E",
       subtitle: "Meeting to discuss Phase 2 results and Phase 3 design",
       matchPercentage: "90%",
+      timeline: "4-6 weeks to prepare",
       justification: [
         "End-of-Phase 2 meetings are critical for Phase 3 planning",
         "Provides opportunity to discuss trial design and endpoints",
@@ -53,56 +51,17 @@ const FdaMeetingPrepAgent = () => {
         "How should the statistical analysis be conducted?"
       ],
       recommendedDocuments: [
-        {
-          id: "meeting-request-letter",
-          title: "Meeting Request Letter",
-          description: "Formal letter requesting the meeting with FDA",
-          status: "required", // "required", "recommended", "optional", "completed"
-          priority: "high"
-        },
-        {
-          id: "product-development-summary",
-          title: "Product Development Summary",
-          description: "Comprehensive overview of your product and development program",
-          status: "required",
-          priority: "high"
-        },
-        {
-          id: "cmc-information",
-          title: "CMC Information Package",
-          description: "Chemistry, Manufacturing, and Controls documentation",
-          status: "recommended",
-          priority: "medium"
-        },
-        {
-          id: "risk-assessment",
-          title: "Risk Assessment and Mitigation Strategy",
-          description: "Evaluation of product risks and mitigation plans",
-          status: "recommended",
-          priority: "medium"
-        },
-        {
-          id: "literature-review",
-          title: "Literature Review",
-          description: "Relevant scientific literature supporting your development",
-          status: "optional",
-          priority: "low"
-        },
-        {
-          id: "regulatory-precedent",
-          title: "Regulatory Precedent Analysis",
-          description: "Analysis of similar products and regulatory decisions",
-          status: "recommended",
-          priority: "medium"
-        }
+        { id: "meeting-request-letter", title: "Meeting Request Letter", description: "Formal letter requesting the meeting with FDA", status: "required" },
+        { id: "product-development-summary", title: "Product Development Summary", description: "Comprehensive overview of your product and development program", status: "required" },
+        { id: "cmc-information", title: "CMC Information Package", description: "Chemistry, Manufacturing, and Controls documentation", status: "recommended" },
+        { id: "risk-assessment", title: "Risk Assessment and Mitigation Strategy", description: "Evaluation of product risks and mitigation plans", status: "recommended" },
+        { id: "literature-review", title: "Literature Review", description: "Relevant scientific literature supporting your development", status: "optional" },
+        { id: "regulatory-precedent", title: "Regulatory Precedent Analysis", description: "Analysis of similar products and regulatory decisions", status: "recommended" }
       ]
     };
-
     setAiRecommendation(recommendation);
     setShowRecommendation(true);
   };
-
-  const isFormComplete = formData.productType && formData.developmentStage && formData.productName && formData.regulatoryObjective;
 
   const handleSubmitMeetingRequest = () => {
     const submissionData = {
@@ -111,57 +70,24 @@ const FdaMeetingPrepAgent = () => {
       productType: formData.productType,
       meetingType: aiRecommendation?.recommendedMeetingType?.toLowerCase().replace(/\s+/g, '_') || 'end_of_phase1',
       developmentStage: formData.developmentStage,
-      submittedDate: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      }),
-      lastUpdated: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      }),
-      formData,
-      aiRecommendation,
-      meetingDate
+      submittedDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      lastUpdated: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      formData, aiRecommendation, meetingDate
     };
 
     if (editingSubmissionId) {
-      // Update existing submission
-      setSubmissions(prev => prev.map(sub => 
-        sub.id === editingSubmissionId ? submissionData : sub
-      ));
-      setMeetingRequests(prev => prev.map(req => 
-        req.id === editingSubmissionId ? submissionData : req
-      ));
+      setSubmissions(prev => prev.map(sub => sub.id === editingSubmissionId ? submissionData : sub));
+      setMeetingRequests(prev => prev.map(req => req.id === editingSubmissionId ? submissionData : req));
     } else {
-      // Add new submission
-      setSubmissions(prev => [submissionData, ...prev.slice(0, 2)]); // Keep only 3 most recent
-      setMeetingRequests(prev => [submissionData, ...prev.slice(0, 0)]); // Keep only 1 most recent
+      setSubmissions(prev => [submissionData, ...prev.slice(0, 2)]);
+      setMeetingRequests(prev => [submissionData, ...prev.slice(0, 0)]);
     }
     
-    // Reset form and go back to main view
     setCurrentTab('main');
-    setShowRecommendation(false);
-    setFormData({
-      productType: '',
-      developmentStage: '',
-      productName: '',
-      regulatoryObjective: ''
-    });
-    setAiRecommendation(null);
-    setMeetingDate('');
-    setEditingSubmissionId(null);
-    
-    console.log('Meeting request submitted:', submissionData);
-  };
-
-  const handleCreateWithAIWizard = (document: any) => {
-    navigate('/agents/document-preparation');
+    resetForm();
   };
 
   const handleViewDetails = (submission: any) => {
-    // Restore the form data and AI recommendation
     setFormData(submission.formData);
     setAiRecommendation(submission.aiRecommendation);
     setMeetingDate(submission.meetingDate);
@@ -169,6 +95,51 @@ const FdaMeetingPrepAgent = () => {
     setCurrentTab('product-info');
     setEditingSubmissionId(submission.id);
   };
+
+  const EmptyState = ({ title, description }: { title: string; description: string }) => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center py-3">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
+            <FileText className="h-6 w-6 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-500 mb-4">{description}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const SubmissionCard = ({ submission, onViewDetails }: { submission: any; onViewDetails: (submission: any) => void }) => (
+    <Card key={submission.id}>
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-gray-900">{submission.productName}</h3>
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                <CalendarDays className="w-3 h-3" />
+                Submitted
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div>
+                <p>Product Type: {submission.productType}</p>
+                <p>Meeting Type: {submission.meetingType}</p>
+              </div>
+              <div>
+                <p>Development Stage: {submission.developmentStage}</p>
+                <p>{submission.submittedDate ? `Submitted: ${submission.submittedDate}` : `Last Updated: ${submission.lastUpdated}`}</p>
+              </div>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => onViewDetails(submission)} className="ml-4">
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   if (currentTab === 'main') {
     return (
@@ -178,137 +149,39 @@ const FdaMeetingPrepAgent = () => {
             <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">FDA Meeting Preparation</h1>
             <p className="text-gray-600">Streamline your FDA meeting process with AI-powered assistance</p>
           </div>
-          <Button className="flex items-center gap-2" onClick={() => {
-            setCurrentTab('product-info');
-            setEditingSubmissionId(null);
-            setFormData({
-              productType: '',
-              developmentStage: '',
-              productName: '',
-              regulatoryObjective: ''
-            });
-            setAiRecommendation(null);
-            setMeetingDate('');
-            setShowRecommendation(false);
-          }}>
+          <Button className="flex items-center gap-2" onClick={() => { setCurrentTab('product-info'); resetForm(); }}>
             <Plus className="w-5 h-5" />
             New Meeting Request
           </Button>
         </div>
 
-        {/* Recent Submissions */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-green-500" />
             <h2 className="text-xl font-semibold text-gray-900">Recent Submissions</h2>
           </div>
           {submissions.length === 0 ? (
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-3">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
-                    <FileText className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recent submissions</h3>
-                  <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState title="No recent submissions" description="Create your first meeting request to get started" />
           ) : (
             <div className="space-y-4">
               {submissions.map((submission) => (
-                <Card key={submission.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900">{submission.productName}</h3>
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                            <CalendarDays className="w-3 h-3" />
-                            Submitted
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div>
-                            <p>Product Type: {submission.productType}</p>
-                            <p>Meeting Type: {submission.meetingType}</p>
-                          </div>
-                          <div>
-                            <p>Development Stage: {submission.developmentStage}</p>
-                            <p>Submitted: {submission.submittedDate}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(submission)}
-                        className="ml-4"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SubmissionCard key={submission.id} submission={submission} onViewDetails={handleViewDetails} />
               ))}
             </div>
           )}
         </div>
 
-        {/* All Meeting Requests */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-900">All Meeting Requests</h2>
           </div>
           {meetingRequests.length === 0 ? (
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-3">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
-                    <FileText className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No meeting requests yet</h3>
-                  <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState title="No meeting requests yet" description="Create your first meeting request to get started" />
           ) : (
             <div className="space-y-4">
               {meetingRequests.map((request) => (
-                <Card key={request.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900">{request.productName}</h3>
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                            <CalendarDays className="w-3 h-3" />
-                            Submitted
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div>
-                            <p>Product Type: {request.productType}</p>
-                            <p>Meeting Type: {request.meetingType}</p>
-                          </div>
-                          <div>
-                            <p>Development Stage: {request.developmentStage}</p>
-                            <p>Last Updated: {request.lastUpdated}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(request)}
-                        className="ml-4"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SubmissionCard key={request.id} submission={request} onViewDetails={handleViewDetails} />
               ))}
             </div>
           )}
@@ -324,25 +197,12 @@ const FdaMeetingPrepAgent = () => {
           <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">Meeting Type Identification</h1>
           <p className="text-gray-600">Recommend the appropriate FDA meeting type based on your product and development stage</p>
         </div>
-        <Button variant="outline" className="flex items-center gap-2" onClick={() => {
-          setCurrentTab('main');
-          setEditingSubmissionId(null);
-          setFormData({
-            productType: '',
-            developmentStage: '',
-            productName: '',
-            regulatoryObjective: ''
-          });
-          setAiRecommendation(null);
-          setMeetingDate('');
-          setShowRecommendation(false);
-        }}>
+        <Button variant="outline" className="flex items-center gap-2" onClick={() => { setCurrentTab('main'); resetForm(); }}>
           <ArrowLeft className="w-4 h-4" />
           Back to FDA Meeting Preparation Agent
         </Button>
       </div>
 
-      {/* Product Information Form */}
       <Card className="mb-8">
         <CardContent className="p-8">
           <div className="space-y-6">
@@ -410,9 +270,9 @@ const FdaMeetingPrepAgent = () => {
 
             <div className="flex justify-center pt-6">
               <Button
-                className={`flex items-center gap-2 ${!isFormComplete ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex items-center gap-2 ${!Object.values(formData).every(Boolean) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleGetAIRecommendation}
-                disabled={!isFormComplete}
+                disabled={!Object.values(formData).every(Boolean)}
               >
                 <Lightbulb className="w-5 h-5" />
                 Get AI Recommendation
@@ -422,212 +282,179 @@ const FdaMeetingPrepAgent = () => {
         </CardContent>
       </Card>
 
-      {/* Recommendation Section */}
       {showRecommendation && aiRecommendation && (
-        <Card>
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="inline-flex items-center justify-center">
+        <>
+          <Card>
+            <CardContent className="p-8">
+              <div className="flex items-center gap-3 mb-6">
                 <Lightbulb className="w-7 h-7 text-yellow-500" />
-              </span>
-              <h2 className="text-xl font-semibold text-gray-900">Recommended Meeting Type</h2>
-            </div>
-            <div
-              className="space-y-6 p-8 rounded-xl"
-              style={{
-                background: "linear-gradient(90deg, #f8fafc 0%, #e0e7ff 100%)",
-                border: "1px solid #e5e7eb",
-                boxShadow: "0 2px 8px 0 rgba(16,30,54,0.04)",
-              }}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">{aiRecommendation.icon}</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{aiRecommendation.recommendedMeetingType}</h3>
-                    <p className="text-gray-500 text-sm">{aiRecommendation.subtitle}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-green-600 font-semibold text-sm mb-1">{aiRecommendation.matchPercentage} Match</span>
-                  <span className="text-gray-400 text-xs">Confidence Score</span>
-                  <span className="text-gray-400 text-xs">{aiRecommendation.timeline}</span>
-                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Recommended Meeting Type</h2>
               </div>
-
-              {/* Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                <div>
-                  <h5 className="font-semibold text-gray-800 mb-2">Justification</h5>
-                  <ul className="space-y-2 text-sm">
-                    {aiRecommendation.justification?.map((item: string, index: number) => (
-                      <li key={index} className="flex items-start gap-2 text-gray-700">
-                        <span className="inline-block w-2 h-2 mt-2 bg-green-500 rounded-full"></span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-gray-800 mb-2">Typical Questions</h5>
-                  <ul className="space-y-2 text-sm">
-                    {aiRecommendation.typicalQuestions?.map((item: string, index: number) => (
-                      <li key={index} className="flex items-start gap-2 text-gray-700">
-                        <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recommended Documents Section */}
-      {showRecommendation && (
-        <Card className="mt-8">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="inline-flex items-center justify-center">
-                <FileText className="w-7 h-7 text-green-500" />
-              </span>
-              <h2 className="text-xl font-semibold text-gray-900">Recommended Documents</h2>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Documents recommended for your <span className="font-semibold">{aiRecommendation?.recommendedMeetingType || "FDA Meeting"}</span> meeting
-            </p>
-
-            {/* Document List */}
-            <div className="space-y-4">
-              {aiRecommendation?.recommendedDocuments?.map((document: any, index: number) => (
-                <div key={document.id} className={`flex items-center justify-between py-4 ${index < aiRecommendation.recommendedDocuments.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${document.status === 'completed' ? 'bg-green-500' :
-                        document.status === 'required' ? 'bg-red-500' :
-                          document.status === 'recommended' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`}>
-                      {document.status === 'completed' ? (
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-white" />
-                      )}
+              <div className="space-y-6 p-8 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">{aiRecommendation.icon}</span>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900">{document.title}</h4>
-                      <p className="text-sm text-gray-600">{document.description}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{aiRecommendation.recommendedMeetingType}</h3>
+                      <p className="text-gray-500 text-sm">{aiRecommendation.subtitle}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
-                      onClick={() => handleCreateWithAIWizard(document)}
-                    >
-                      <Wand2 className="w-4 h-4" />
-                      Create with AI Wizard
-                    </Button>
-                    <div className="flex items-center gap-1 text-gray-500 cursor-pointer">
-                      <span className="text-sm">Need Help?</span>
-                      <HelpCircle className="w-4 h-4" />
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-green-600 font-semibold text-sm mb-1">{aiRecommendation.matchPercentage} Match</span>
+                    <span className="text-gray-400 text-xs">Confidence Score</span>
+                    <span className="text-gray-400 text-xs">{aiRecommendation.timeline}</span>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* General Submission Tips */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div
-                className="space-y-3 p-6 rounded-xl"
-                style={{
-                  background: "linear-gradient(90deg, #f8fafc 0%, #e0e7ff 100%)",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 2px 8px 0 rgba(16,30,54,0.04)",
-                }}
-              >
-                <h3 className="font-semibold text-gray-900 mb-3">General Submission Tips:</h3>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-start gap-2">
-                    <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                    <span>Submit documents at least 30 days before your requested meeting date</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                    <span>Use clear, concise language and avoid unnecessary jargon</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                    <span>Include page numbers and a table of contents for longer documents</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                    <span>Provide electronic copies in searchable PDF format</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
-                    <span>Consider FDA's current workload and plan accordingly</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+                  <div>
+                    <h5 className="font-semibold text-gray-800 mb-2">Justification</h5>
+                    <ul className="space-y-2 text-sm">
+                      {aiRecommendation.justification?.map((item: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2 text-gray-700">
+                          <span className="inline-block w-2 h-2 mt-2 bg-green-500 rounded-full"></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-      {/* Meeting Details Section */}
-      {showRecommendation && (
-        <Card className="mt-8">
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Meeting Details</h2>
-
-            {/* Meeting Information Card */}
-            <div className="w-full bg-blue-50 rounded-lg p-6 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">{aiRecommendation?.icon || "M"}</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{aiRecommendation?.recommendedMeetingType || "FDA Meeting"}</h3>
-                  <p className="text-sm text-gray-600">{aiRecommendation?.subtitle || "Meeting to discuss regulatory objectives"}</p>
+                  <div>
+                    <h5 className="font-semibold text-gray-800 mb-2">Typical Questions</h5>
+                    <ul className="space-y-2 text-sm">
+                      {aiRecommendation.typicalQuestions?.map((item: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2 text-gray-700">
+                          <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Meeting Date Input */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700">
-                  Preferred Meeting Date:
-                </label>
-                <input
-                  type="date"
-                  id="meetingDate"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
-                />
+          <Card className="mt-8">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <FileText className="w-7 h-7 text-green-500" />
+                <h2 className="text-xl font-semibold text-gray-900">Recommended Documents</h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Documents recommended for your <span className="font-semibold">{aiRecommendation?.recommendedMeetingType || "FDA Meeting"}</span> meeting
+              </p>
+
+              <div className="space-y-4">
+                {aiRecommendation?.recommendedDocuments?.map((document: any, index: number) => (
+                  <div key={document.id} className={`flex items-center justify-between py-4 ${index < aiRecommendation.recommendedDocuments.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        document.status === 'completed' ? 'bg-green-500' :
+                        document.status === 'required' ? 'bg-red-500' :
+                        document.status === 'recommended' ? 'bg-yellow-500' : 'bg-gray-400'
+                      }`}>
+                        {document.status === 'completed' ? <CheckCircle className="w-4 h-4 text-white" /> : <AlertCircle className="w-4 h-4 text-white" />}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{document.title}</h4>
+                        <p className="text-sm text-gray-600">{document.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
+                        onClick={() => navigate('/agents/document-preparation')}
+                      >
+                        <Wand2 className="w-4 h-4" />
+                        Create with AI Wizard
+                      </Button>
+                      <div className="flex items-center gap-1 text-gray-500 cursor-pointer">
+                        <span className="text-sm">Need Help?</span>
+                        <HelpCircle className="w-4 h-4" />
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-center">
-                <Button
-                  className={`flex items-center gap-2 ${!meetingDate ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onClick={handleSubmitMeetingRequest}
-                  disabled={!meetingDate}
-                >
-                  <Calendar className="w-5 h-5" />
-                  Submit Meeting Request
-                </Button>
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="space-y-3 p-6 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-3">General Submission Tips:</h3>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                      <span>Submit documents at least 30 days before your requested meeting date</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                      <span>Use clear, concise language and avoid unnecessary jargon</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                      <span>Include page numbers and a table of contents for longer documents</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                      <span>Provide electronic copies in searchable PDF format</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-gray-400 rounded-full"></span>
+                      <span>Consider FDA's current workload and plan accordingly</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-8">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Meeting Details</h2>
+
+              <div className="w-full bg-blue-50 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">{aiRecommendation?.icon || "M"}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{aiRecommendation?.recommendedMeetingType || "FDA Meeting"}</h3>
+                    <p className="text-sm text-gray-600">{aiRecommendation?.subtitle || "Meeting to discuss regulatory objectives"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700">
+                    Preferred Meeting Date:
+                  </label>
+                  <input
+                    type="date"
+                    id="meetingDate"
+                    value={meetingDate}
+                    onChange={(e) => setMeetingDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
+                  />
+                </div>
+
+                <div className="flex justify-center">
+                  <Button
+                    className={`flex items-center gap-2 ${!meetingDate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={handleSubmitMeetingRequest}
+                    disabled={!meetingDate}
+                  >
+                    <Calendar className="w-5 h-5" />
+                    Submit Meeting Request
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );
