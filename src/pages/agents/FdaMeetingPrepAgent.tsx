@@ -19,6 +19,7 @@ const FdaMeetingPrepAgent = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(null);
+  const [openHelpId, setOpenHelpId] = useState<string | null>(null);
 
   const resetForm = () => {
     setFormData({ productType: '', developmentStage: '', productName: '', regulatoryObjective: '' });
@@ -26,6 +27,7 @@ const FdaMeetingPrepAgent = () => {
     setMeetingDate('');
     setShowRecommendation(false);
     setEditingSubmissionId(null);
+    setOpenHelpId(null);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -51,12 +53,120 @@ const FdaMeetingPrepAgent = () => {
         "How should the statistical analysis be conducted?"
       ],
       recommendedDocuments: [
-        { id: "meeting-request-letter", title: "Meeting Request Letter", description: "Formal letter requesting the meeting with FDA", status: "required" },
-        { id: "product-development-summary", title: "Product Development Summary", description: "Comprehensive overview of your product and development program", status: "required" },
-        { id: "cmc-information", title: "CMC Information Package", description: "Chemistry, Manufacturing, and Controls documentation", status: "recommended" },
-        { id: "risk-assessment", title: "Risk Assessment and Mitigation Strategy", description: "Evaluation of product risks and mitigation plans", status: "recommended" },
-        { id: "literature-review", title: "Literature Review", description: "Relevant scientific literature supporting your development", status: "optional" },
-        { id: "regulatory-precedent", title: "Regulatory Precedent Analysis", description: "Analysis of similar products and regulatory decisions", status: "recommended" }
+        { 
+          id: "meeting-request-letter", 
+          title: "Meeting Request Letter", 
+          description: "Formal letter requesting the meeting with FDA", 
+          status: "required",
+          helpContent: {
+            whatToInclude: [
+              "A structured letter outlining your request, objectives, and proposed agenda",
+              "Clear statement of meeting purpose",
+              "Specific questions or topics for discussion",
+              "Proposed meeting date and format preference"
+            ],
+            tips: [
+              "Submit 30-75 days before desired meeting date",
+              "Include your contact information and preferred FDA attendees",
+              "Be specific about what decisions or feedback you need"
+            ]
+          }
+        },
+        { 
+          id: "product-development-summary", 
+          title: "Product Development Summary", 
+          description: "Comprehensive overview of your product and development program", 
+          status: "required",
+          helpContent: {
+            whatToInclude: [
+              "Product description and intended use",
+              "Current development status and milestones",
+              "Summary of available data and key findings",
+              "Proposed development plan and timeline"
+            ],
+            tips: [
+              "Focus on data that supports your meeting objectives",
+              "Highlight any significant safety or efficacy findings",
+              "Include relevant regulatory precedents or guidance"
+            ]
+          }
+        },
+        { 
+          id: "cmc-information", 
+          title: "CMC Information Package", 
+          description: "Chemistry, Manufacturing, and Controls documentation", 
+          status: "recommended",
+          helpContent: {
+            whatToInclude: [
+              "Manufacturing process description and controls",
+              "Stability data and specifications",
+              "Analytical methods and validation data",
+              "Any manufacturing changes and their impact"
+            ],
+            tips: [
+              "Ensure all CMC data is current and complete",
+              "Address any CMC-related questions or concerns",
+              "Include relevant FDA guidance compliance"
+            ]
+          }
+        },
+        { 
+          id: "risk-assessment", 
+          title: "Risk Assessment and Mitigation Strategy", 
+          description: "Evaluation of product risks and mitigation plans", 
+          status: "recommended",
+          helpContent: {
+            whatToInclude: [
+              "Identification of potential risks associated with the product",
+              "Current risk mitigation strategies and plans",
+              "Safety monitoring protocols and procedures",
+              "Risk-benefit analysis framework"
+            ],
+            tips: [
+              "Be comprehensive in risk identification",
+              "Provide evidence-based mitigation strategies",
+              "Address any emerging safety concerns proactively"
+            ]
+          }
+        },
+        { 
+          id: "literature-review", 
+          title: "Literature Review", 
+          description: "Relevant scientific literature supporting your development", 
+          status: "optional",
+          helpContent: {
+            whatToInclude: [
+              "Relevant published studies and clinical data",
+              "Key findings and their relevance to your product",
+              "Analysis of conflicting data or controversial findings",
+              "Context for your development program"
+            ],
+            tips: [
+              "Focus on recent and relevant literature",
+              "Address any conflicting data transparently",
+              "Include regulatory decisions on similar products"
+            ]
+          }
+        },
+        { 
+          id: "regulatory-precedent", 
+          title: "Regulatory Precedent Analysis", 
+          description: "Analysis of similar products and regulatory decisions", 
+          status: "recommended",
+          helpContent: {
+            whatToInclude: [
+              "Analysis of similar products and their regulatory pathways",
+              "Relevant FDA decisions and guidance documents",
+              "Precedents that support your approach",
+              "Lessons learned from similar development programs"
+            ],
+            tips: [
+              "Focus on recent and relevant precedents",
+              "Address any differences from precedents and their justification",
+              "Include both positive and negative precedents"
+            ]
+          }
+        }
       ]
     };
     setAiRecommendation(recommendation);
@@ -371,10 +481,48 @@ const FdaMeetingPrepAgent = () => {
                         <Wand2 className="w-4 h-4" />
                         Create with AI Wizard
                       </Button>
-                      <div className="flex items-center gap-1 text-gray-500 cursor-pointer">
-                        <span className="text-sm">Need Help?</span>
-                        <HelpCircle className="w-4 h-4" />
-                        <ChevronDown className="w-4 h-4" />
+                      <div className="relative">
+                        <div 
+                          className="flex items-center gap-1 text-gray-500 cursor-pointer"
+                          onClick={() => setOpenHelpId(openHelpId === document.id ? null : document.id)}
+                        >
+                          <span className="text-sm">Need Help?</span>
+                          <HelpCircle className="w-4 h-4" />
+                          <ChevronDown className={`w-4 h-4 transition-transform ${openHelpId === document.id ? 'rotate-180' : ''}`} />
+                        </div>
+                        {openHelpId === document.id && document.helpContent && (
+                          <div className="absolute right-0 top-full mt-2 w-80 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-10">
+                            <div className="mb-3">
+                              <h5 className="font-semibold text-blue-900">Need Help?</h5>
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <div>
+                                <h6 className="font-semibold text-blue-800 mb-2">What to Include:</h6>
+                                <ul className="space-y-1">
+                                  {document.helpContent.whatToInclude.map((item: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm text-blue-700">
+                                      <span className="inline-block w-1.5 h-1.5 mt-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                                      <span>{item}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              
+                              <div>
+                                <h6 className="font-semibold text-blue-800 mb-2">Tips:</h6>
+                                <ul className="space-y-1">
+                                  {document.helpContent.tips.map((item: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm text-blue-700">
+                                      <Lightbulb className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
+                                      <span>{item}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
