@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import api from "../../api";
+import { productTypes } from "../../constants";
 const FdaMeetingPrepAgent = () => {
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
@@ -535,10 +536,11 @@ const FdaMeetingPrepAgent = () => {
                     }
                   >
                     <option value="">Select product type...</option>
-                    <option value="drug">Drug</option>
-                    <option value="biologic">Biologic</option>
-                    <option value="device">Medical Device</option>
-                    <option value="device">Combination Product</option>
+                    {productTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
