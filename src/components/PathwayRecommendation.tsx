@@ -5,6 +5,7 @@ import { Button } from "./ui/Button";
 import Input from "./Input";
 import { Badge } from "./ui";
 import { useSubmission } from "../provider/submissionProvider";
+import { productTypes } from "../constants";
 // Temporary mock data for demonstration - removed unused variable
 
 export function PathwayRecommendation({
@@ -39,7 +40,7 @@ export function PathwayRecommendation({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isMedicalDevice = formData.productType === "Medical Device";
+  const isMedicalDevice = formData.productType === "medical device";
 
   return (
     <Card className="border-2 border-purple-100">
@@ -69,17 +70,20 @@ export function PathwayRecommendation({
                 </label>
                 <select
                   value={formData.productType}
-                  onChange={(e) => handleInputChange("productType", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("productType", e.target.value)
+                  }
                   required
                   className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
                 >
                   <option value="" disabled>
                     Select product type
                   </option>
-                  <option value="Drug">Drug</option>
-                  <option value="Biologic">Biologic</option>
-                  <option value="Medical Device">Medical Device</option>
-                  <option value="Combination Product">Combination Product</option>
+                  {productTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -123,7 +127,10 @@ export function PathwayRecommendation({
                     label="Predicate Device (Optional)"
                     onChange={
                       ((e: any) =>
-                        handleInputChange("predicateDevice", e.target.value)) as any
+                        handleInputChange(
+                          "predicateDevice",
+                          e.target.value
+                        )) as any
                     }
                     placeholder="Enter K-number or device name"
                     value={formData.predicateDevice}
