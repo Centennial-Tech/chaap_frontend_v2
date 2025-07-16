@@ -20,6 +20,17 @@ const FdaMeetingPrepAgent = () => {
   const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(null);
   const [openHelpId, setOpenHelpId] = useState<string | null>(null);
+  const [showWizardModal, setShowWizardModal] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [wizardData, setWizardData] = useState({
+    productName: '',
+    companyName: '',
+    indication: '',
+    primaryObjective: '',
+    specificQuestions: '',
+    preferredMeetingDate: '',
+    questions: {} // Object to be populated by AI later
+  });
 
   const resetForm = () => {
     setFormData({ productType: '', developmentStage: '', productName: '', regulatoryObjective: '' });
@@ -28,6 +39,9 @@ const FdaMeetingPrepAgent = () => {
     setShowRecommendation(false);
     setEditingSubmissionId(null);
     setOpenHelpId(null);
+    setShowWizardModal(false);
+    setWizardStep(1);
+    setWizardData({ productName: '', companyName: '', indication: '', primaryObjective: '', specificQuestions: '', preferredMeetingDate: '', questions: {} });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -53,10 +67,10 @@ const FdaMeetingPrepAgent = () => {
         "How should the statistical analysis be conducted?"
       ],
       recommendedDocuments: [
-        { 
-          id: "meeting-request-letter", 
-          title: "Meeting Request Letter", 
-          description: "Formal letter requesting the meeting with FDA", 
+        {
+          id: "meeting-request-letter",
+          title: "Meeting Request Letter",
+          description: "Formal letter requesting the meeting with FDA",
           status: "required",
           helpContent: {
             whatToInclude: [
@@ -72,10 +86,10 @@ const FdaMeetingPrepAgent = () => {
             ]
           }
         },
-        { 
-          id: "product-development-summary", 
-          title: "Product Development Summary", 
-          description: "Comprehensive overview of your product and development program", 
+        {
+          id: "product-development-summary",
+          title: "Product Development Summary",
+          description: "Comprehensive overview of your product and development program",
           status: "required",
           helpContent: {
             whatToInclude: [
@@ -91,10 +105,10 @@ const FdaMeetingPrepAgent = () => {
             ]
           }
         },
-        { 
-          id: "cmc-information", 
-          title: "CMC Information Package", 
-          description: "Chemistry, Manufacturing, and Controls documentation", 
+        {
+          id: "cmc-information",
+          title: "CMC Information Package",
+          description: "Chemistry, Manufacturing, and Controls documentation",
           status: "recommended",
           helpContent: {
             whatToInclude: [
@@ -110,10 +124,10 @@ const FdaMeetingPrepAgent = () => {
             ]
           }
         },
-        { 
-          id: "risk-assessment", 
-          title: "Risk Assessment and Mitigation Strategy", 
-          description: "Evaluation of product risks and mitigation plans", 
+        {
+          id: "risk-assessment",
+          title: "Risk Assessment and Mitigation Strategy",
+          description: "Evaluation of product risks and mitigation plans",
           status: "recommended",
           helpContent: {
             whatToInclude: [
@@ -129,10 +143,10 @@ const FdaMeetingPrepAgent = () => {
             ]
           }
         },
-        { 
-          id: "literature-review", 
-          title: "Literature Review", 
-          description: "Relevant scientific literature supporting your development", 
+        {
+          id: "literature-review",
+          title: "Literature Review",
+          description: "Relevant scientific literature supporting your development",
           status: "optional",
           helpContent: {
             whatToInclude: [
@@ -148,10 +162,10 @@ const FdaMeetingPrepAgent = () => {
             ]
           }
         },
-        { 
-          id: "regulatory-precedent", 
-          title: "Regulatory Precedent Analysis", 
-          description: "Analysis of similar products and regulatory decisions", 
+        {
+          id: "regulatory-precedent",
+          title: "Regulatory Precedent Analysis",
+          description: "Analysis of similar products and regulatory decisions",
           status: "recommended",
           helpContent: {
             whatToInclude: [
@@ -192,7 +206,7 @@ const FdaMeetingPrepAgent = () => {
       setSubmissions(prev => [submissionData, ...prev.slice(0, 2)]);
       setMeetingRequests(prev => [submissionData, ...prev.slice(0, 0)]);
     }
-    
+
     setCurrentTab('main');
     resetForm();
   };
@@ -204,6 +218,46 @@ const FdaMeetingPrepAgent = () => {
     setShowRecommendation(true);
     setCurrentTab('product-info');
     setEditingSubmissionId(submission.id);
+  };
+
+  const handleCreateWithAIWizard = (document: any) => {
+    setShowWizardModal(true);
+    setWizardStep(1);
+    setWizardData({ productName: '', companyName: '', indication: '', primaryObjective: '', specificQuestions: '', preferredMeetingDate: '', questions: {} });
+  };
+
+  const handleWizardInputChange = (field: string, value: string) => {
+    setWizardData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleWizardNext = () => {
+    if (wizardStep < 2) {
+      setWizardStep(wizardStep + 1);
+    }
+  };
+
+  const handleWizardPrevious = () => {
+    if (wizardStep > 1) {
+      setWizardStep(wizardStep - 1);
+    }
+  };
+
+  const handleWizardClose = () => {
+    setShowWizardModal(false);
+    setWizardStep(1);
+    setWizardData({ productName: '', companyName: '', indication: '', primaryObjective: '', specificQuestions: '', preferredMeetingDate: '', questions: {} });
+  };
+
+  const isWizardStepComplete = () => {
+    if (wizardStep === 1) {
+      return wizardData.productName && wizardData.companyName && wizardData.indication;
+    }
+    return true;
+  };
+
+  const handleGenerateDocument = () => {
+    // TODO: Implement document generation
+    console.log('Generate document with data:', wizardData);
   };
 
   const EmptyState = ({ title, description }: { title: string; description: string }) => (
@@ -461,11 +515,10 @@ const FdaMeetingPrepAgent = () => {
                 {aiRecommendation?.recommendedDocuments?.map((document: any, index: number) => (
                   <div key={document.id} className={`flex items-center justify-between py-4 ${index < aiRecommendation.recommendedDocuments.length - 1 ? 'border-b border-gray-200' : ''}`}>
                     <div className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        document.status === 'completed' ? 'bg-green-500' :
-                        document.status === 'required' ? 'bg-red-500' :
-                        document.status === 'recommended' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${document.status === 'completed' ? 'bg-green-500' :
+                          document.status === 'required' ? 'bg-red-500' :
+                            document.status === 'recommended' ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`}>
                         {document.status === 'completed' ? <CheckCircle className="w-4 h-4 text-white" /> : <AlertCircle className="w-4 h-4 text-white" />}
                       </div>
                       <div>
@@ -476,13 +529,13 @@ const FdaMeetingPrepAgent = () => {
                     <div className="flex items-center gap-3">
                       <Button
                         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
-                        onClick={() => navigate('/agents/document-preparation')}
+                        onClick={() => handleCreateWithAIWizard(document)}
                       >
                         <Wand2 className="w-4 h-4" />
                         Create with AI Wizard
                       </Button>
                       <div className="relative">
-                        <div 
+                        <div
                           className="flex items-center gap-1 text-gray-500 cursor-pointer"
                           onClick={() => setOpenHelpId(openHelpId === document.id ? null : document.id)}
                         >
@@ -495,7 +548,7 @@ const FdaMeetingPrepAgent = () => {
                             <div className="mb-3">
                               <h5 className="font-semibold text-blue-900">Need Help?</h5>
                             </div>
-                            
+
                             <div className="space-y-4">
                               <div>
                                 <h6 className="font-semibold text-blue-800 mb-2">What to Include:</h6>
@@ -508,7 +561,7 @@ const FdaMeetingPrepAgent = () => {
                                   ))}
                                 </ul>
                               </div>
-                              
+
                               <div>
                                 <h6 className="font-semibold text-blue-800 mb-2">Tips:</h6>
                                 <ul className="space-y-1">
@@ -603,6 +656,187 @@ const FdaMeetingPrepAgent = () => {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {/* AI Document Wizard Modal */}
+      {showWizardModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <Wand2 className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">AI Document Wizard: Meeting Request Letter</h2>
+              </div>
+              <button
+                onClick={handleWizardClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Progress Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Step {wizardStep} of 2</span>
+                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                  {wizardStep === 1 ? '50%' : '100%'} Complete
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${wizardStep === 1 ? '50%' : '100%'}` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                {wizardStep === 1 ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lightbulb className="w-5 h-5 text-yellow-500" />
+                      <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                    </div>
+                    <p className="text-gray-600 mb-4">Let's start with some basic details about your product and meeting.</p>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Product Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          placeholder="Enter your product name"
+                          value={wizardData.productName}
+                          onChange={(e) => handleWizardInputChange('productName', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Company Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          placeholder="Your company name"
+                          value={wizardData.companyName}
+                          onChange={(e) => handleWizardInputChange('companyName', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Indication/Intended Use <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          rows={3}
+                          placeholder="Describe the intended use or indication for your product"
+                          value={wizardData.indication}
+                          onChange={(e) => handleWizardInputChange('indication', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lightbulb className="w-5 h-5 text-yellow-500" />
+                      <h3 className="text-lg font-medium text-gray-900">Meeting Objectives</h3>
+                    </div>
+                    <p className="text-gray-600 mb-4">What do you hope to achieve from this FDA meeting?</p>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Primary Objective <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          rows={3}
+                          placeholder="What is the main goal of this meeting?"
+                          value={wizardData.primaryObjective}
+                          onChange={(e) => handleWizardInputChange('primaryObjective', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Specific Questions <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          rows={3}
+                          placeholder="List specific questions you want to discuss with FDA"
+                          value={wizardData.specificQuestions}
+                          onChange={(e) => handleWizardInputChange('specificQuestions', e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Preferred Meeting Date
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          placeholder="When would you like to meet?"
+                          value={wizardData.preferredMeetingDate}
+                          onChange={(e) => handleWizardInputChange('preferredMeetingDate', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between p-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={handleWizardPrevious}
+                disabled={wizardStep === 1}
+                className="flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+              </Button>
+              {wizardStep === 1 ? (
+                <Button
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
+                  onClick={handleWizardNext}
+                  disabled={!isWizardStepComplete()}
+                >
+                  Next
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Button>
+              ) : (
+                <Button
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
+                  onClick={handleGenerateDocument}
+                >
+                  <Wand2 className="w-4 h-4" />
+                  Generate Document
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
