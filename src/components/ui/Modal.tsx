@@ -48,26 +48,14 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4"
+      className="fixed inset-0 flex items-center justify-center p-4 bg-black/50"
       style={{ zIndex: Z_INDEX.MODAL }}
+      onClick={onClose}
     >
       <div 
-        className={`bg-white rounded-lg p-6 ${maxWidth} w-full ${maxHeight} overflow-y-auto relative`}
+        className={`bg-white rounded-lg ${maxWidth} w-full ${maxHeight} overflow-y-auto relative shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          {showCloseButton && (
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-xl"
-            >
-              ×
-            </button>
-          )}
-        </div>
-
         {/* Content */}
         {children}
       </div>

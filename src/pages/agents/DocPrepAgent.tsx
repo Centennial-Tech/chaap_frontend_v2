@@ -240,9 +240,13 @@ const mockFormQuestions = {
   ],
 };
 
-const DocPrepAgent = () => {
+interface DocPrepAgentProps {
+  documentType?: string;
+}
+
+const DocPrepAgent: React.FC<DocPrepAgentProps> = ({ documentType }) => {
   const [selectedSubmission, setSelectedSubmission] = useState({} as any);
-  const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
+  const [selectedAttachmentType, setSelectedAttachmentType] = useState(documentType || "");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
