@@ -175,41 +175,43 @@ export default function Navbar() {
           {/* Submission Selector */}
           {!hideSubmissionDropdown && (
             <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`
-                  flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium relative overflow-hidden
-                  ${
-                    activeSubmission
-                      ? "text-blue-700 hover:text-blue-800"
-                      : "text-gray-700 hover:text-gray-800"
-                  }
-                  transition-all duration-300 border border-purple-500
-                  ${activeSubmission ? "shadow-lg" : "shadow-md"}
-                `}
-              >
-                {/* Breathing gradient background */}
+              <div className="relative">
+                {/* Gradient border wrapper */}
                 <div
-                  className={`
-                  absolute inset-0 rounded-lg transition-all duration-300
-                  ${
-                    activeSubmission
-                      ? "breathing-gradient-move"
-                      : "bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300"
-                  }
-                  opacity-20 hover:opacity-30
-                `}
-                />
-                {/* Content */}
-                <span className="relative z-10">
-                  {activeSubmission?.name || "Select Submission"}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 relative z-10 ${
-                    isDropdownOpen ? "transform rotate-180" : ""
-                  }`}
-                />
-              </button>
+                  className="rounded-xl p-[3px]"
+                  style={{
+                    background: activeSubmission 
+                      ? 'linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)'
+                      : 'linear-gradient(45deg, #d1d5db, #9ca3af, #6b7280)',
+                    backgroundSize: activeSubmission ? '400% 400%' : '100% 100%',
+                    animation: activeSubmission ? 'gradientShift 3s ease infinite' : 'none'
+                  }}
+                >
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`
+                      flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium w-full
+                      ${
+                        activeSubmission
+                          ? "text-blue-700 hover:text-blue-800"
+                          : "text-gray-700 hover:text-gray-800"
+                      }
+                      transition-all duration-300 bg-white
+                      ${activeSubmission ? "shadow-lg" : "shadow-md"}
+                    `}
+                  >
+                    {/* Content */}
+                    <span>
+                      {activeSubmission?.name || "Select Submission"}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isDropdownOpen ? "transform rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
 
               {isDropdownOpen && (
                 <div
