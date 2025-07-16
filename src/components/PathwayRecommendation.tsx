@@ -5,14 +5,7 @@ import { Button } from "./ui/Button";
 import Input from "./Input";
 import { Badge } from "./ui";
 import { useSubmission } from "../provider/submissionProvider";
-// Temporary mock data for demonstration
-const mockSubmission = {
-  productType: "Medical Device",
-  riskClassification: "Class II",
-  intendedUse: "Example intended use",
-  technologicalCharacteristics: "Example characteristics",
-  predicateDevice: "K123456",
-};
+// Temporary mock data for demonstration - removed unused variable
 
 export function PathwayRecommendation({
   recommendation,

@@ -352,7 +352,7 @@ const DocPrepAgent = () => {
       setCurrentSessionId(sessionId);
 
       const response = await api.post("/agents/document_prep/start-workflow", {
-        fda_document_type: activeSubmission?.submissionType || "IND",
+        fda_document_type: activeSubmission?.submission_type || "IND",
         attachment_type: selectedAttachmentType,
         session_id: sessionId,
       });

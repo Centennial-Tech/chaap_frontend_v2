@@ -2,10 +2,7 @@ import { useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { Plus, Activity, Calendar, FileText, Info, Lightbulb, ArrowLeft, AlertCircle, CheckCircle, Wand2, HelpCircle, ChevronDown, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
-import { useNavigate } from "react-router-dom";
-
 const FdaMeetingPrepAgent = () => {
-  const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState<'main' | 'product-info'>('main');
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [formData, setFormData] = useState({
@@ -220,7 +217,7 @@ const FdaMeetingPrepAgent = () => {
     setEditingSubmissionId(submission.id);
   };
 
-  const handleCreateWithAIWizard = (document: any) => {
+  const handleCreateWithAIWizard = (_document: any) => {
     setShowWizardModal(true);
     setWizardStep(1);
     setWizardData({ productName: '', companyName: '', indication: '', primaryObjective: '', specificQuestions: '', preferredMeetingDate: '', questions: {} });
