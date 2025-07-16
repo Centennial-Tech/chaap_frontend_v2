@@ -80,7 +80,8 @@ const PreSubmissionStrategyAgent = () => {
   const handleProjectTimeline = async (formData: any) => {
     setIsProjectTimelineLoading(true);
     const data = await callApi("PROJECT_TIMELINE", formData);
-    setProjectTimelineItems(data?.timeline || []);
+    console.log("Project Timeline Data:", data);
+    setProjectTimelineItems(data || []);
     setIsProjectTimelineLoading(false);
   };
 

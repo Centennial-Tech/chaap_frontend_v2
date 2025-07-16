@@ -28,7 +28,9 @@ interface Stats {
 
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
-  const in_progress = submissions.filter((s) => s.status === "in_progress").length;
+  const in_progress = submissions.filter(
+    (s) => s.status === "in_progress"
+  ).length;
   const completed = submissions.filter((s) => s.status === "completed").length;
   const total = submissions.length;
   const approvalRate = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -45,7 +47,7 @@ const Dashboard = () => {
   const location = useLocation();
   const [showMessage, setShowMessage] = React.useState(false);
   const [message, setMessage] = React.useState("");
-  const {submissions, refreshSubmissions } = useSubmission();
+  const { submissions, refreshSubmissions } = useSubmission();
 
   // Check for redirect message
   useEffect(() => {
@@ -60,7 +62,9 @@ const Dashboard = () => {
   // State management
   const [open, setOpen] = React.useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleConfirmDelete = async () => {
@@ -217,13 +221,14 @@ const Dashboard = () => {
         const newSubmission: Partial<Submission> = {
           name: formData.name,
           //type: formData.type,
-          submissionType: formData.submissionType,
+          submission_type: formData.submissionType,
           end_time: formData.end_time,
-          productDescription: formData.productDescription,
+          intended_use: formData.productDescription,
+          product_type: formData.type,
           // status: "draft", -- this is set by the backend
           // created_at: new Date().toISOString(),
           // updated_at: new Date().toISOString(),
-          
+
           //questionAnswers: questionAnswersRef.current, TODO: add this back in
         };
 
@@ -301,14 +306,20 @@ const Dashboard = () => {
         <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-blue-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-blue-700">
-                {message}
-              </p>
+              <p className="text-sm text-blue-700">{message}</p>
             </div>
             <div className="ml-auto pl-3">
               <div className="-mx-1.5 -my-1.5">
@@ -317,8 +328,16 @@ const Dashboard = () => {
                   className="inline-flex rounded-md p-1.5 text-blue-500 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <span className="sr-only">Dismiss</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </button>
               </div>
