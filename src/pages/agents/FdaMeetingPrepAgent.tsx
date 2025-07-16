@@ -16,6 +16,9 @@ const FdaMeetingPrepAgent = () => {
   });
   const [aiRecommendation, setAiRecommendation] = useState<any>(null);
   const [meetingDate, setMeetingDate] = useState('');
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
+  const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(null);
 
 
   const handleInputChange = (field: string, value: string) => {
@@ -102,17 +105,69 @@ const FdaMeetingPrepAgent = () => {
   const isFormComplete = formData.productType && formData.developmentStage && formData.productName && formData.regulatoryObjective;
 
   const handleSubmitMeetingRequest = () => {
-    // Handle meeting request submission
-    console.log('Submitting meeting request:', {
-      ...formData,
+    const submissionData = {
+      id: editingSubmissionId || Date.now().toString(),
+      productName: formData.productName || 'Drug',
+      productType: formData.productType,
+      meetingType: aiRecommendation?.recommendedMeetingType?.toLowerCase().replace(/\s+/g, '_') || 'end_of_phase1',
+      developmentStage: formData.developmentStage,
+      submittedDate: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      lastUpdated: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      formData,
       aiRecommendation,
       meetingDate
+    };
+
+    if (editingSubmissionId) {
+      // Update existing submission
+      setSubmissions(prev => prev.map(sub => 
+        sub.id === editingSubmissionId ? submissionData : sub
+      ));
+      setMeetingRequests(prev => prev.map(req => 
+        req.id === editingSubmissionId ? submissionData : req
+      ));
+    } else {
+      // Add new submission
+      setSubmissions(prev => [submissionData, ...prev.slice(0, 2)]); // Keep only 3 most recent
+      setMeetingRequests(prev => [submissionData, ...prev.slice(0, 0)]); // Keep only 1 most recent
+    }
+    
+    // Reset form and go back to main view
+    setCurrentTab('main');
+    setShowRecommendation(false);
+    setFormData({
+      productType: '',
+      developmentStage: '',
+      productName: '',
+      regulatoryObjective: ''
     });
-    // Here you would typically make an API call to submit the meeting request
+    setAiRecommendation(null);
+    setMeetingDate('');
+    setEditingSubmissionId(null);
+    
+    console.log('Meeting request submitted:', submissionData);
   };
 
   const handleCreateWithAIWizard = (document: any) => {
     navigate('/agents/document-preparation');
+  };
+
+  const handleViewDetails = (submission: any) => {
+    // Restore the form data and AI recommendation
+    setFormData(submission.formData);
+    setAiRecommendation(submission.aiRecommendation);
+    setMeetingDate(submission.meetingDate);
+    setShowRecommendation(true);
+    setCurrentTab('product-info');
+    setEditingSubmissionId(submission.id);
   };
 
   if (currentTab === 'main') {
@@ -123,7 +178,19 @@ const FdaMeetingPrepAgent = () => {
             <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">FDA Meeting Preparation</h1>
             <p className="text-gray-600">Streamline your FDA meeting process with AI-powered assistance</p>
           </div>
-          <Button className="flex items-center gap-2" onClick={() => setCurrentTab('product-info')}>
+          <Button className="flex items-center gap-2" onClick={() => {
+            setCurrentTab('product-info');
+            setEditingSubmissionId(null);
+            setFormData({
+              productType: '',
+              developmentStage: '',
+              productName: '',
+              regulatoryObjective: ''
+            });
+            setAiRecommendation(null);
+            setMeetingDate('');
+            setShowRecommendation(false);
+          }}>
             <Plus className="w-5 h-5" />
             New Meeting Request
           </Button>
@@ -135,17 +202,57 @@ const FdaMeetingPrepAgent = () => {
             <Activity className="w-5 h-5 text-green-500" />
             <h2 className="text-xl font-semibold text-gray-900">Recent Submissions</h2>
           </div>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-3">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
-                  <FileText className="h-6 w-6 text-gray-400" />
+          {submissions.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center py-3">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
+                    <FileText className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recent submissions</h3>
+                  <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No recent submissions</h3>
-                <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {submissions.map((submission) => (
+                <Card key={submission.id}>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-gray-900">{submission.productName}</h3>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            <CalendarDays className="w-3 h-3" />
+                            Submitted
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div>
+                            <p>Product Type: {submission.productType}</p>
+                            <p>Meeting Type: {submission.meetingType}</p>
+                          </div>
+                          <div>
+                            <p>Development Stage: {submission.developmentStage}</p>
+                            <p>Submitted: {submission.submittedDate}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(submission)}
+                        className="ml-4"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* All Meeting Requests */}
@@ -154,17 +261,57 @@ const FdaMeetingPrepAgent = () => {
             <Calendar className="w-5 h-5 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-900">All Meeting Requests</h2>
           </div>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-3">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
-                  <FileText className="h-6 w-6 text-gray-400" />
+          {meetingRequests.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center py-3">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
+                    <FileText className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No meeting requests yet</h3>
+                  <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No meeting requests yet</h3>
-                <p className="text-gray-500 mb-4">Create your first meeting request to get started</p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {meetingRequests.map((request) => (
+                <Card key={request.id}>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-gray-900">{request.productName}</h3>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            <CalendarDays className="w-3 h-3" />
+                            Submitted
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div>
+                            <p>Product Type: {request.productType}</p>
+                            <p>Meeting Type: {request.meetingType}</p>
+                          </div>
+                          <div>
+                            <p>Development Stage: {request.developmentStage}</p>
+                            <p>Last Updated: {request.lastUpdated}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(request)}
+                        className="ml-4"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -177,7 +324,19 @@ const FdaMeetingPrepAgent = () => {
           <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">Meeting Type Identification</h1>
           <p className="text-gray-600">Recommend the appropriate FDA meeting type based on your product and development stage</p>
         </div>
-        <Button variant="outline" className="flex items-center gap-2" onClick={() => setCurrentTab('main')}>
+        <Button variant="outline" className="flex items-center gap-2" onClick={() => {
+          setCurrentTab('main');
+          setEditingSubmissionId(null);
+          setFormData({
+            productType: '',
+            developmentStage: '',
+            productName: '',
+            regulatoryObjective: ''
+          });
+          setAiRecommendation(null);
+          setMeetingDate('');
+          setShowRecommendation(false);
+        }}>
           <ArrowLeft className="w-4 h-4" />
           Back to FDA Meeting Preparation Agent
         </Button>
