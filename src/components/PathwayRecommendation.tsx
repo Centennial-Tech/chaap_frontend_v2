@@ -21,7 +21,7 @@ export function PathwayRecommendation({
 }: any) {
   const [formData, setFormData] = useState({
     productType: "",
-    riskClassification: "",
+    riskClassification: "Class II",
     intendedUse: "",
     technologicalCharacteristics: "",
     predicateDevice: "",
@@ -30,17 +30,11 @@ export function PathwayRecommendation({
   const { activeSubmission } = useSubmission();
 
   useEffect(() => {
-    // Simulating data fetch
-    // setFormData(mockSubmission);
-    const temp = {
-      ...formData,
-    };
     setFormData((prev: any) => ({
       ...prev,
       productType: activeSubmission?.product_type,
       intendedUse: activeSubmission?.intended_use,
     }));
-    // console.log("Active Submission:", activeSubmission);
   }, [activeSubmission]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
