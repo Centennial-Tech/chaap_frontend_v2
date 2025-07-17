@@ -10,6 +10,8 @@ import AnimatedBackground from "../../components/AnimatedBackground";
 import { useOverlay } from "../../provider/overleyProvider";
 import { useSubmission } from "../../provider/submissionProvider";
 
+//TODO: Remove mock, use components, fix 2nd background behind the animation
+
 const attachmentTypes = [
   { id: "device-description", label: "Device Description" },
   { id: "cover-letter", label: "Cover Letter" },

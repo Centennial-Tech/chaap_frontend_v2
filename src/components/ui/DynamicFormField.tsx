@@ -6,6 +6,7 @@ interface DynamicFormFieldProps {
   value: any;
   onChange: (value: any) => void;
   error?: boolean;
+  onExit?: () => void;
 }
 
 export function DynamicFormField({ 
@@ -13,7 +14,8 @@ export function DynamicFormField({
   field,
   value, 
   onChange, 
-  error
+  error,
+  onExit
 }: DynamicFormFieldProps) {
   const baseClasses = "w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
   const errorClasses = error ? "border-red-300 text-red-900 placeholder-red-300" : "border-gray-300";
@@ -31,6 +33,7 @@ export function DynamicFormField({
               className={`${baseClasses} ${errorClasses} min-h-[100px] resize-vertical`}
               value={value || ""}
               onChange={(e) => onChange(e.target.value)}
+              onBlur={onExit}
               maxLength={field.properties.max_length || undefined}
               rows={4}
             />
@@ -41,6 +44,7 @@ export function DynamicFormField({
               className={`${baseClasses} ${errorClasses}`}
               value={value || ""}
               onChange={(e) => onChange(e.target.value)}
+              onBlur={onExit}
               maxLength={field.properties.max_length || undefined}
             />
           )}
@@ -60,6 +64,7 @@ export function DynamicFormField({
                 type="checkbox"
                 checked={value === true}
                 onChange={(e) => onChange(e.target.checked)}
+                onBlur={onExit}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
@@ -69,6 +74,32 @@ export function DynamicFormField({
               </label>
             </div>
           </div>
+          {error && (
+            <p className="mt-1 text-sm text-red-600">This field is required</p>
+          )}
+        </div>
+      );
+
+    case "dropdown":
+      return (
+        <div className="space-y-1">
+          <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+            {field.description} {field.required && <span className="text-red-500">*</span>}
+          </label>
+          <select
+            id={id}
+            className={`${baseClasses} ${errorClasses}`}
+            value={value || ""}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onExit}
+          >
+            <option value="">Select an option</option>
+            {field.properties.choices?.map((choice) => (
+              <option key={choice} value={choice}>
+                {choice}
+              </option>
+            ))}
+          </select>
           {error && (
             <p className="mt-1 text-sm text-red-600">This field is required</p>
           )}

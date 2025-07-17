@@ -8,7 +8,7 @@ interface SubmissionContextType {
   submissions: Submission[];
   refreshSubmissions: () => Promise<void>;
   isLoading: boolean;
-  createNewSubmission: () => void;
+  createNewSubmission: () => void; //TODO: Need to remove this
 }
 
 const SubmissionContext = createContext<SubmissionContextType | undefined>(undefined);

@@ -1,7 +1,7 @@
 import { CheckCircle, Clock, FileText, Plus } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
@@ -45,9 +45,9 @@ const calculateStats = (submissions: Submission[]): Stats => {
 
 const Dashboard = () => {
   const location = useLocation();
-  const [showMessage, setShowMessage] = React.useState(false);
-  const [message, setMessage] = React.useState("");
-  const { submissions, refreshSubmissions } = useSubmission();
+  const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState("");
+  const { submissions, refreshSubmissions } = useSubmission(); //TODO: Why 3 api calls on load?
 
   // Check for redirect message
   useEffect(() => {
@@ -60,12 +60,10 @@ const Dashboard = () => {
   }, [location.state]);
 
   // State management
-  const [open, setOpen] = React.useState(false);
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(
-    null
-  );
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (confirmDeleteId) {
@@ -92,7 +90,7 @@ const Dashboard = () => {
     productDescription: string;
   };
 
-  const [formData, setFormData] = React.useState<SubmissionFormData>({
+  const [formData, setFormData] = useState<SubmissionFormData>({
     name: "",
     type: "",
     submissionType: "",
@@ -101,28 +99,28 @@ const Dashboard = () => {
   });
 
   // Add state for generated questions and their answers
-  const [questions, setQuestions] = React.useState<string[]>([]);
-  const [questionAnswers, setQuestionAnswers] = React.useState<{
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [questionAnswers, setQuestionAnswers] = useState<{
     [q: string]: string;
   }>({});
 
   // Add ref to track latest questionAnswers for async operations
   const questionAnswersRef = useRef<{ [q: string]: string }>({});
   // Add loading state for API call
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   // Add state for form suggestion
-  const [formSuggestion, setFormSuggestion] = React.useState<string>("");
-  const [suggestionError, setSuggestionError] = React.useState("");
+  const [formSuggestion, setFormSuggestion] = useState<string>("");
+  const [suggestionError, setSuggestionError] = useState("");
 
   // Track if we are in the final create step
-  const [readyToCreate, setReadyToCreate] = React.useState(false);
+  const [readyToCreate, setReadyToCreate] = useState(false);
   // Track if user can skip suggestion and go to create after error
-  const [allowManualCreate, setAllowManualCreate] = React.useState(false);
+  const [allowManualCreate, setAllowManualCreate] = useState(false);
 
   const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
 
   // Update readyToCreate when formSuggestion is set
-  React.useEffect(() => {
+  useEffect(() => {
     if (formSuggestion) {
       setReadyToCreate(true);
     } else {
@@ -131,11 +129,11 @@ const Dashboard = () => {
   }, [formSuggestion]);
 
   // Sync questionAnswersRef with questionAnswers state
-  React.useEffect(() => {
+  useEffect(() => {
     questionAnswersRef.current = questionAnswers;
   }, [questionAnswers]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (suggestionError) {
       setAllowManualCreate(true);
       setReadyToCreate(true);

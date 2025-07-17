@@ -22,9 +22,3 @@ export interface FormQuestion {
 export interface FormData {
   [key: string]: string | string[] | boolean | number | null;
 }
-
-export interface FormAnswer {
-  question_id: string;
-  application_id: string;
-  data: Record<string, any>;
-}
