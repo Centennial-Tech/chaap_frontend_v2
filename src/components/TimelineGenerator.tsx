@@ -84,7 +84,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
     );
   }
 
-  const totalDuration = timelineItems.reduce((acc: any, item: any) => {
+  const totalDuration = timelineItems?.reduce((acc: any, item: any) => {
     const weeks = parseInt(item.duration) || 0;
     return acc + weeks;
   }, 0);
@@ -129,7 +129,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900">
-                          {item.phase}
+                          {item.phaseName}
                         </h4>
                         <span className="text-sm text-gray-500">
                           {item.weekRange || item.duration}
@@ -150,9 +150,9 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
                         >
                           {getStatusLabel(item.status)}
                         </Badge>
-                        <span className="text-gray-500">
+                        {/* <span className="text-gray-500">
                           Target: {item.targetDate}
-                        </span>
+                        </span> */}
                         <select
                           value={item.status}
                           onChange={(e) =>

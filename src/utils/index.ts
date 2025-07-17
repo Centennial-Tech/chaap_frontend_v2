@@ -1,5 +1,11 @@
 import pdfToText from "react-pdftotext";
 import mammoth from "mammoth";
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export const extractText = async (file: File): Promise<string> => {
   const ext = file.name.split(".").pop()?.toLowerCase();

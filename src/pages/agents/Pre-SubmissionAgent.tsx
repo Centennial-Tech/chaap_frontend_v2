@@ -120,9 +120,9 @@ const PreSubmissionStrategyAgent = () => {
     <div className="min-h-screen">
       <main
         ref={targetRef}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative"
       >
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 sticky top-[93px] right-[93px] z-50">
           <div className="relative">
             <Button
               onClick={() => setShowExportOptions(!showExportOptions)}
@@ -194,10 +194,10 @@ const PreSubmissionStrategyAgent = () => {
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">Submission Checklist</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">Reviewer Simulation</span>
-                  </div>
+                  </div> */}
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm">AI Strategic Insights</span>

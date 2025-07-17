@@ -9,6 +9,7 @@ import {
   Brain,
   Shield,
   SquarePen,
+  AlertTriangle,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,7 +35,7 @@ const sectionItems = [
   },
   {
     label: "FDA Meeting Prep Agent",
-    path: "/agents/fda-meeting-prep",
+    path: "/agents/FDA-Meeting-Prep",
     icon: Zap,
   },
   {
@@ -86,93 +87,118 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
         )}
       </button>
 
-      <div className="p-3 pt-16 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide">
-        <div className="space-y-1">
-          {mainNavItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={
-                location.pathname === item.path && !shouldShowFull
-                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
-                  : location.pathname === item.path
-                  ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
-                  : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
-              }
-              title={!shouldShowFull ? item.label : undefined}
-            >
-              <span
+      <div className="p-3 pt-16 min-w-64 transition-all duration-500 ease-in-out h-full overflow-y-auto scrollbar-hide flex flex-col" style={{paddingBottom: '60px'}}>
+        <div className="flex-1">
+          <div className="space-y-1">
+            {mainNavItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
                 className={
                   location.pathname === item.path && !shouldShowFull
-                    ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
-                    : "p-1.5"
+                    ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+                    : location.pathname === item.path
+                    ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+                    : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
                 }
+                title={!shouldShowFull ? item.label : undefined}
               >
-                <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
-              </span>
-              <span
-                className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                  shouldShowFull
-                    ? "opacity-100 translate-x-0 max-w-xs"
-                    : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
-                }`}
-              >
-                {item.label}
-              </span>
-            </Link>
-          ))}
-        </div>
+                <span
+                  className={
+                    location.pathname === item.path && !shouldShowFull
+                      ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+                      : "p-1.5"
+                  }
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+                </span>
+                <span
+                  className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                    shouldShowFull
+                      ? "opacity-100 translate-x-0 max-w-xs"
+                      : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
 
-        {/* Agent Hub Sections */}
-        <div className="mt-8 transition-all duration-300 ease-in-out">
-          <h3
-            className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 ml-2 transition-all duration-500 ease-in-out whitespace-nowrap ${
+          {/* Agent Hub Sections */}
+          <div className="mt-8 transition-all duration-300 ease-in-out">
+            <h3
+              className={`text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 ml-2 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                shouldShowFull
+                  ? "opacity-100 translate-x-0 max-w-xs"
+                  : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+              }`}
+            >
+              Agent Hub
+            </h3>
+            <div className="space-y-1 text-sm">
+              {sectionItems.map((section) => {
+                const isActive = location.pathname === section.path; // Updated active check
+
+                return (
+                  <Link
+                    key={section.label}
+                    to={section.path} // Direct path instead of query parameter
+                    className={
+                      isActive && !shouldShowFull
+                        ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
+                        : isActive
+                        ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
+                        : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
+                    }
+                    title={!shouldShowFull ? section.label : undefined}
+                  >
+                    <span
+                      className={
+                        isActive && !shouldShowFull
+                          ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
+                          : "p-1.5"
+                      }
+                    >
+                      <section.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+                    </span>
+                    <span
+                      className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                        shouldShowFull
+                          ? "opacity-100 translate-x-0 max-w-xs"
+                          : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
+                      }`}
+                    >
+                      {section.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Caution Notice*/}
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3">
+        <div
+          className={`flex items-center ml-1 py-2 rounded-md transition-all duration-200 ease-in-out text-amber-600 hover:bg-gray-100 ${
+            shouldShowFull ? "opacity-100" : "opacity-100"
+          }`}
+          title="AI-generated content"
+        >
+          <span className="p-1.5">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
+          </span>
+          <span
+            className={`text-sm text-slate-700 transition-all duration-500 ease-in-out whitespace-nowrap ${
               shouldShowFull
                 ? "opacity-100 translate-x-0 max-w-xs"
                 : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
             }`}
           >
-            Agent Hub
-          </h3>
-          <div className="space-y-1 text-sm">
-            {sectionItems.map((section) => {
-              const isActive = location.pathname === section.path; // Updated active check
-
-              return (
-                <Link
-                  key={section.label}
-                  to={section.path} // Direct path instead of query parameter
-                  className={
-                    isActive && !shouldShowFull
-                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-blue-600"
-                      : isActive
-                      ? "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out bg-blue-50 text-blue-600"
-                      : "flex items-center px-1 py-2 rounded-md transition-all duration-300 ease-in-out text-gray-700 hover:bg-gray-100"
-                  }
-                  title={!shouldShowFull ? section.label : undefined}
-                >
-                  <span
-                    className={
-                      isActive && !shouldShowFull
-                        ? "bg-blue-50 rounded-md p-1.5 transition-all duration-300 ease-in-out"
-                        : "p-1.5"
-                    }
-                  >
-                    <section.icon className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
-                  </span>
-                  <span
-                    className={`font-medium ml-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                      shouldShowFull
-                        ? "opacity-100 translate-x-0 max-w-xs"
-                        : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+            Contains AI-generated content.
+          </span>
         </div>
       </div>
     </aside>

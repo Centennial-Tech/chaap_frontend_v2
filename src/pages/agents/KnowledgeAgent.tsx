@@ -61,7 +61,12 @@ const components: any = {
   },
 };
 
-const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: Response & { isTyping?: boolean }) => {
+const AI = ({
+  content,
+  loading = false,
+  ref = () => {},
+  isTyping = false,
+}: Response & { isTyping?: boolean }) => {
   const [copied, setCopied] = useState<boolean>(false);
   const [liked, setLiked] = useState<boolean>(false);
   const [unliked, setUnliked] = useState<boolean>(false);
@@ -163,13 +168,17 @@ const AI = ({ content, loading = false, ref = () => {}, isTyping = false }: Resp
         ) : (
           <div className="bg-blue-50 rounded-2xl rounded-tl-none p-4 shadow-lg">
             {isTyping ? (
-              // Show plain text during typing for better performance
+              // Show content with streaming cursor during streaming
               <div className="whitespace-pre-wrap">
-                {content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, supersub]}
+                  children={content}
+                  components={components}
+                />
                 <span className="animate-pulse">|</span>
               </div>
             ) : (
-              // Show rendered markdown when typing is complete
+              // Show rendered markdown when streaming is complete
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, supersub]}
                 children={content}
@@ -190,11 +199,8 @@ const KnowledgeAgent = () => {
   const lastRef: any = useRef(null);
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Add state for typing effect
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
@@ -212,44 +218,6 @@ const KnowledgeAgent = () => {
     },
   ]);
 
-  // Typing effect function
-  const startTypingEffect = (text: string, messageIndex: number) => {
-    setIsTyping(true);
-    let currentIndex = 0;
-
-    const typeCharacter = () => {
-      if (currentIndex < text.length) {
-        // Type multiple characters at once for faster display
-        const charsToAdd = Math.min(2, text.length - currentIndex);
-        currentIndex += charsToAdd;
-        const displayText = text.substring(0, currentIndex);
-        
-        setConversations((prev) =>
-          prev.map((conv, index) =>
-            index === messageIndex
-              ? { ...conv, what: displayText, isTyping: true }
-              : conv
-          )
-        );
-      } else {
-        // Typing complete
-        setConversations((prev) =>
-          prev.map((conv, index) =>
-            index === messageIndex
-              ? { ...conv, isTyping: false, isStreaming: false }
-              : conv
-          )
-        );
-        setIsTyping(false);
-        if (typingIntervalRef.current) {
-          clearInterval(typingIntervalRef.current);
-        }
-      }
-    };
-
-    typingIntervalRef.current = setInterval(typeCharacter, 5); // Fast typing speed to match ChatBot
-  };
-
   useEffect(() => {
     if (lastRef.current) {
       lastRef.current.scrollIntoView({ behavior: "smooth" });
@@ -262,12 +230,13 @@ const KnowledgeAgent = () => {
     }
   }, [request]);
 
-  // Auto-scroll when typing, unless user scrolled up
+  // Auto-scroll when content updates, unless user scrolled up
   useEffect(() => {
-    if (isTyping && !userScrolledUp && convRef.current) {
+    const hasStreamingMessage = conversations.some((conv) => conv.isStreaming);
+    if (hasStreamingMessage && !userScrolledUp && convRef.current) {
       convRef.current.scrollTop = convRef.current.scrollHeight;
     }
-  }, [conversations, isTyping, userScrolledUp]);
+  }, [conversations, userScrolledUp]);
 
   // Detect if user manually scrolled up
   const handleScroll = () => {
@@ -285,25 +254,16 @@ const KnowledgeAgent = () => {
     }
   }, [loading]);
 
-  // Cleanup typing interval on unmount
-  useEffect(() => {
-    return () => {
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
-      }
-    };
-  }, []);
-
   // Listen for sidebar toggle event
   useEffect(() => {
     const handleSidebarToggle = (event: CustomEvent) => {
       setIsOpen(event.detail.expanded);
     };
 
-    window.addEventListener('sidebarToggle' as any, handleSidebarToggle);
+    window.addEventListener("sidebarToggle" as any, handleSidebarToggle);
 
     return () => {
-      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle);
+      window.removeEventListener("sidebarToggle" as any, handleSidebarToggle);
     };
   }, []);
 
@@ -342,12 +302,22 @@ const KnowledgeAgent = () => {
     else return <User content={what} />;
   };
 
-  // Streaming function using Server-Sent Events with typing effect
+  // Streaming function using Server-Sent Events with real-time updates
   const askBotStreaming = async (message: string) => {
     setLoading(true);
 
-    // Calculate the index where AI message will be added
-    const aiMessageIndex = conversations.length + 1; // +1 because user message will be added first
+    // Add empty AI message immediately
+    setConversations((prev) => [
+      ...prev,
+      {
+        who: type.ai,
+        what: "",
+        isStreaming: true,
+        isTyping: true,
+      },
+    ]);
+
+    setLoading(false); // Stop loading since we now have the message placeholder
 
     try {
       const response = await fetch(`${Config.API}/agent/regulatory`, {
@@ -358,6 +328,7 @@ const KnowledgeAgent = () => {
         body: JSON.stringify({
           request: message,
           stream: true,
+          session_id: sessionId || undefined, // Use sessionId if available
         }),
       });
 
@@ -384,39 +355,58 @@ const KnowledgeAgent = () => {
 
                 if (data.error) {
                   console.error("Streaming error:", data.error);
-                  setLoading(false);
-                  // Add error message
-                  setConversations((prev) => [
-                    ...prev,
-                    {
-                      who: type.ai,
-                      what: "Sorry, an error occurred. Please try again.",
-                      isStreaming: false,
-                      isTyping: false,
-                    },
-                  ]);
+                  // Update the last message with error
+                  setConversations((prev) => {
+                    const newConversations = [...prev];
+                    const lastIndex = newConversations.length - 1;
+                    if (newConversations[lastIndex]?.who === type.ai) {
+                      newConversations[lastIndex] = {
+                        ...newConversations[lastIndex],
+                        what: "Sorry, an error occurred. Please try again.",
+                        isStreaming: false,
+                        isTyping: false,
+                      };
+                    }
+                    return newConversations;
+                  });
                   return;
                 }
 
                 if (data.content) {
                   accumulatedContent += data.content;
-                  // Don't update UI immediately, just accumulate content
+
+                  // Update the last AI message with accumulated content
+                  setConversations((prev) => {
+                    const newConversations = [...prev];
+                    const lastIndex = newConversations.length - 1;
+                    if (newConversations[lastIndex]?.who === type.ai) {
+                      newConversations[lastIndex] = {
+                        ...newConversations[lastIndex],
+                        what: accumulatedContent,
+                        isStreaming: true,
+                        isTyping: true,
+                      };
+                    }
+                    return newConversations;
+                  });
                 }
 
                 if (data.done) {
-                  // When streaming is complete, stop loading and add empty message
-                  setLoading(false);
-                  setConversations((prev) => [
-                    ...prev,
-                    {
-                      who: type.ai,
-                      what: "",
-                      isStreaming: true,
-                      isTyping: false,
-                    },
-                  ]);
-                  // Start typing effect
-                  startTypingEffect(accumulatedContent, aiMessageIndex);
+                  // Finalize the message
+                  setSessionId(data.session_id || null); // Update sessionId if provided
+                  setConversations((prev) => {
+                    const newConversations = [...prev];
+                    const lastIndex = newConversations.length - 1;
+                    if (newConversations[lastIndex]?.who === type.ai) {
+                      newConversations[lastIndex] = {
+                        ...newConversations[lastIndex],
+                        what: accumulatedContent,
+                        isStreaming: false,
+                        isTyping: false,
+                      };
+                    }
+                    return newConversations;
+                  });
                   return;
                 }
               } catch (e) {
@@ -428,17 +418,20 @@ const KnowledgeAgent = () => {
       }
     } catch (error) {
       console.error("Streaming error:", error);
-      setLoading(false);
-      // Add error message
-      setConversations((prev) => [
-        ...prev,
-        {
-          who: type.ai,
-          what: "Token limit reached. Please try again in a few seconds.",
-          isStreaming: false,
-          isTyping: false,
-        },
-      ]);
+      // Update the last message with error
+      setConversations((prev) => {
+        const newConversations = [...prev];
+        const lastIndex = newConversations.length - 1;
+        if (newConversations[lastIndex]?.who === type.ai) {
+          newConversations[lastIndex] = {
+            ...newConversations[lastIndex],
+            what: "Token limit reached. Please try again in a few seconds.",
+            isStreaming: false,
+            isTyping: false,
+          };
+        }
+        return newConversations;
+      });
     }
   };
 
@@ -485,10 +478,11 @@ const KnowledgeAgent = () => {
 
   const handleSubmit = (e: any) => {
     e?.preventDefault();
-    
-    // Don't submit if already typing or loading
-    if (loading || isTyping || request.length === 0) return;
-    
+
+    // Don't submit if already loading or streaming, or if request is empty
+    const hasStreamingMessage = conversations.some((conv) => conv.isStreaming);
+    if (loading || hasStreamingMessage || request.length === 0) return;
+
     const newMessage = {
       who: type.user,
       what: request,
@@ -503,7 +497,11 @@ const KnowledgeAgent = () => {
   };
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-5rem)] w-full ${isMaximized ? 'p-6' : 'p-0'} transition-all duration-500 ease-in-out`}>
+    <div
+      className={`flex flex-col h-[calc(100vh-5rem)] w-full ${
+        isMaximized ? "p-6" : "p-0"
+      } transition-all duration-500 ease-in-out`}
+    >
       <div className="relative flex flex-col flex-grow w-full h-full bg-white rounded-lg shadow-lg overflow-hidden">
         <div
           style={{
@@ -520,33 +518,39 @@ const KnowledgeAgent = () => {
             text-white
           `}
         >
-          <div className={`
+          <div
+            className={`
             flex gap-2 p-3 font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 
-            ${isMaximized ? 'px-5 text-lg' : 'px-3 text-base'} 
+            ${isMaximized ? "px-5 text-lg" : "px-3 text-base"} 
             items-center justify-between shadow-xl
             transition-[padding,font-size]
             duration-500
             ease-[cubic-bezier(0.25,0.1,0.25,1)]
-          `}>
+          `}
+          >
             <div className="flex gap-5 items-center">
               <div className="flex flex-col">
-                <span className={`
+                <span
+                  className={`
                   transition-[font-size,transform]
                   duration-500
                   ease-[cubic-bezier(0.25,0.1,0.25,1)]
                   transform-gpu
-                  ${isMaximized ? 'text-lg' : 'text-base'}
-                `}>
+                  ${isMaximized ? "text-lg" : "text-base"}
+                `}
+                >
                   Regulatory Agent
                 </span>
-                <span className={`
+                <span
+                  className={`
                   font-normal opacity-90
                   transition-[font-size,transform]
                   duration-500
                   ease-[cubic-bezier(0.25,0.1,0.25,1)]
                   transform-gpu
-                  ${isMaximized ? 'text-sm' : 'text-xs'}
-                `}>
+                  ${isMaximized ? "text-sm" : "text-xs"}
+                `}
+                >
                   Ask detailed questions about FDA regulations and processes
                 </span>
               </div>
@@ -554,7 +558,7 @@ const KnowledgeAgent = () => {
 
             <div className="flex items-center gap-2">
               <Tooltip title={isMaximized ? "Minimize" : "Maximize"}>
-                <div 
+                <div
                   onClick={toggleMaximize}
                   className="cursor-pointer hover:bg-white/10 p-1 rounded transition-all duration-300"
                 >
@@ -567,13 +571,15 @@ const KnowledgeAgent = () => {
               </Tooltip>
 
               <Tooltip title="This is a Knowledge Agent.">
-                <InfoOutlineIcon className={`
+                <InfoOutlineIcon
+                  className={`
                   transition-[width,height,transform]
                   duration-500
                   ease-[cubic-bezier(0.25,0.1,0.25,1)]
                   transform-gpu
-                  ${isMaximized ? '' : '!w-5 !h-5'}
-                `} />
+                  ${isMaximized ? "" : "!w-5 !h-5"}
+                `}
+                />
               </Tooltip>
             </div>
           </div>
@@ -581,9 +587,8 @@ const KnowledgeAgent = () => {
           <div
             ref={convRef}
             className={`
-              flex-1 
-              items-start 
-              ${isMaximized ? 'pr-4 py-4' : 'pr-4 py-3'} 
+              flex-1
+              ${isMaximized ? "p-4" : "px-4 py-3"} 
               overflow-y-auto 
               flex 
               flex-col 
@@ -595,8 +600,9 @@ const KnowledgeAgent = () => {
             `}
             onScroll={handleScroll}
           >
-            <div className={`
-              w-auto
+            <div
+              className={`
+              w-[90%]
               max-w-[800px]
               flex 
               flex-col
@@ -604,31 +610,42 @@ const KnowledgeAgent = () => {
               transition-all
               duration-300
               ease-[cubic-bezier(0.4,0,0.2,1)]
-            `}>
+            `}
+            >
               {conversations.map(({ who, what, isTyping }, index) => (
-                <Conversation key={index} who={who} what={what} isTyping={isTyping} />
+                <Conversation
+                  key={index}
+                  who={who}
+                  what={what}
+                  isTyping={isTyping}
+                />
               ))}
-              {loading ? <AI ref={lastRef} content="" loading /> : ""}
+              {loading && <AI ref={lastRef} content="" loading />}
             </div>
           </div>
 
-          <div className={`
+          <div
+            className={`
             border-t bg-white
             transition-[padding,height]
             duration-300
             ease-[cubic-bezier(0.4,0,0.2,1)]
             transform-gpu
-            ${isMaximized ? 'p-4' : 'p-3'}
-          `}>
-            <div className={`
+            ${isMaximized ? "p-4" : "p-3"}
+          `}
+          >
+            <div
+              className={`
               max-w-4xl mx-auto
               flex flex-col gap-3
               transition-[max-width,transform]
               duration-300
               ease-[cubic-bezier(0.4,0,0.2,1)]
               transform-gpu
-            `}>
-              <div className={`
+            `}
+            >
+              <div
+                className={`
                 flex-wrap 
                 flex 
                 gap-2 
@@ -639,7 +656,8 @@ const KnowledgeAgent = () => {
                 ease-[cubic-bezier(0.25,0.1,0.25,1)]
                 transform-gpu
                 overflow-hidden
-              `}>
+              `}
+              >
                 {suggestions.map((suggestion, index) => (
                   <Button
                     key={index}
@@ -647,12 +665,12 @@ const KnowledgeAgent = () => {
                     size="small"
                     className="!border-dotted !rounded-full !normal-case !text-sm !min-h-[32px] hover:!bg-blue-50"
                     sx={{
-                      borderColor: 'rgb(62, 128, 246)',
-                      color: 'rgb(62, 128, 246)',
-                      '&:hover': {
-                        borderColor: 'rgb(62, 128, 246)',
-                        backgroundColor: 'rgba(62, 128, 246, 0.1)',
-                      }
+                      borderColor: "rgb(62, 128, 246)",
+                      color: "rgb(62, 128, 246)",
+                      "&:hover": {
+                        borderColor: "rgb(62, 128, 246)",
+                        backgroundColor: "rgba(62, 128, 246, 0.1)",
+                      },
                     }}
                     onClick={() => {
                       setRequest(suggestion);
@@ -674,7 +692,7 @@ const KnowledgeAgent = () => {
                     hover:opacity-100 
                     focus:opacity-100 
                     flex 
-                    ${isMaximized ? 'h-10' : 'h-9'} 
+                    ${isMaximized ? "h-10" : "h-9"} 
                     w-full 
                     rounded-full 
                     border 
@@ -684,9 +702,9 @@ const KnowledgeAgent = () => {
                     shadow-md
                     hover:shadow-lg
                     focus:shadow-lg
-                    ${isMaximized ? 'px-4' : 'px-3'}
+                    ${isMaximized ? "px-4" : "px-3"}
                     py-2 
-                    ${isMaximized ? 'text-sm' : 'text-xs'}
+                    ${isMaximized ? "text-sm" : "text-xs"}
                     font-normal
                     placeholder-gray-500
                     focus:placeholder-gray-400
@@ -701,19 +719,26 @@ const KnowledgeAgent = () => {
                     transition-all
                     duration-200
                   `}
-                  placeholder={isMaximized 
-                    ? "Ask about FDA regulations, guidance documents, device classification..." 
-                    : "Ask about FDA regulations, guidance documents, device classification..."
+                  placeholder={
+                    isMaximized
+                      ? "Ask about FDA regulations, guidance documents, device classification..."
+                      : "Ask about FDA regulations, guidance documents, device classification..."
                   }
                   value={request}
                   onChange={(e) => {
                     if (!isOpen) setIsOpen(true);
                     setRequest(e.target.value);
                   }}
-                  disabled={loading || isTyping}
+                  disabled={
+                    loading || conversations.some((conv) => conv.isStreaming)
+                  }
                 />
                 <Button
-                  disabled={loading || isTyping || request.length === 0}
+                  disabled={
+                    loading ||
+                    conversations.some((conv) => conv.isStreaming) ||
+                    request.length === 0
+                  }
                   className={`${
                     request.length > 0 ? "opacity-100" : "opacity-0"
                   } !rounded-full !transition-all !duration-300 !h-10 !px-5 !text-sm`}
@@ -733,4 +758,4 @@ const KnowledgeAgent = () => {
   );
 };
 
-export default KnowledgeAgent; 
+export default KnowledgeAgent;

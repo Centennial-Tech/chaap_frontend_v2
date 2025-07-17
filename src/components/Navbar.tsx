@@ -11,22 +11,35 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
-  const { activeSubmission, submissions, setActiveSubmission, createNewSubmission } = useSubmission();
+  const {
+    activeSubmission,
+    submissions,
+    setActiveSubmission,
+    createNewSubmission,
+  } = useSubmission();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   // Hide submission dropdown on specific routes
-  const hideSubmissionDropdown = ["/", "/dashboard", "/profile"].includes(location.pathname);
+  const hideSubmissionDropdown = ["/", "/dashboard", "/profile"].includes(
+    location.pathname
+  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsProfileDropdownOpen(false);
       }
     }
@@ -153,7 +166,7 @@ export default function Navbar() {
               <img src={logo} alt="Logo" />
             </Link>
           </div>
-          <div className="hidden md:flex items-center space-x-1 text-sm text-gray-600 bg-gray-50/50 rounded-lg px-3 py-2 backdrop-blur-sm border border-gray-200/50">
+          <div className="hidden lg:flex items-center space-x-1 text-sm text-gray-600 bg-gray-50/50 rounded-lg px-3 py-2 backdrop-blur-sm border border-gray-200/50">
             {formattedPath}
           </div>
         </div>
@@ -162,26 +175,55 @@ export default function Navbar() {
           {/* Submission Selector */}
           {!hideSubmissionDropdown && (
             <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`
-                  flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
-                  ${activeSubmission ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}
-                  transition-colors duration-200 border border-gray-200
-                `}
-              >
-                <span>{activeSubmission?.name || 'Select Submission'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
-              </button>
+              <div className="relative">
+                {/* Gradient border wrapper */}
+                <div
+                  className="rounded-xl p-[3px]"
+                  style={{
+                    background: activeSubmission 
+                      ? 'linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)'
+                      : 'linear-gradient(45deg, #d1d5db, #9ca3af, #6b7280)',
+                    backgroundSize: activeSubmission ? '400% 400%' : '100% 100%',
+                    animation: activeSubmission ? 'gradientShift 3s ease infinite' : 'none'
+                  }}
+                >
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`
+                      flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium w-full
+                      ${
+                        activeSubmission
+                          ? "text-blue-700 hover:text-blue-800"
+                          : "text-gray-700 hover:text-gray-800"
+                      }
+                      transition-all duration-300 bg-white
+                      ${activeSubmission ? "shadow-lg" : "shadow-md"}
+                    `}
+                  >
+                    {/* Content */}
+                    <span>
+                      {activeSubmission?.name || "Select Submission"}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isDropdownOpen ? "transform rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-[300px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                <div
+                  className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-[300px] overflow-y-auto"
+                  style={{ scrollbarWidth: "thin" }}
+                >
                   {/* Create New Option */}
                   <button
                     onClick={() => {
                       createNewSubmission();
                       setIsDropdownOpen(false);
-                      navigate('/dashboard');
+                      navigate("/dashboard");
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-100"
                   >
@@ -199,7 +241,11 @@ export default function Navbar() {
                         }}
                         className={`
                           w-full text-left px-4 py-2 text-sm
-                          ${activeSubmission?.id === submission.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}
+                          ${
+                            activeSubmission?.id === submission.id
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }
                           transition-colors duration-200
                         `}
                       >
@@ -207,7 +253,9 @@ export default function Navbar() {
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-2 text-sm text-gray-500">No submissions available</div>
+                    <div className="px-4 py-2 text-sm text-gray-500">
+                      No submissions available
+                    </div>
                   )}
                 </div>
               )}
@@ -243,7 +291,11 @@ export default function Navbar() {
                         .join("")
                     : "U"}
                 </div>
-                <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isProfileDropdownOpen ? 'transform rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-4 h-4 ml-1 transition-transform duration-200 ${
+                    isProfileDropdownOpen ? "transform rotate-180" : ""
+                  }`}
+                />
               </div>
             </button>
 

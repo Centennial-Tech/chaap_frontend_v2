@@ -2,6 +2,7 @@ import { CheckCircle } from "lucide-react";
 import React from "react";
 import Modal from "./ui/Modal";
 import { Button } from "./ui/Button";
+import { productTypes } from "../constants";
 
 interface FormData {
   name: string;
@@ -112,8 +113,11 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               <option value="" disabled>
                 Select type
               </option>
-              <option value="Device">Device</option>
-              <option value="Drug">Drug</option>
+              {productTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
             </select>
           </div>
           {/* Product Description */}
@@ -176,8 +180,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                       </h4>
                       <p className="text-sm text-blue-700 mt-1">
                         <b>{formSuggestion}</b> - Typically required for
-                        products in this category based on their
-                        characteristics and stage of development.
+                        products in this category based on their characteristics
+                        and stage of development.
                       </p>
                     </div>
                   </div>
@@ -207,9 +211,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                   {"Select submission type"}
                 </option>
                 {formSuggestion && !suggestionError && (
-                  <option value={formSuggestion}>
-                    {formSuggestion}
-                  </option>
+                  <option value={formSuggestion}>{formSuggestion}</option>
                 )}
                 {suggestionError && (
                   <option value="">Please select manually</option>
@@ -235,9 +237,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 id="end_time"
                 type="date"
                 value={formData.end_time}
-                onChange={(e) =>
-                  onInputChange("end_time", e.target.value)
-                }
+                onChange={(e) => onInputChange("end_time", e.target.value)}
                 required
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
               />
@@ -245,11 +245,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
           )}
         </div>
         <div className="flex justify-end gap-2 pt-4 border-t mt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-          >
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button

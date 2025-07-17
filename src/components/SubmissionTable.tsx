@@ -111,7 +111,7 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-ms-gray-700">
-                  {submission.submissionType}
+                  {submission.submission_type}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex justify-start">

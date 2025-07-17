@@ -15,14 +15,15 @@ export interface Submission {
   created_at: string; //set by the backend
   updated_at: string; //set by the backend
   end_time?: string | null; // Maps to target submission date
-  productDescription: string;
-  submissionType?: string; //form id for now
+  intended_use?: string;
+  submission_type?: string; //form id for now
   // Additional fields for form suggestions
-  formSuggestion?: string; 
+  formSuggestion?: string;
   suggestionError?: string;
   // Questions and answers
   questions?: string[];
   questionAnswers?: { [q: string]: string };
+  product_type?: string;
 }
 
 // Stats interface

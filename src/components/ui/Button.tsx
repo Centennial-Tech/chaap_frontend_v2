@@ -40,6 +40,14 @@ const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
 const baseClasses =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
 
+export function buttonVariants({
+  variant = "default",
+  size = "default",
+  className = "",
+}: Partial<ButtonProps> & { className?: string } = {}) {
+  return cn(baseClasses, variantClasses[variant], sizeClasses[size], className);
+}
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -54,12 +62,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
-        className={cn(
-          baseClasses,
-          variantClasses[variant],
-          sizeClasses[size],
-          className
-        )}
+        className={buttonVariants({ variant, size, className })}
         ref={ref}
         {...props}
       />
