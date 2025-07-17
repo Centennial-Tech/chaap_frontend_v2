@@ -503,12 +503,9 @@ const FdaMeetingPrepAgent = () => {
       };
 
       // Call the API to save meeting prep data
-      await api.post(
-        "/agents/meeting_prep/save_meetingprep_data",
-        {
-          ...apiPayload,
-        }
-      );
+      await api.post("/agents/meeting_prep/save_meetingprep_data", {
+        ...apiPayload,
+      });
 
       // Create submission data for local state
       const submissionData = {
@@ -551,7 +548,9 @@ const FdaMeetingPrepAgent = () => {
       resetForm();
 
       // Show success message
-      alert("Meeting request submitted successfully! You can view it in the Recent Meetings section.");
+      alert(
+        "Meeting request submitted successfully! You can view it in the Recent Meetings section."
+      );
     } catch (error) {
       console.error("Error saving meeting prep data:", error);
       // Show error message to user (you can add error handling UI here)
@@ -793,7 +792,11 @@ const FdaMeetingPrepAgent = () => {
           ) : (
             <div className="space-y-4">
               {meetings
-                .sort((a, b) => new Date(b.timestamp || b.lastUpdated || 0).getTime() - new Date(a.timestamp || a.lastUpdated || 0).getTime())
+                .sort(
+                  (a, b) =>
+                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
+                )
                 .slice(0, 3)
                 .map((meeting) => (
                   <MeetingCard
@@ -821,7 +824,11 @@ const FdaMeetingPrepAgent = () => {
           ) : (
             <div className="space-y-4">
               {meetings
-                .sort((a, b) => new Date(b.timestamp || b.lastUpdated || 0).getTime() - new Date(a.timestamp || a.lastUpdated || 0).getTime())
+                .sort(
+                  (a, b) =>
+                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
+                )
                 .map((request) => (
                   <MeetingCard
                     key={request.id}
