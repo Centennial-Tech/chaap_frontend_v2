@@ -223,7 +223,103 @@ const FdaMeetingPrepAgent = () => {
     );
   };
 
-  // Download document functions
+  // Helper function to convert markdown to plain text with formatting
+  const markdownToPlainText = (markdown: string): string => {
+    let text = markdown;
+    
+    // Convert headers (preserve hierarchy with indentation)
+    text = text.replace(/^### (.+)$/gm, '   $1');
+    text = text.replace(/^## (.+)$/gm, '  $1');
+    text = text.replace(/^# (.+)$/gm, '$1');
+    
+    // Convert bold and italic (remove markdown syntax but keep content)
+    text = text.replace(/\*\*(.+?)\*\*/g, '$1');
+    text = text.replace(/\*(.+?)\*/g, '$1');
+    
+    // Convert lists (improve bullet point formatting)
+    text = text.replace(/^[\s]*[-*+] (.+)$/gm, '• $1');
+    text = text.replace(/^[\s]*\d+\. (.+)$/gm, '1. $1');
+    
+    // Convert code blocks (remove code block markers)
+    text = text.replace(/```[\w]*\n/g, '');
+    text = text.replace(/```/g, '');
+    
+    // Convert inline code (remove backticks)
+    text = text.replace(/`(.+?)`/g, '$1');
+    
+    // Clean up extra whitespace and normalize line breaks
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.replace(/^\s+|\s+$/g, '');
+    
+    return text;
+  };
+
+  // Helper function to convert markdown to HTML
+  const markdownToHTML = (markdown: string): string => {
+    let html = markdown;
+    
+    // Convert headers
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    // Convert bold and italic (be more specific to avoid conflicts)
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Convert code blocks
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    
+    // Convert inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Convert lists (improved pattern)
+    const lines = html.split('\n');
+    let inList = false;
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const listMatch = line.match(/^[\s]*[-*+] (.+)$/);
+      
+      if (listMatch) {
+        if (!inList) {
+          result.push('<ul>');
+          inList = true;
+        }
+        result.push(`<li>${listMatch[1]}</li>`);
+      } else {
+        if (inList) {
+          result.push('</ul>');
+          inList = false;
+        }
+        result.push(line);
+      }
+    }
+    
+    if (inList) {
+      result.push('</ul>');
+    }
+    
+    html = result.join('\n');
+    
+    // Convert line breaks to paragraphs (but preserve existing HTML tags)
+    html = html.replace(/\n\n+/g, '</p><p>');
+    
+    // Only wrap in paragraphs if not already wrapped in HTML tags
+    if (!html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>') && 
+        !html.includes('<ul>') && !html.includes('<pre>')) {
+      html = '<p>' + html + '</p>';
+    } else {
+      // Clean up empty paragraphs
+      html = html.replace(/<p><\/p>/g, '');
+      html = html.replace(/^<p>/, '').replace(/<\/p>$/, '');
+    }
+    
+    return html;
+  };
+
+  // Enhanced download document functions with proper formatting
   const downloadDocument = (format: "pdf" | "doc" | "txt") => {
     if (!finalDocument) return;
 
@@ -231,11 +327,11 @@ const FdaMeetingPrepAgent = () => {
     let filename = `FDA_Meeting_Document.${format}`;
 
     if (format === "pdf") {
-      // Generate PDF using jsPDF
+      // Generate PDF using jsPDF with proper formatting
       const doc = new jsPDF();
-      const lines = finalDocument.split("\n");
+      const plainText = markdownToPlainText(finalDocument);
+      const lines = plainText.split("\n");
 
-      doc.setFontSize(12);
       let yPosition = 20;
 
       lines.forEach((line) => {
@@ -245,27 +341,86 @@ const FdaMeetingPrepAgent = () => {
           yPosition = 20;
         }
 
+        // Determine text style based on content and indentation
+        let fontSize = 12;
+        let fontStyle: 'normal' | 'bold' = 'normal';
+
+        // Check if it's a header (no leading spaces and content)
+        if (line.trim() && !line.startsWith(' ')) {
+          // Main header
+          fontSize = 16;
+          fontStyle = 'bold';
+        } else if (line.startsWith('  ') && !line.startsWith('   ')) {
+          // Secondary header
+          fontSize = 14;
+          fontStyle = 'bold';
+        } else if (line.startsWith('   ')) {
+          // Tertiary header
+          fontSize = 13;
+          fontStyle = 'bold';
+        } else {
+          // Regular text
+          fontSize = 12;
+          fontStyle = 'normal';
+        }
+
+        // Apply font settings
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', fontStyle);
+
+        // Handle empty lines
+        if (!line.trim()) {
+          yPosition += 5;
+          return;
+        }
+
         // Split long lines to fit page width
         const splitText = doc.splitTextToSize(line, 180);
         splitText.forEach((textLine: string) => {
           doc.text(textLine, 10, yPosition);
-          yPosition += 7;
+          yPosition += fontSize === 16 ? 8 : fontSize === 14 ? 7 : 6;
         });
+        
+        // Add extra space after headers
+        if (fontStyle === 'bold') {
+          yPosition += 4;
+        }
       });
 
       doc.save(filename);
       return;
     } else if (format === "doc") {
+      const htmlContent = markdownToHTML(finalDocument);
       const docContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' 
               xmlns:w='urn:schemas-microsoft-com:office:word' 
               xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>FDA Meeting Document</title></head>
-        <body><pre>${finalDocument}</pre></body></html>
+        <head>
+          <meta charset='utf-8'>
+          <title>FDA Meeting Document</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            h2 { color: #666; margin-top: 30px; }
+            h3 { color: #888; margin-top: 20px; }
+            ul { margin: 10px 0; padding-left: 20px; }
+            li { margin: 5px 0; }
+            code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+            pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+            strong { font-weight: bold; }
+            em { font-style: italic; }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+        </html>
       `;
       blob = new Blob([docContent], { type: "application/msword" });
     } else {
-      blob = new Blob([finalDocument], { type: "text/plain" });
+      // For TXT format, use plain text with basic formatting
+      const plainText = markdownToPlainText(finalDocument);
+      blob = new Blob([plainText], { type: "text/plain" });
     }
 
     const url = window.URL.createObjectURL(blob);
@@ -401,14 +556,11 @@ const FdaMeetingPrepAgent = () => {
     setSessionId(uuid);
 
     try {
-      const response = await api.post("/agents/meeting_prep/start-workflow", {
+      await api.post("/agents/meeting_prep/start-workflow", {
         fda_document_type: _document?.title,
         meeting_type: aiRecommendation?.recommendedMeetingType,
         session_id: uuid,
       });
-
-      console.log("Workflow started:", response.data);
-
       // Start polling for workflow status
       await pollWorkflowStatus(uuid);
     } catch (error) {
