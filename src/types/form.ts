@@ -1,36 +1,30 @@
+export interface FormQuestionField {
+  type: 'text' | 'checkbox';
+  widget_info: Record<string, any>;
+  description: string;
+  required: boolean;
+  properties: {
+    max_length: number | null;
+    multiline: boolean;
+    choices: string[] | null;
+    default_value: any | null;
+  };
+}
+
 export interface FormQuestion {
   id: string;
-  form_id: string;
-  section_id: string;
-  label: string;
-  type: "Text Box" | "Radio Btn" | "Check Box" | "Textarea" | "Select" | "Date"; // TODO:
-  required: boolean;
-  options?: string[];
-  help_text?: string;
-}
-
-export interface FormSection {
-  id: string;
-  form_id: string;
-  title: string;
-  description?: string;
-  order_by: number;
-}
-
-export interface FormTemplate { // TODO: rename to Form/Remove
-  id: string;
   name: string;
-  sections: FormSection[];
+  title: string;
+  form_id: string;
+  data: Record<string, FormQuestionField>;
 }
 
 export interface FormData {
-  [questionId: string]: string | string[];
-} 
+  [key: string]: any;
+}
 
 export interface FormAnswer {
-  id: string;
   form_id: string;
-  value: FormData;
-  application_id: string;
-  question_id: string;
+  submission_id: string;
+  data: Record<string, any>;
 }

@@ -1,136 +1,81 @@
-import type { FormQuestion } from "../../types/form";
+import type { FormQuestionField } from "../../types/form";
 
 interface DynamicFormFieldProps {
-  question: FormQuestion;
-  value: string | string[];
-  onChange: (questionId: string, value: string | string[]) => void;
-  disabled?: boolean;
+  id: string;
+  field: FormQuestionField;
+  value: any;
+  onChange: (value: any) => void;
+  error?: boolean;
 }
 
-export function DynamicFormField({ question, value, onChange, disabled = false }: DynamicFormFieldProps) {
-  const baseClasses = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
-  const disabledClasses = disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "";
+export function DynamicFormField({ 
+  id, 
+  field,
+  value, 
+  onChange, 
+  error
+}: DynamicFormFieldProps) {
+  const baseClasses = "w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+  const errorClasses = error ? "border-red-300 text-red-900 placeholder-red-300" : "border-gray-300";
 
-  const handleChange = (newValue: string | string[]) => {
-    onChange(question.id, newValue);
-  };
-
-  switch (question.type) {
-    case "Text Box":
+  switch (field.type) {
+    case "text":
       return (
-        <input
-          type="text"
-          className={`${baseClasses} ${disabledClasses}`}
-          value={value as string || ""}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder={`Enter ${question.label.toLowerCase()}`}
-          disabled={disabled}
-        />
-      );
-
-    case "Textarea":
-      return (
-        <textarea
-          className={`${baseClasses} ${disabledClasses} min-h-[100px] resize-vertical`}
-          value={value as string || ""}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder={`Enter ${question.label.toLowerCase()}`}
-          disabled={disabled}
-          rows={4}
-        />
-      );
-
-    case "Date":
-      return (
-        <input
-          type="date"
-          className={`${baseClasses} ${disabledClasses}`}
-          value={value as string || ""}
-          onChange={(e) => handleChange(e.target.value)}
-          disabled={disabled}
-        />
-      );
-
-    case "Select":
-      return (
-        <select
-          className={`${baseClasses} ${disabledClasses}`}
-          value={value as string || ""}
-          onChange={(e) => handleChange(e.target.value)}
-          disabled={disabled}
-        >
-          <option value="">Select {question.label.toLowerCase()}</option>
-          {question.options?.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      );
-
-    case "Radio Btn":
-      return (
-        <div className="space-y-2">
-          {question.options?.map((option) => (
-            <label key={option} className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="radio"
-                name={question.id}
-                value={option}
-                checked={value === option}
-                onChange={(e) => handleChange(e.target.value)}
-                disabled={disabled}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-              <span className={`text-sm ${disabled ? "text-gray-500" : "text-gray-700"}`}>
-                {option}
-              </span>
-            </label>
-          ))}
+        <div className="space-y-1">
+          <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+            {field.description} {field.required && <span className="text-red-500">*</span>}
+          </label>
+          {field.properties.multiline ? (
+            <textarea
+              id={id}
+              className={`${baseClasses} ${errorClasses} min-h-[100px] resize-vertical`}
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+              maxLength={field.properties.max_length || undefined}
+              rows={4}
+            />
+          ) : (
+            <input
+              id={id}
+              type="text"
+              className={`${baseClasses} ${errorClasses}`}
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+              maxLength={field.properties.max_length || undefined}
+            />
+          )}
+          {error && (
+            <p className="mt-1 text-sm text-red-600">This field is required</p>
+          )}
         </div>
       );
 
-    case "Check Box":
+    case "checkbox":
       return (
-        <div className="space-y-2">
-          {question.options?.map((option) => {
-            const currentValues = Array.isArray(value) ? value : [];
-            const isChecked = currentValues.includes(option);
-            
-            return (
-              <label key={option} className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  value={option}
-                  checked={isChecked}
-                  onChange={(e) => {
-                    const newValues = e.target.checked
-                      ? [...currentValues, option]
-                      : currentValues.filter(v => v !== option);
-                    handleChange(newValues);
-                  }}
-                  disabled={disabled}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:bg-gray-100 disabled:cursor-not-allowed"
-                />
-                <span className={`text-sm ${disabled ? "text-gray-500" : "text-gray-700"}`}>
-                  {option}
-                </span>
+        <div className="space-y-1">
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id={id}
+                type="checkbox"
+                checked={value === true}
+                onChange={(e) => onChange(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor={id} className="font-medium text-gray-700">
+                {field.description} {field.required && <span className="text-red-500">*</span>}
               </label>
-            );
-          })}
+            </div>
+          </div>
+          {error && (
+            <p className="mt-1 text-sm text-red-600">This field is required</p>
+          )}
         </div>
       );
 
     default:
-      return (
-        <input
-          type="text"
-          className={`${baseClasses} ${disabledClasses}`}
-          value={value as string || ""}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder={`Enter ${question.label.toLowerCase()}`}
-          disabled={disabled}
-        />
-      );
+      return null;
   }
 } 
