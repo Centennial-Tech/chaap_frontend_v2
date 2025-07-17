@@ -1,5 +1,5 @@
 export interface FormQuestionField {
-  type: 'text' | 'checkbox';
+  type: 'text' | 'checkbox' | 'dropdown';
   widget_info: Record<string, any>;
   description: string;
   required: boolean;
@@ -20,11 +20,11 @@ export interface FormQuestion {
 }
 
 export interface FormData {
-  [key: string]: any;
+  [key: string]: string | string[] | boolean | number | null;
 }
 
 export interface FormAnswer {
-  form_id: string;
-  submission_id: string;
+  question_id: string;
+  application_id: string;
   data: Record<string, any>;
 }

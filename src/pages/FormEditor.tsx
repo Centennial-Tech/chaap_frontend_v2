@@ -4,7 +4,6 @@ import { Button } from "../components/ui/Button";
 import type { FormQuestion, FormData, FormAnswer } from "../types/form";
 import api from "../api";
 import { useSubmission } from "../provider/submissionProvider";
-import { useNavigate } from "react-router-dom";
 
 export default function FormEditor() {
   const { activeSubmission, submissions, setActiveSubmission } = useSubmission();
@@ -14,9 +13,6 @@ export default function FormEditor() {
   const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!activeSubmission) {
@@ -29,7 +25,7 @@ export default function FormEditor() {
       if (!activeSubmission) return;
       try {
         setIsLoading(true);
-        const response = await api.get(`form/questions/form/${activeSubmission.form_id}`);
+        const response = await api.get(`/form/questions/?form_id=${activeSubmission?.form_id}`);
         setFormQuestions(response.data);
       } catch (error) {
         console.error("Error fetching form questions:", error);
@@ -37,13 +33,26 @@ export default function FormEditor() {
         setIsLoading(false);
       }
     };
-
     fetchFormQuestions();
   }, [activeSubmission]);
 
   const currentQuestion = formQuestions[currentQuestionIndex];
 
-  const handleInputChange = (fieldId: string, value: any) => {
+  useEffect(() => {
+    const fetchQuestionAnswers = async () => {
+      if(!activeSubmission || !currentQuestion) return;
+      const response = await api.get(`/form/answers/${activeSubmission?.id}/${currentQuestion?.id}`);
+      if(response.data) {
+        setFormData(prev => ({
+          ...prev,
+          ...response.data
+        })); //TODO: Check if this is necessary
+      }
+    };
+    fetchQuestionAnswers();
+  }, [activeSubmission, currentQuestion]);
+
+  const handleInputChange = (fieldId: string, value: string | string[] | boolean | number | null) => {
     setFormData(prev => ({
       ...prev,
       [fieldId]: value
@@ -67,34 +76,30 @@ export default function FormEditor() {
 
   const handleNext = async () => {
     if (!isCurrentQuestionValid()) {
-      setShowValidationError(true);
+      //setShowValidationError(true); Add back after testing
       return;
     }
     
     if (currentQuestionIndex < formQuestions.length - 1) {
+      const formAnswer: FormAnswer = {
+        question_id: currentQuestion?.id || "",
+        application_id: activeSubmission?.id || "",
+        data: formData
+      };
+
+      await api.put(`/form/answers/${activeSubmission?.id}/${currentQuestion?.id}`, formAnswer);
       setCurrentQuestionIndex(prev => prev + 1);
       setShowValidationError(false);
     } else {
       setIsSubmitting(true);
       // On last question, prepare submission
-      const formAnswer: FormAnswer = {
-        form_id: activeSubmission?.form_id || "",
-        submission_id: activeSubmission?.id || "",
-        data: formData
-      };
-
-
-      const response = await api.post("form/answers", formAnswer);  
-
-      if(response.status === 200) {
-        navigate("/document-manager");
-      }
-
+      //TODO: Submit submisison endpoint and pdf output
       setIsSubmitting(false);
+      console.log("You have completed the form"); //TODO: Remove after testing
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
       setShowValidationError(false);
