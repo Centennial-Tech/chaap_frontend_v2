@@ -191,7 +191,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
             <AlertTriangle className="w-5 h-5 flex-shrink-0 transition-all duration-200 ease-in-out" />
           </span>
           <span
-            className={`text-sm text-slate-700 transition-all duration-500 ease-in-out whitespace-nowrap ${
+            className={`text-sm text-slate-700 pl-3 transition-all duration-500 ease-in-out whitespace-nowrap ${
               shouldShowFull
                 ? "opacity-100 translate-x-0 max-w-xs"
                 : "opacity-0 -translate-x-4 max-w-0 overflow-hidden"
