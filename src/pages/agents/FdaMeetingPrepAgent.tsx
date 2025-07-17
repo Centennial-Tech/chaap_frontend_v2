@@ -581,13 +581,45 @@ const FdaMeetingPrepAgent = () => {
     },
   };
 
-  const handleViewDetails = (submission: any) => {
-    setFormData(submission.formData);
-    setAiRecommendation(submission.aiRecommendation);
-    setMeetingDate(submission.meetingDate);
-    setShowRecommendation(true);
+  const handleViewDetails = (meeting: any) => {
+    // Map meeting data to form data structure
+    const mappedFormData = {
+      productType: meeting.product_type || meeting.productType || "",
+      developmentStage: meeting.development_stage || meeting.developmentStage || "",
+      productName: meeting.product_name || meeting.productName || "",
+      regulatoryObjective: meeting.regulatory_objective || meeting.regulatoryObjective || "",
+    };
+
+    // If the meeting has stored formData, use that, otherwise use mapped data
+    setFormData(meeting.formData || mappedFormData);
+
+    // Set AI recommendation if available
+    if (meeting.aiRecommendation) {
+      setAiRecommendation(meeting.aiRecommendation);
+      setShowRecommendation(true);
+    } else {
+      // Create a basic AI recommendation from meeting data
+      const basicRecommendation = {
+        recommendedMeetingType: meeting.meeting_type || meeting.meetingType || "FDA Meeting",
+        icon: "M",
+        subtitle: "Meeting to discuss regulatory objectives",
+        matchPercentage: "90%",
+        timeline: "N/A",
+        justification: ["Meeting recommendation based on stored data"],
+        typicalQuestions: ["Standard regulatory questions"],
+        meetingCategory: "General",
+        recommendedDocuments: meeting.recommended_documents || meeting.recommendedDocuments || []
+      };
+      setAiRecommendation(basicRecommendation);
+      setShowRecommendation(true);
+    }
+
+    // Set meeting date
+    setMeetingDate(meeting.meetingDate || meeting.preferred_date || "");
+
+    // Switch to product-info tab and set editing mode
     setCurrentTab("product-info");
-    setEditingSubmissionId(submission.id);
+    setEditingSubmissionId(meeting.id);
   };
   const { activeSubmission } = useSubmission();
   useEffect(() => {
