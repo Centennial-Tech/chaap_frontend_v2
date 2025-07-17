@@ -42,7 +42,7 @@ const FdaMeetingPrepAgent = () => {
   });
   const [aiRecommendation, setAiRecommendation] = useState<any>(null);
   const [meetingDate, setMeetingDate] = useState("");
-  const [meetings, setSubmissions] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
   const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(
     null
@@ -528,7 +528,7 @@ const FdaMeetingPrepAgent = () => {
 
       // Update local state
       if (editingSubmissionId) {
-        setSubmissions((prev) =>
+        setMeetings((prev) =>
           prev.map((sub) =>
             sub.id === editingSubmissionId ? submissionData : sub
           )
@@ -539,7 +539,7 @@ const FdaMeetingPrepAgent = () => {
           )
         );
       } else {
-        setSubmissions((prev) => [submissionData, ...prev.slice(0, 2)]);
+        setMeetings((prev) => [submissionData, ...prev.slice(0, 2)]);
         setMeetingRequests((prev) => [submissionData, ...prev.slice(0, 0)]);
       }
 
