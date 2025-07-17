@@ -1,7 +1,6 @@
 import AnimatedBackground from "../../components/AnimatedBackground";
 import { useState } from "react";
 
-// Types
 interface PredictedReportType {
   type: string;
   dueDate?: string;
@@ -17,18 +16,18 @@ interface GeneratedReport {
   downloadUrl?: string;
 }
 
-interface RegulatoryStandard {
-  code: string;
-  lastUpdated: string;
+interface FileContent {
+  fileName: string;
+  content: string;
+  fileType: 'csv' | 'excel';
+  uploadTime: string;
 }
 
 interface PostMarketSurveillanceAgentProps {
   predictedReportType?: PredictedReportType;
   generatedReports?: GeneratedReport[];
-  regulatoryStandards?: RegulatoryStandard[];
 }
 
-// Reusable components
 const FormField = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -70,39 +69,80 @@ const Card = ({ title, children }: { title: string; children: React.ReactNode })
 
 const PostMarketSurveillanceAgent = ({
   predictedReportType,
-  generatedReports = [],
-  regulatoryStandards = []
+  generatedReports = []
 }: PostMarketSurveillanceAgentProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [fileContent, setFileContent] = useState<FileContent | null>(null);
 
-  // Default data
   const defaultPredictedReportType: PredictedReportType = {
     type: "MDR",
     dueDate: "Not calculated",
     description: "Based on your product type and event details"
   };
 
-  const defaultRegulatoryStandards: RegulatoryStandard[] = [
-    { code: "21 CFR Part 803", lastUpdated: "2024-01-15" },
-    { code: "21 CFR Part 806", lastUpdated: "2024-01-15" },
-    { code: "21 CFR 314.80/600.80", lastUpdated: "2024-01-15" },
-    { code: "21 CFR 820.100", lastUpdated: "2024-01-15" },
-    { code: "ICH E2E/E2B(R3)", lastUpdated: "2024-01-15" }
-  ];
-
   const currentPredictedReportType = predictedReportType || defaultPredictedReportType;
-  const currentRegulatoryStandards = regulatoryStandards.length > 0 ? regulatoryStandards : defaultRegulatoryStandards;
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          if (file.name.toLowerCase().endsWith('.csv')) {
+            resolve(e.target?.result as string);
+          } else {
+            const arrayBuffer = e.target?.result as ArrayBuffer;
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const content = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
+            resolve(content);
+          }
+        } catch (error) {
+          reject(new Error('Failed to read file'));
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setIsUploading(true);
-      setUploadedFile(file);
-      setTimeout(() => {
-        setIsUploading(false);
-        console.log('File uploaded:', file.name);
-      }, 2000);
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadedFile(file);
+    
+    try {
+      const isCSV = file.name.toLowerCase().endsWith('.csv');
+      const isExcel = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+      
+      if (!isCSV && !isExcel) {
+        throw new Error('Unsupported file type');
+      }
+
+      const content = await readFileContent(file);
+      const fileContentData: FileContent = {
+        fileName: file.name,
+        content,
+        fileType: isCSV ? 'csv' : 'excel',
+        uploadTime: new Date().toISOString()
+      };
+
+      setFileContent(fileContentData);
+      console.log('File content extracted:', {
+        fileName: fileContentData.fileName,
+        contentLength: fileContentData.content.length,
+        fileType: fileContentData.fileType,
+        uploadTime: fileContentData.uploadTime
+      });
+
+      setTimeout(() => setIsUploading(false), 1000);
+    } catch (error) {
+      console.error('Error reading file:', error);
+      setIsUploading(false);
+      setUploadedFile(null);
     }
   };
 
@@ -127,18 +167,15 @@ const PostMarketSurveillanceAgent = ({
     <div className="relative min-h-screen">
       <AnimatedBackground />
       <div className="flex flex-col">
-        {/* Banner Section */}
         <div className="relative w-full py-16 px-4 md:py-24">
           <div className="w-full max-w-[1400px] px-[20px] mx-auto">
             <div className="relative bg-gradient-to-r from-purple-700 via-purple-600 to-purple-500 rounded-2xl p-8 md:p-12 overflow-hidden">
-              {/* Shield Icon */}
               <div className="absolute right-12 md:right-16 lg:right-24 top-1/2 transform -translate-y-1/2 opacity-20">
                 <svg width="140" height="160" viewBox="0 0 24 24" fill="none" className="text-white">
                   <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
 
-              {/* Content */}
               <div className="relative z-10 max-w-4xl w-full">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8">
                   Automate Post-Market Surveillance with AI
@@ -147,7 +184,6 @@ const PostMarketSurveillanceAgent = ({
                   Generate FDA-compliant adverse event reports, track regulatory submissions, and ensure compliance with MDR, FAERS, and PSUR requirements. Streamline your post-market surveillance workflow.
                 </p>
 
-                {/* Feature List */}
                 <div className="flex flex-wrap gap-4">
                   {features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-3">
@@ -163,13 +199,10 @@ const PostMarketSurveillanceAgent = ({
           </div>
         </div>
 
-        {/* Main Content Area */}
         <div className="w-full py-4 md:py-6">
           <div className="w-full max-w-[1400px] px-[20px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Section: Form */}
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
-                {/* Form Header */}
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -182,7 +215,6 @@ const PostMarketSurveillanceAgent = ({
                   </div>
                 </div>
 
-                {/* File Upload Section */}
                 <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-8 mb-8">
                   <div className="text-center">
                     <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -215,7 +247,6 @@ const PostMarketSurveillanceAgent = ({
                   </div>
                 </div>
 
-                {/* Divider */}
                 <div className="relative mb-8">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300"></div>
@@ -225,9 +256,7 @@ const PostMarketSurveillanceAgent = ({
                   </div>
                 </div>
 
-                {/* Manual Form */}
                 <form className="space-y-6">
-                  {/* Product Details Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900">Product Details</h3>
                     <FormField label="Product Type" required>
@@ -252,7 +281,6 @@ const PostMarketSurveillanceAgent = ({
                     </FormField>
                   </div>
 
-                  {/* Event Description Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900">Event Description</h3>
                     <FormField label="Event Description" required>
@@ -260,7 +288,6 @@ const PostMarketSurveillanceAgent = ({
                     </FormField>
                   </div>
 
-                  {/* Event Details Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900">Event Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -313,7 +340,6 @@ const PostMarketSurveillanceAgent = ({
                     </div>
                   </div>
 
-                  {/* Manufacturer Response Section */}
                   <div className="space-y-4">
                     <FormField label="Manufacturer Response (Optional)">
                       <FormTextarea placeholder="Internal assessment summary or manufacturer response" />
@@ -324,7 +350,6 @@ const PostMarketSurveillanceAgent = ({
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <div className="pt-6">
                     <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,9 +361,7 @@ const PostMarketSurveillanceAgent = ({
                 </form>
               </div>
 
-              {/* Right Section: Multiple Cards */}
               <div className="space-y-6">
-                {/* Predicted Report Type Card */}
                 <Card title="Predicted Report Type">
                   <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-4 mb-3">
                     <div className="text-2xl font-bold text-purple-700 text-center">{currentPredictedReportType.type}</div>
@@ -350,7 +373,6 @@ const PostMarketSurveillanceAgent = ({
                   </div>
                 </Card>
 
-                {/* Generated Reports Card */}
                 <Card title="Generated Reports">
                   {generatedReports.length > 0 ? (
                     <div className="space-y-3">
@@ -391,23 +413,6 @@ const PostMarketSurveillanceAgent = ({
                   )}
                 </Card>
 
-                {/* Regulatory Standards Card */}
-                <Card title="Regulatory Standards">
-                  <div className="space-y-3">
-                    {currentRegulatoryStandards.map((standard, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">{standard.code}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-
-                {/* Recent Reports Card */}
                 <Card title="Recent Reports">
                   {generatedReports.length > 0 ? (
                     <div className="space-y-2">
