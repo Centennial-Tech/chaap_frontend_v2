@@ -402,7 +402,7 @@ const FdaMeetingPrepAgent = () => {
 
     try {
       const response = await api.post("/agents/meeting_prep/start-workflow", {
-        fda_document_type: activeSubmission?.submission_type,
+        fda_document_type: _document?.title,
         meeting_type: aiRecommendation?.recommendedMeetingType,
         session_id: uuid,
       });
