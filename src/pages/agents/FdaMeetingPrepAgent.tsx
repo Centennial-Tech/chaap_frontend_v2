@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/Button";
 import {
   Plus,
@@ -19,10 +19,12 @@ import {
 import { Card, CardContent } from "../../components/ui/Card";
 import api from "../../api";
 import { productTypes } from "../../constants";
+import { useSubmission } from "../../provider/submissionProvider";
 const FdaMeetingPrepAgent = () => {
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [formData, setFormData] = useState({
     productType: "",
     developmentStage: "",
@@ -51,15 +53,16 @@ const FdaMeetingPrepAgent = () => {
 
   const resetForm = () => {
     setFormData({
-      productType: "",
+      productType: activeSubmission?.product_type || "",
       developmentStage: "",
-      productName: "",
+      productName: activeSubmission?.name || "",
       regulatoryObjective: "",
     });
     setAiRecommendation(null);
     setMeetingDate("");
     setShowRecommendation(false);
     setIsLoadingRecommendation(false);
+    setIsLoadingDocuments(false);
     setEditingSubmissionId(null);
     setOpenHelpId(null);
     setShowWizardModal(false);
@@ -90,6 +93,20 @@ const FdaMeetingPrepAgent = () => {
     return response?.data?.meeting_type?.messages[0] || {};
   };
 
+  const predictMeetings = async () => {
+    const response: any = await api.post(
+      "/agents/meeting_prep/predict_meetings",
+      {
+        ProductType: formData.productType,
+        DevelopmentStage: formData.developmentStage,
+        ProductName: formData.productName,
+        RegulatoryObjective: formData.regulatoryObjective,
+      }
+    );
+
+    return response?.data?.doclist.messages[0]?.recommendedDocuments || {};
+  };
+
   const handleGetAIRecommendation = async () => {
     setIsLoadingRecommendation(true);
     try {
@@ -104,129 +121,23 @@ const FdaMeetingPrepAgent = () => {
         justification: recommendation?.Justification || [],
         typicalQuestions: recommendation?.CommonQuestions || [],
         meetingCategory: recommendation?.MeetingCategory || "N/A",
-        // recommendedDocuments: [
-        //   {
-        //     id: "meeting-request-letter",
-        //     title: "Meeting Request Letter",
-        //     description: "Formal letter requesting the meeting with FDA",
-        //     status: "required",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "A structured letter outlining your request, objectives, and proposed agenda",
-        //         "Clear statement of meeting purpose",
-        //         "Specific questions or topics for discussion",
-        //         "Proposed meeting date and format preference"
-        //       ],
-        //       tips: [
-        //         "Submit 30-75 days before desired meeting date",
-        //         "Include your contact information and preferred FDA attendees",
-        //         "Be specific about what decisions or feedback you need"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "product-development-summary",
-        //     title: "Product Development Summary",
-        //     description: "Comprehensive overview of your product and development program",
-        //     status: "required",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Product description and intended use",
-        //         "Current development status and milestones",
-        //         "Summary of available data and key findings",
-        //         "Proposed development plan and timeline"
-        //       ],
-        //       tips: [
-        //         "Focus on data that supports your meeting objectives",
-        //         "Highlight any significant safety or efficacy findings",
-        //         "Include relevant regulatory precedents or guidance"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "cmc-information",
-        //     title: "CMC Information Package",
-        //     description: "Chemistry, Manufacturing, and Controls documentation",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Manufacturing process description and controls",
-        //         "Stability data and specifications",
-        //         "Analytical methods and validation data",
-        //         "Any manufacturing changes and their impact"
-        //       ],
-        //       tips: [
-        //         "Ensure all CMC data is current and complete",
-        //         "Address any CMC-related questions or concerns",
-        //         "Include relevant FDA guidance compliance"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "risk-assessment",
-        //     title: "Risk Assessment and Mitigation Strategy",
-        //     description: "Evaluation of product risks and mitigation plans",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Identification of potential risks associated with the product",
-        //         "Current risk mitigation strategies and plans",
-        //         "Safety monitoring protocols and procedures",
-        //         "Risk-benefit analysis framework"
-        //       ],
-        //       tips: [
-        //         "Be comprehensive in risk identification",
-        //         "Provide evidence-based mitigation strategies",
-        //         "Address any emerging safety concerns proactively"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "literature-review",
-        //     title: "Literature Review",
-        //     description: "Relevant scientific literature supporting your development",
-        //     status: "optional",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Relevant published studies and clinical data",
-        //         "Key findings and their relevance to your product",
-        //         "Analysis of conflicting data or controversial findings",
-        //         "Context for your development program"
-        //       ],
-        //       tips: [
-        //         "Focus on recent and relevant literature",
-        //         "Address any conflicting data transparently",
-        //         "Include regulatory decisions on similar products"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "regulatory-precedent",
-        //     title: "Regulatory Precedent Analysis",
-        //     description: "Analysis of similar products and regulatory decisions",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Analysis of similar products and their regulatory pathways",
-        //         "Relevant FDA decisions and guidance documents",
-        //         "Precedents that support your approach",
-        //         "Lessons learned from similar development programs"
-        //       ],
-        //       tips: [
-        //         "Focus on recent and relevant precedents",
-        //         "Address any differences from precedents and their justification",
-        //         "Include both positive and negative precedents"
-        //       ]
-        //     }
-        //   }
-        // ]
       };
       setAiRecommendation(recommendationTemp);
       setShowRecommendation(true);
+      setIsLoadingRecommendation(false);
+
+      // Start loading documents
+      setIsLoadingDocuments(true);
+      const predictedMeetings = await predictMeetings();
+      setAiRecommendation((prev: any) => ({
+        ...prev,
+        recommendedDocuments: predictedMeetings,
+      }));
+      setIsLoadingDocuments(false);
     } catch (error) {
       console.error("Error getting AI recommendation:", error);
-    } finally {
       setIsLoadingRecommendation(false);
+      setIsLoadingDocuments(false);
     }
   };
 
@@ -283,6 +194,14 @@ const FdaMeetingPrepAgent = () => {
     setCurrentTab("product-info");
     setEditingSubmissionId(submission.id);
   };
+  const { activeSubmission } = useSubmission();
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      productType: activeSubmission?.product_type || "",
+      productName: activeSubmission?.name || "",
+    }));
+  }, [activeSubmission]);
 
   const handleCreateWithAIWizard = (_document: any) => {
     setShowWizardModal(true);
@@ -727,122 +646,141 @@ const FdaMeetingPrepAgent = () => {
               </p>
 
               <div className="space-y-4">
-                {aiRecommendation?.recommendedDocuments?.map(
-                  (document: any, index: number) => (
-                    <div
-                      key={document.id}
-                      className={`flex items-center justify-between py-4 ${
-                        index < aiRecommendation.recommendedDocuments.length - 1
-                          ? "border-b border-gray-200"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            document.status === "completed"
-                              ? "bg-green-500"
-                              : document.status === "required"
-                              ? "bg-red-500"
-                              : document.status === "recommended"
-                              ? "bg-yellow-500"
-                              : "bg-gray-400"
-                          }`}
-                        >
-                          {document.status === "completed" ? (
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-white" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">
-                            {document.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {document.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
-                          onClick={() => handleCreateWithAIWizard(document)}
-                        >
-                          <Wand2 className="w-4 h-4" />
-                          Create with AI Wizard
-                        </Button>
-                        <div className="relative">
-                          <div
-                            className="flex items-center gap-1 text-gray-500 cursor-pointer"
-                            onClick={() =>
-                              setOpenHelpId(
-                                openHelpId === document.id ? null : document.id
-                              )
-                            }
-                          >
-                            <span className="text-sm">Need Help?</span>
-                            <HelpCircle className="w-4 h-4" />
-                            <ChevronDown
-                              className={`w-4 h-4 transition-transform ${
-                                openHelpId === document.id ? "rotate-180" : ""
-                              }`}
-                            />
-                          </div>
-                          {openHelpId === document.id &&
-                            document.helpContent && (
-                              <div className="absolute right-0 top-full mt-2 w-80 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-10">
-                                <div className="mb-3">
-                                  <h5 className="font-semibold text-blue-900">
-                                    Need Help?
-                                  </h5>
-                                </div>
-
-                                <div className="space-y-4">
-                                  <div>
-                                    <h6 className="font-semibold text-blue-800 mb-2">
-                                      What to Include:
-                                    </h6>
-                                    <ul className="space-y-1">
-                                      {document.helpContent.whatToInclude.map(
-                                        (item: string, idx: number) => (
-                                          <li
-                                            key={idx}
-                                            className="flex items-start gap-2 text-sm text-blue-700"
-                                          >
-                                            <span className="inline-block w-1.5 h-1.5 mt-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                                            <span>{item}</span>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-
-                                  <div>
-                                    <h6 className="font-semibold text-blue-800 mb-2">
-                                      Tips:
-                                    </h6>
-                                    <ul className="space-y-1">
-                                      {document.helpContent.tips.map(
-                                        (item: string, idx: number) => (
-                                          <li
-                                            key={idx}
-                                            className="flex items-start gap-2 text-sm text-blue-700"
-                                          >
-                                            <Lightbulb className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
-                                            <span>{item}</span>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
+                {isLoadingDocuments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                      <span className="text-gray-600">
+                        Loading recommended documents...
+                      </span>
                     </div>
+                  </div>
+                ) : aiRecommendation?.recommendedDocuments?.length > 0 ? (
+                  aiRecommendation.recommendedDocuments.map(
+                    (document: any, index: number) => (
+                      <div
+                        key={document.id}
+                        className={`flex items-center justify-between py-4 ${
+                          index <
+                          aiRecommendation.recommendedDocuments.length - 1
+                            ? "border-b border-gray-200"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              document.status === "completed"
+                                ? "bg-green-500"
+                                : document.status === "required"
+                                ? "bg-red-500"
+                                : document.status === "recommended"
+                                ? "bg-yellow-500"
+                                : "bg-gray-400"
+                            }`}
+                          >
+                            {document.status === "completed" ? (
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {document.title}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {document.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
+                            onClick={() => handleCreateWithAIWizard(document)}
+                          >
+                            <Wand2 className="w-4 h-4" />
+                            Create with AI Wizard
+                          </Button>
+                          <div className="relative">
+                            <div
+                              className="flex items-center gap-1 text-gray-500 cursor-pointer"
+                              onClick={() =>
+                                setOpenHelpId(
+                                  openHelpId === document.id
+                                    ? null
+                                    : document.id
+                                )
+                              }
+                            >
+                              <span className="text-sm">Need Help?</span>
+                              <HelpCircle className="w-4 h-4" />
+                              <ChevronDown
+                                className={`w-4 h-4 transition-transform ${
+                                  openHelpId === document.id ? "rotate-180" : ""
+                                }`}
+                              />
+                            </div>
+                            {openHelpId === document.id &&
+                              document.helpContent && (
+                                <div className="absolute right-0 top-full mt-2 w-80 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-10">
+                                  <div className="mb-3">
+                                    <h5 className="font-semibold text-blue-900">
+                                      Need Help?
+                                    </h5>
+                                  </div>
+
+                                  <div className="space-y-4">
+                                    <div>
+                                      <h6 className="font-semibold text-blue-800 mb-2">
+                                        What to Include:
+                                      </h6>
+                                      <ul className="space-y-1">
+                                        {document.helpContent.whatToInclude.map(
+                                          (item: string, idx: number) => (
+                                            <li
+                                              key={idx}
+                                              className="flex items-start gap-2 text-sm text-blue-700"
+                                            >
+                                              <span className="inline-block w-1.5 h-1.5 mt-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                                              <span>{item}</span>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+
+                                    <div>
+                                      <h6 className="font-semibold text-blue-800 mb-2">
+                                        Tips:
+                                      </h6>
+                                      <ul className="space-y-1">
+                                        {document.helpContent.tips.map(
+                                          (item: string, idx: number) => (
+                                            <li
+                                              key={idx}
+                                              className="flex items-start gap-2 text-sm text-blue-700"
+                                            >
+                                              <Lightbulb className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
+                                              <span>{item}</span>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No documents available for this meeting type.</p>
+                  </div>
                 )}
               </div>
 
