@@ -27,7 +27,9 @@ import supersub from "remark-supersub";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import ReactMarkdown from "react-markdown";
+import { useAuth } from "../../provider/authProvider";
 const FdaMeetingPrepAgent = () => {
+  const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
@@ -40,7 +42,7 @@ const FdaMeetingPrepAgent = () => {
   });
   const [aiRecommendation, setAiRecommendation] = useState<any>(null);
   const [meetingDate, setMeetingDate] = useState("");
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [meetings, setSubmissions] = useState<any[]>([]);
   const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(
     null
@@ -226,96 +228,101 @@ const FdaMeetingPrepAgent = () => {
   // Helper function to convert markdown to plain text with formatting
   const markdownToPlainText = (markdown: string): string => {
     let text = markdown;
-    
+
     // Convert headers (preserve hierarchy with indentation)
-    text = text.replace(/^### (.+)$/gm, '   $1');
-    text = text.replace(/^## (.+)$/gm, '  $1');
-    text = text.replace(/^# (.+)$/gm, '$1');
-    
+    text = text.replace(/^### (.+)$/gm, "   $1");
+    text = text.replace(/^## (.+)$/gm, "  $1");
+    text = text.replace(/^# (.+)$/gm, "$1");
+
     // Convert bold and italic (remove markdown syntax but keep content)
-    text = text.replace(/\*\*(.+?)\*\*/g, '$1');
-    text = text.replace(/\*(.+?)\*/g, '$1');
-    
+    text = text.replace(/\*\*(.+?)\*\*/g, "$1");
+    text = text.replace(/\*(.+?)\*/g, "$1");
+
     // Convert lists (improve bullet point formatting)
-    text = text.replace(/^[\s]*[-*+] (.+)$/gm, '• $1');
-    text = text.replace(/^[\s]*\d+\. (.+)$/gm, '1. $1');
-    
+    text = text.replace(/^[\s]*[-*+] (.+)$/gm, "• $1");
+    text = text.replace(/^[\s]*\d+\. (.+)$/gm, "1. $1");
+
     // Convert code blocks (remove code block markers)
-    text = text.replace(/```[\w]*\n/g, '');
-    text = text.replace(/```/g, '');
-    
+    text = text.replace(/```[\w]*\n/g, "");
+    text = text.replace(/```/g, "");
+
     // Convert inline code (remove backticks)
-    text = text.replace(/`(.+?)`/g, '$1');
-    
+    text = text.replace(/`(.+?)`/g, "$1");
+
     // Clean up extra whitespace and normalize line breaks
-    text = text.replace(/\n{3,}/g, '\n\n');
-    text = text.replace(/^\s+|\s+$/g, '');
-    
+    text = text.replace(/\n{3,}/g, "\n\n");
+    text = text.replace(/^\s+|\s+$/g, "");
+
     return text;
   };
 
   // Helper function to convert markdown to HTML
   const markdownToHTML = (markdown: string): string => {
     let html = markdown;
-    
+
     // Convert headers
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-    
+    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
     // Convert bold and italic (be more specific to avoid conflicts)
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
     // Convert code blocks
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    
+    html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+
     // Convert inline code
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
     // Convert lists (improved pattern)
-    const lines = html.split('\n');
+    const lines = html.split("\n");
     let inList = false;
     let result = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const listMatch = line.match(/^[\s]*[-*+] (.+)$/);
-      
+
       if (listMatch) {
         if (!inList) {
-          result.push('<ul>');
+          result.push("<ul>");
           inList = true;
         }
         result.push(`<li>${listMatch[1]}</li>`);
       } else {
         if (inList) {
-          result.push('</ul>');
+          result.push("</ul>");
           inList = false;
         }
         result.push(line);
       }
     }
-    
+
     if (inList) {
-      result.push('</ul>');
+      result.push("</ul>");
     }
-    
-    html = result.join('\n');
-    
+
+    html = result.join("\n");
+
     // Convert line breaks to paragraphs (but preserve existing HTML tags)
-    html = html.replace(/\n\n+/g, '</p><p>');
-    
+    html = html.replace(/\n\n+/g, "</p><p>");
+
     // Only wrap in paragraphs if not already wrapped in HTML tags
-    if (!html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>') && 
-        !html.includes('<ul>') && !html.includes('<pre>')) {
-      html = '<p>' + html + '</p>';
+    if (
+      !html.includes("<h1>") &&
+      !html.includes("<h2>") &&
+      !html.includes("<h3>") &&
+      !html.includes("<ul>") &&
+      !html.includes("<pre>")
+    ) {
+      html = "<p>" + html + "</p>";
     } else {
       // Clean up empty paragraphs
-      html = html.replace(/<p><\/p>/g, '');
-      html = html.replace(/^<p>/, '').replace(/<\/p>$/, '');
+      html = html.replace(/<p><\/p>/g, "");
+      html = html.replace(/^<p>/, "").replace(/<\/p>$/, "");
     }
-    
+
     return html;
   };
 
@@ -343,30 +350,30 @@ const FdaMeetingPrepAgent = () => {
 
         // Determine text style based on content and indentation
         let fontSize = 12;
-        let fontStyle: 'normal' | 'bold' = 'normal';
+        let fontStyle: "normal" | "bold" = "normal";
 
         // Check if it's a header (no leading spaces and content)
-        if (line.trim() && !line.startsWith(' ')) {
+        if (line.trim() && !line.startsWith(" ")) {
           // Main header
           fontSize = 16;
-          fontStyle = 'bold';
-        } else if (line.startsWith('  ') && !line.startsWith('   ')) {
+          fontStyle = "bold";
+        } else if (line.startsWith("  ") && !line.startsWith("   ")) {
           // Secondary header
           fontSize = 14;
-          fontStyle = 'bold';
-        } else if (line.startsWith('   ')) {
+          fontStyle = "bold";
+        } else if (line.startsWith("   ")) {
           // Tertiary header
           fontSize = 13;
-          fontStyle = 'bold';
+          fontStyle = "bold";
         } else {
           // Regular text
           fontSize = 12;
-          fontStyle = 'normal';
+          fontStyle = "normal";
         }
 
         // Apply font settings
         doc.setFontSize(fontSize);
-        doc.setFont('helvetica', fontStyle);
+        doc.setFont("helvetica", fontStyle);
 
         // Handle empty lines
         if (!line.trim()) {
@@ -380,9 +387,9 @@ const FdaMeetingPrepAgent = () => {
           doc.text(textLine, 10, yPosition);
           yPosition += fontSize === 16 ? 8 : fontSize === 14 ? 7 : 6;
         });
-        
+
         // Add extra space after headers
-        if (fontStyle === 'bold') {
+        if (fontStyle === "bold") {
           yPosition += 4;
         }
       });
@@ -467,49 +474,87 @@ const FdaMeetingPrepAgent = () => {
     }
   };
 
-  const handleSubmitMeetingRequest = () => {
-    const submissionData = {
-      id: editingSubmissionId || Date.now().toString(),
-      productName: formData.productName || "Drug",
-      productType: formData.productType,
-      meetingType:
-        aiRecommendation?.recommendedMeetingType
-          ?.toLowerCase()
-          .replace(/\s+/g, "_") || "end_of_phase1",
-      developmentStage: formData.developmentStage,
-      submittedDate: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      lastUpdated: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      formData,
-      aiRecommendation,
-      meetingDate,
-    };
+  const handleSubmitMeetingRequest = async () => {
+    try {
+      setIsLoadingDocuments(true);
 
-    if (editingSubmissionId) {
-      setSubmissions((prev) =>
-        prev.map((sub) =>
-          sub.id === editingSubmissionId ? submissionData : sub
-        )
+      // Prepare API payload
+      const apiPayload = {
+        user_id: user?.id, // Get user_id from localStorage or default
+        productType: formData.productType,
+        developmentStage: formData.developmentStage,
+        productName: formData.productName || "Drug",
+        regulatoryObjective: formData.regulatoryObjective,
+        meetingType:
+          aiRecommendation?.recommendedMeetingType || "End of Phase 1",
+        recommendedDocuments: aiRecommendation?.recommendedDocuments || [],
+        preferredDate: meetingDate || "",
+      };
+
+      // Call the API to save meeting prep data
+      const response = await api.post(
+        "/agents/meeting_prep/save_meetingprep_data",
+        {
+          ...apiPayload,
+        }
       );
-      setMeetingRequests((prev) =>
-        prev.map((req) =>
-          req.id === editingSubmissionId ? submissionData : req
-        )
-      );
-    } else {
-      setSubmissions((prev) => [submissionData, ...prev.slice(0, 2)]);
-      setMeetingRequests((prev) => [submissionData, ...prev.slice(0, 0)]);
+
+      const result = await response?.data;
+
+      // Create submission data for local state
+      const submissionData = {
+        id: editingSubmissionId || Date.now().toString(),
+        productName: formData.productName || "Drug",
+        productType: formData.productType,
+        meetingType:
+          aiRecommendation?.recommendedMeetingType
+            ?.toLowerCase()
+            .replace(/\s+/g, "_") || "end_of_phase1",
+        developmentStage: formData.developmentStage,
+        submittedDate: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        lastUpdated: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        formData,
+        aiRecommendation,
+        meetingDate,
+      };
+
+      // Update local state
+      if (editingSubmissionId) {
+        setSubmissions((prev) =>
+          prev.map((sub) =>
+            sub.id === editingSubmissionId ? submissionData : sub
+          )
+        );
+        setMeetingRequests((prev) =>
+          prev.map((req) =>
+            req.id === editingSubmissionId ? submissionData : req
+          )
+        );
+      } else {
+        setSubmissions((prev) => [submissionData, ...prev.slice(0, 2)]);
+        setMeetingRequests((prev) => [submissionData, ...prev.slice(0, 0)]);
+      }
+
+      setCurrentTab("main");
+      resetForm();
+
+      // Show success message (you can add a toast notification here if available)
+      console.log("Meeting request submitted successfully!");
+    } catch (error) {
+      console.error("Error saving meeting prep data:", error);
+      // Show error message to user (you can add error handling UI here)
+      alert("Failed to save meeting request. Please try again.");
+    } finally {
+      setIsLoadingDocuments(false);
     }
-
-    setCurrentTab("main");
-    resetForm();
   };
 
   const components: any = {
@@ -646,20 +691,20 @@ const FdaMeetingPrepAgent = () => {
     </Card>
   );
 
-  const SubmissionCard = ({
-    submission,
+  const MeetingCard = ({
+    meeting,
     onViewDetails,
   }: {
-    submission: any;
-    onViewDetails: (submission: any) => void;
+    meeting: any;
+    onViewDetails: (meeting: any) => void;
   }) => (
-    <Card key={submission.id}>
+    <Card key={meeting.id}>
       <CardContent className="p-6">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-gray-900">
-                {submission.productName}
+                {meeting.productName}
               </h3>
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                 <CalendarDays className="w-3 h-3" />
@@ -668,15 +713,15 @@ const FdaMeetingPrepAgent = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
-                <p>Product Type: {submission.productType}</p>
-                <p>Meeting Type: {submission.meetingType}</p>
+                <p>Product Type: {meeting.productType}</p>
+                <p>Meeting Type: {meeting.meetingType}</p>
               </div>
               <div>
-                <p>Development Stage: {submission.developmentStage}</p>
+                <p>Development Stage: {meeting.developmentStage}</p>
                 <p>
-                  {submission.submittedDate
-                    ? `Submitted: ${submission.submittedDate}`
-                    : `Last Updated: ${submission.lastUpdated}`}
+                  {meeting.submittedDate
+                    ? `Submitted: ${meeting.submittedDate}`
+                    : `Last Updated: ${meeting.lastUpdated}`}
                 </p>
               </div>
             </div>
@@ -684,7 +729,7 @@ const FdaMeetingPrepAgent = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onViewDetails(submission)}
+            onClick={() => onViewDetails(meeting)}
             className="ml-4"
           >
             View Details
@@ -722,20 +767,20 @@ const FdaMeetingPrepAgent = () => {
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-green-500" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Recent Submissions
+              Recent Meetings
             </h2>
           </div>
-          {submissions.length === 0 ? (
+          {meetings.length === 0 ? (
             <EmptyState
-              title="No recent submissions"
+              title="No recent meetings"
               description="Create your first meeting request to get started"
             />
           ) : (
             <div className="space-y-4">
-              {submissions.map((submission) => (
-                <SubmissionCard
-                  key={submission.id}
-                  submission={submission}
+              {meetings.map((meeting) => (
+                <MeetingCard
+                  key={meeting.id}
+                  meeting={meeting}
                   onViewDetails={handleViewDetails}
                 />
               ))}
@@ -758,9 +803,9 @@ const FdaMeetingPrepAgent = () => {
           ) : (
             <div className="space-y-4">
               {meetingRequests.map((request) => (
-                <SubmissionCard
+                <MeetingCard
                   key={request.id}
-                  submission={request}
+                  meeting={request}
                   onViewDetails={handleViewDetails}
                 />
               ))}
