@@ -43,7 +43,6 @@ const FdaMeetingPrepAgent = () => {
   const [aiRecommendation, setAiRecommendation] = useState<any>(null);
   const [meetingDate, setMeetingDate] = useState("");
   const [meetings, setMeetings] = useState<any[]>([]);
-  const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(
     null
   );
@@ -109,6 +108,18 @@ const FdaMeetingPrepAgent = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const getMeetings = async () => {
+    try {
+      const response = await api.get("/agents/meeting_prep/meetings", {
+        params: { user_id: user?.id },
+      });
+      console.log("Meetings response:", response?.data?.data);
+      setMeetings(response?.data?.data || []);
+    } catch (error) {
+      console.error("Error fetching meetings:", error);
+    }
   };
 
   const getRecommendation = async () => {
@@ -492,14 +503,12 @@ const FdaMeetingPrepAgent = () => {
       };
 
       // Call the API to save meeting prep data
-      const response = await api.post(
+      await api.post(
         "/agents/meeting_prep/save_meetingprep_data",
         {
           ...apiPayload,
         }
       );
-
-      const result = await response?.data;
 
       // Create submission data for local state
       const submissionData = {
@@ -521,6 +530,7 @@ const FdaMeetingPrepAgent = () => {
           month: "short",
           day: "numeric",
         }),
+        timestamp: new Date().toISOString(), // Add timestamp for proper sorting
         formData,
         aiRecommendation,
         meetingDate,
@@ -533,21 +543,15 @@ const FdaMeetingPrepAgent = () => {
             sub.id === editingSubmissionId ? submissionData : sub
           )
         );
-        setMeetingRequests((prev) =>
-          prev.map((req) =>
-            req.id === editingSubmissionId ? submissionData : req
-          )
-        );
       } else {
-        setMeetings((prev) => [submissionData, ...prev.slice(0, 2)]);
-        setMeetingRequests((prev) => [submissionData, ...prev.slice(0, 0)]);
+        setMeetings((prev) => [submissionData, ...prev]);
       }
 
       setCurrentTab("main");
       resetForm();
 
-      // Show success message (you can add a toast notification here if available)
-      console.log("Meeting request submitted successfully!");
+      // Show success message
+      alert("Meeting request submitted successfully! You can view it in the Recent Meetings section.");
     } catch (error) {
       console.error("Error saving meeting prep data:", error);
       // Show error message to user (you can add error handling UI here)
@@ -594,6 +598,13 @@ const FdaMeetingPrepAgent = () => {
       productName: activeSubmission?.name || "",
     }));
   }, [activeSubmission]);
+
+  // Call getMeetings when switching to main tab
+  useEffect(() => {
+    if (currentTab === "main") {
+      getMeetings();
+    }
+  }, [currentTab, user?.id]);
 
   const handleCreateWithAIWizard = async (_document: any) => {
     // setShowWizardModal(true);
@@ -704,7 +715,7 @@ const FdaMeetingPrepAgent = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-gray-900">
-                {meeting.productName}
+                {meeting.product_name}
               </h3>
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                 <CalendarDays className="w-3 h-3" />
@@ -713,15 +724,19 @@ const FdaMeetingPrepAgent = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
-                <p>Product Type: {meeting.productType}</p>
-                <p>Meeting Type: {meeting.meetingType}</p>
+                <p>Product Type: {meeting.product_type}</p>
+                <p>Meeting Type: {meeting.meeting_type}</p>
               </div>
               <div>
-                <p>Development Stage: {meeting.developmentStage}</p>
+                <p>Development Stage: {meeting.development_stage}</p>
                 <p>
                   {meeting.submittedDate
-                    ? `Submitted: ${meeting.submittedDate}`
-                    : `Last Updated: ${meeting.lastUpdated}`}
+                    ? `Submitted: ${new Date(
+                        meeting.submittedDate
+                      ).toLocaleDateString()}`
+                    : `Last Updated: ${new Date(
+                        meeting.timestamp
+                      ).toLocaleDateString()}`}
                 </p>
               </div>
             </div>
@@ -777,13 +792,16 @@ const FdaMeetingPrepAgent = () => {
             />
           ) : (
             <div className="space-y-4">
-              {meetings.map((meeting) => (
-                <MeetingCard
-                  key={meeting.id}
-                  meeting={meeting}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+              {meetings
+                .sort((a, b) => new Date(b.timestamp || b.lastUpdated || 0).getTime() - new Date(a.timestamp || a.lastUpdated || 0).getTime())
+                .slice(0, 3)
+                .map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -795,20 +813,22 @@ const FdaMeetingPrepAgent = () => {
               All Meeting Requests
             </h2>
           </div>
-          {meetingRequests.length === 0 ? (
+          {meetings.length === 0 ? (
             <EmptyState
               title="No meeting requests yet"
               description="Create your first meeting request to get started"
             />
           ) : (
             <div className="space-y-4">
-              {meetingRequests.map((request) => (
-                <MeetingCard
-                  key={request.id}
-                  meeting={request}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+              {meetings
+                .sort((a, b) => new Date(b.timestamp || b.lastUpdated || 0).getTime() - new Date(a.timestamp || a.lastUpdated || 0).getTime())
+                .map((request) => (
+                  <MeetingCard
+                    key={request.id}
+                    meeting={request}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
             </div>
           )}
         </div>
