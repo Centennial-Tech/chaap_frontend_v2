@@ -241,7 +241,8 @@ const mockFormQuestions = {
 };
 
 const DocPrepAgent = () => {
-  const {submissions, activeSubmission, setActiveSubmission} = useSubmission();
+  const { submissions, activeSubmission, setActiveSubmission } =
+    useSubmission();
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
   const [isValidationResultsOpen, setIsValidationResultsOpen] = useState(false);
@@ -249,7 +250,9 @@ const DocPrepAgent = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [validationResults, setValidationResults] = useState<any>(null);
   const [formQuestions, setFormQuestions] = useState<any[]>([]);
-  const [formResponses, setFormResponses] = useState<Record<string, string>>({});
+  const [formResponses, setFormResponses] = useState<Record<string, string>>(
+    {}
+  );
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDocumentGenerated, setIsDocumentGenerated] = useState(false);
@@ -277,9 +280,9 @@ const DocPrepAgent = () => {
     Record<string, string>
   >({});
   const [showFullDocument, setShowFullDocument] = useState(false);
+  const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
 
   const isFormValid = activeSubmission && selectedAttachmentType;
-
 
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
 
@@ -308,6 +311,23 @@ const DocPrepAgent = () => {
     showOverlay,
     hideOverlay,
   ]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showDownloadDropdown) {
+        const dropdown = document.querySelector(".download-dropdown");
+        if (dropdown && !dropdown.contains(event.target as Node)) {
+          setShowDownloadDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDownloadDropdown]);
 
   // Debug effect to monitor validation results changes
   useEffect(() => {
@@ -635,10 +655,8 @@ const DocPrepAgent = () => {
     type: "txt" | "pdf" | "doc"
   ) => {
     if (type === "pdf") {
-      const doc = new jsPDF();
-      const lines = doc.splitTextToSize(content, 180); // auto wrap at 180mm
-      doc.text(lines, 10, 10);
-      doc.save(`${filename}.pdf`);
+      console.log("Generating PDF for download...", content);
+      generateStyledPDF(content, filename);
       return;
     }
 
@@ -665,6 +683,291 @@ const DocPrepAgent = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  const generateStyledPDF = (content: string, filename: string) => {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // PDF styling constants
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const lineHeight = 6;
+    const maxLineWidth = pageWidth - margin * 2;
+
+    let yPosition = margin;
+
+    // Add header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.setFont("helvetica", "bold");
+    doc.text(filename, margin, yPosition);
+    yPosition += 15;
+
+    // Add a line separator
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Helper function to clean markdown from text
+    const cleanMarkdown = (text: string) => {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
+        .replace(/\*(.*?)\*/g, '$1')     // Remove italic markers  
+        .replace(/`(.*?)`/g, '$1');      // Remove code markers
+    };
+
+    // Helper function to render text with inline formatting
+    const renderFormattedText = (text: string, x: number, y: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
+      doc.setFontSize(fontSize);
+      doc.setTextColor(color[0], color[1], color[2]);
+      
+      // Handle mixed formatting in the same line
+      let currentX = x;
+      
+      // Split by markdown patterns while preserving the delimiters and content
+      const markdownRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+      const segments = text.split(markdownRegex);
+      
+      for (const segment of segments) {
+        if (!segment) continue;
+        
+        if (segment.startsWith("**") && segment.endsWith("**")) {
+          // Bold text
+          const boldText = segment.slice(2, -2);
+          doc.setFont("helvetica", "bold");
+          const textWidth = doc.getTextWidth(boldText);
+          doc.text(boldText, currentX, y);
+          currentX += textWidth;
+          doc.setFont("helvetica", "normal");
+        } else if (segment.startsWith("*") && segment.endsWith("*") && !segment.startsWith("**")) {
+          // Italic text
+          const italicText = segment.slice(1, -1);
+          doc.setFont("helvetica", "italic");
+          const textWidth = doc.getTextWidth(italicText);
+          doc.text(italicText, currentX, y);
+          currentX += textWidth;
+          doc.setFont("helvetica", "normal");
+        } else if (segment.startsWith("`") && segment.endsWith("`")) {
+          // Inline code
+          const codeText = segment.slice(1, -1);
+          doc.setFont("courier", "normal");
+          doc.setTextColor(100, 100, 100);
+          const textWidth = doc.getTextWidth(codeText);
+          doc.text(codeText, currentX, y);
+          currentX += textWidth;
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(color[0], color[1], color[2]);
+        } else {
+          // Regular text
+          doc.setFont("helvetica", "normal");
+          const textWidth = doc.getTextWidth(segment);
+          doc.text(segment, currentX, y);
+          currentX += textWidth;
+        }
+      }
+      
+      return currentX - x; // Return the total width used
+    };
+
+    // Helper function to render multi-line formatted text
+    const renderMultiLineFormattedText = (text: string, x: number, startY: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
+      doc.setFontSize(fontSize);
+      doc.setTextColor(color[0], color[1], color[2]);
+      doc.setFont("helvetica", "normal");
+      
+      let currentY = startY;
+      const words = text.split(' ');
+      let currentLine = '';
+      
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        // Test with cleaned text to check actual width
+        const cleanTestLine = cleanMarkdown(testLine);
+        const testWidth = doc.getTextWidth(cleanTestLine);
+        
+        if (testWidth <= maxLineWidth) {
+          currentLine = testLine;
+        } else {
+          // Render current line if it has content
+          if (currentLine) {
+            renderFormattedText(currentLine, x, currentY, fontSize, color);
+            currentY += lineHeight;
+          }
+          currentLine = word;
+        }
+      }
+      
+      // Render remaining text
+      if (currentLine) {
+        renderFormattedText(currentLine, x, currentY, fontSize, color);
+        currentY += lineHeight;
+      }
+      
+      return currentY; // Return the final Y position
+    };
+
+    // Parse markdown-like content
+    const lines = content.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Check if we need a new page
+      if (yPosition > pageHeight - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      if (!line) {
+        yPosition += lineHeight / 2; // Small space for empty lines
+        continue;
+      }
+
+      // Handle headers
+      if (line.startsWith("# ")) {
+        const headerText = line.substring(2);
+        doc.setFontSize(18);
+        doc.setTextColor(50, 50, 50);
+        doc.setFont("helvetica", "bold");
+        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
+        doc.text(wrappedHeader, margin, yPosition);
+        yPosition += wrappedHeader.length * lineHeight + 5;
+      } else if (line.startsWith("## ")) {
+        const headerText = line.substring(3);
+        doc.setFontSize(16);
+        doc.setTextColor(60, 60, 60);
+        doc.setFont("helvetica", "bold");
+        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
+        doc.text(wrappedHeader, margin, yPosition);
+        yPosition += wrappedHeader.length * lineHeight + 4;
+      } else if (line.startsWith("### ")) {
+        const headerText = line.substring(4);
+        doc.setFontSize(14);
+        doc.setTextColor(70, 70, 70);
+        doc.setFont("helvetica", "bold");
+        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
+        doc.text(wrappedHeader, margin, yPosition);
+        yPosition += wrappedHeader.length * lineHeight + 3;
+      }
+      // Handle bullet points
+      else if (line.startsWith("- ") || line.startsWith("* ")) {
+        const bulletText = line.substring(2);
+        doc.setFontSize(12);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont("helvetica", "normal");
+        
+        // Add bullet point
+        doc.text("• ", margin + 5, yPosition);
+        
+        // Check if the bullet text contains formatting
+        if (bulletText.includes("**") || bulletText.includes("*") || bulletText.includes("`")) {
+          // Use multi-line formatted text rendering
+          const finalY = renderMultiLineFormattedText(bulletText, margin + 10, yPosition, 12, [80, 80, 80]);
+          yPosition = finalY + 2;
+        } else {
+          // Simple text wrapping for plain text
+          const wrappedBullet = doc.splitTextToSize(bulletText, maxLineWidth - 10);
+          doc.text(wrappedBullet, margin + 10, yPosition);
+          yPosition += wrappedBullet.length * lineHeight + 2;
+        }
+      }
+      // Handle numbered lists
+      else if (line.match(/^\d+\. /)) {
+        const match = line.match(/^(\d+\. )(.*)/);
+        if (match) {
+          const listNumber = match[1];
+          const listText = match[2];
+          
+          doc.setFontSize(12);
+          doc.setTextColor(80, 80, 80);
+          doc.setFont("helvetica", "normal");
+          
+          // Add list number
+          doc.text(listNumber, margin + 5, yPosition);
+          const numberWidth = doc.getTextWidth(listNumber);
+          
+          // Check if the list text contains formatting
+          if (listText.includes("**") || listText.includes("*") || listText.includes("`")) {
+            // Use multi-line formatted text rendering
+            const finalY = renderMultiLineFormattedText(listText, margin + 5 + numberWidth, yPosition, 12, [80, 80, 80]);
+            yPosition = finalY + 2;
+          } else {
+            // Simple text wrapping for plain text
+            const wrappedText = doc.splitTextToSize(listText, maxLineWidth - 5 - numberWidth);
+            doc.text(wrappedText, margin + 5 + numberWidth, yPosition);
+            yPosition += wrappedText.length * lineHeight + 2;
+          }
+        }
+      }
+      // Handle code blocks
+      else if (line.startsWith("```")) {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont("courier", "normal");
+
+        // Find the end of code block
+        let codeContent = "";
+        let j = i + 1;
+        while (j < lines.length && !lines[j].startsWith("```")) {
+          codeContent += lines[j] + "\n";
+          j++;
+        }
+
+        // Draw code block background
+        const codeHeight = (codeContent.split("\n").length - 1) * lineHeight + 8;
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, yPosition - 3, maxLineWidth, codeHeight, "F");
+
+        const wrappedCode = doc.splitTextToSize(codeContent.trim(), maxLineWidth - 10);
+        doc.text(wrappedCode, margin + 5, yPosition + 2);
+        yPosition += wrappedCode.length * lineHeight + 10;
+
+        i = j; // Skip processed lines
+      }
+      // Regular text with potential formatting
+      else {
+        doc.setFontSize(12);
+        doc.setTextColor(60, 60, 60);
+        doc.setFont("helvetica", "normal");
+        
+        // Check if line contains formatting
+        if (line.includes("**") || line.includes("*") || line.includes("`")) {
+          // Use multi-line formatted text rendering
+          const finalY = renderMultiLineFormattedText(line, margin, yPosition, 12, [60, 60, 60]);
+          yPosition = finalY + 3;
+        } else {
+          // Plain text without formatting
+          const wrappedText = doc.splitTextToSize(line, maxLineWidth);
+          doc.text(wrappedText, margin, yPosition);
+          yPosition += wrappedText.length * lineHeight + 3;
+        }
+      }
+    }
+
+    // Add footer with page numbers
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageWidth - margin - 20,
+        pageHeight - 10
+      );
+
+      // Add timestamp
+      const timestamp = new Date().toLocaleDateString();
+      doc.text(`Generated on ${timestamp}`, margin, pageHeight - 10);
+    }
+
+    doc.save(`${filename}.pdf`);
   };
 
   const handleCloseCreateModal = () => {
@@ -1303,13 +1606,104 @@ const DocPrepAgent = () => {
                 {isGenerating ? "Processing..." : "Submit"}
               </Button>
             ) : (
-              <Button
-                onClick={() => handleDownload("pdf")}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Download className="w-4 h-4" />
-                Download Document
-              </Button>
+              <div className="relative">
+                <div className="flex">
+                  <Button
+                    onClick={() => handleDownload("pdf")}
+                    className="bg-green-600 hover:bg-green-700 rounded-r-none"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      setShowDownloadDropdown(!showDownloadDropdown)
+                    }
+                    className="bg-green-600 hover:bg-green-700 px-2 rounded-l-none border-l border-green-500"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+
+                {showDownloadDropdown && (
+                  <div className="download-dropdown absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          handleDownload("pdf");
+                          setShowDownloadDropdown(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2 text-red-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Download as PDF (Formatted)
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDownload("doc");
+                          setShowDownloadDropdown(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2 text-blue-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Download as Word Document
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDownload("txt");
+                          setShowDownloadDropdown(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2 text-gray-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Download as Text File
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </>
@@ -1755,35 +2149,68 @@ const DocPrepAgent = () => {
             Close
           </Button>
           {workflowStatus?.status === "completed" && (
-            <div className="flex flex-col space-y-2">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Download Options:
+            <div className="flex flex-col space-y-3">
+              <div className="text-sm font-medium text-gray-700 mb-1">
+                Download Your Document:
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col space-y-2">
                 <Button
                   onClick={() => handleDownload("pdf")}
-                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
                   size="sm"
                 >
-                  <Download className="w-4 h-4" />
-                  PDF
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  PDF (Formatted with Styling)
                 </Button>
-                <Button
-                  onClick={() => handleDownload("doc")}
-                  size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Download className="w-4 h-4" />
-                  DOC
-                </Button>
-                <Button
-                  onClick={() => handleDownload("txt")}
-                  variant="gray"
-                  size="sm"
-                >
-                  <Download className="w-4 h-4" />
-                  TXT
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={() => handleDownload("doc")}
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Word Doc
+                  </Button>
+                  <Button
+                    onClick={() => handleDownload("txt")}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Text File
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -1877,7 +2304,7 @@ const DocPrepAgent = () => {
                       <option
                         key={submission.id}
                         value={submission.id}
-                          selected={submission.id === activeSubmission?.id}
+                        selected={submission.id === activeSubmission?.id}
                       >
                         {submission.name}
                       </option>
