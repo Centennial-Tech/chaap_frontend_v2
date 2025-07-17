@@ -15,11 +15,18 @@ import {
   ChevronDown,
   CalendarDays,
   Loader2,
+  Download,
 } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import api from "../../api";
 import { productTypes } from "../../constants";
 import { useSubmission } from "../../provider/submissionProvider";
+import jsPDF from "jspdf";
+import remarkGfm from "remark-gfm";
+import supersub from "remark-supersub";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
+import ReactMarkdown from "react-markdown";
 const FdaMeetingPrepAgent = () => {
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
@@ -38,9 +45,20 @@ const FdaMeetingPrepAgent = () => {
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(
     null
   );
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [openHelpId, setOpenHelpId] = useState<string | null>(null);
   const [showWizardModal, setShowWizardModal] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
+  const [isPolling, setIsPolling] = useState(false);
+  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
+  const [additionalQuestions, setAdditionalQuestions] = useState<string[]>([]);
+  const [questionResponses, setQuestionResponses] = useState<
+    Record<string, string>
+  >({});
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [isSubmittingResponses, setIsSubmittingResponses] = useState(false);
+  const [finalDocument, setFinalDocument] = useState<string>("");
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
   const [wizardData, setWizardData] = useState({
     productName: "",
     companyName: "",
@@ -64,9 +82,18 @@ const FdaMeetingPrepAgent = () => {
     setIsLoadingRecommendation(false);
     setIsLoadingDocuments(false);
     setEditingSubmissionId(null);
+    setSessionId(null);
     setOpenHelpId(null);
     setShowWizardModal(false);
     setWizardStep(1);
+    setIsPolling(false);
+    setWorkflowStatus(null);
+    setAdditionalQuestions([]);
+    setQuestionResponses({});
+    setShowQuestions(false);
+    setIsSubmittingResponses(false);
+    setFinalDocument("");
+    setShowDocumentPreview(false);
     setWizardData({
       productName: "",
       companyName: "",
@@ -105,6 +132,150 @@ const FdaMeetingPrepAgent = () => {
     );
 
     return response?.data?.doclist.messages[0]?.recommendedDocuments || {};
+  };
+
+  // Poll workflow status
+  const pollWorkflowStatus = async (sessionId: string) => {
+    try {
+      setIsPolling(true);
+      const response = await api.get(
+        `/agents/meeting_prep/workflow-status/${sessionId}`
+      );
+      console.log("Workflow status:", response.data);
+
+      setWorkflowStatus(response.data);
+
+      if (response.data.status === "processing") {
+        // Continue polling after a delay
+        setTimeout(() => pollWorkflowStatus(sessionId), 3000);
+      } else if (response.data.status === "awaiting_user_input") {
+        // Show additional questions
+        setAdditionalQuestions(response.data.additional_questions || []);
+
+        // Initialize question responses
+        const initialResponses: Record<string, string> = {};
+        (response.data.additional_questions || []).forEach(
+          (question: string) => {
+            initialResponses[question] = "";
+          }
+        );
+        setQuestionResponses(initialResponses);
+
+        setIsPolling(false);
+        setShowQuestions(true);
+      } else if (response.data.status === "completed") {
+        // Show final document
+        setFinalDocument(response.data.final_document || "");
+        setIsPolling(false);
+        setShowDocumentPreview(true);
+        setShowWizardModal(false);
+      } else if (response.data.status === "error") {
+        console.error("Workflow error:", response.data.error);
+        setIsPolling(false);
+        alert(
+          "Workflow encountered an error: " +
+            (response.data.error || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Error polling workflow status:", error);
+      setIsPolling(false);
+      alert("Failed to check workflow status. Please try again.");
+    }
+  };
+
+  // Submit additional user responses
+  const submitAdditionalInfo = async () => {
+    if (!sessionId) return;
+
+    setIsSubmittingResponses(true);
+    try {
+      await api.post("/agents/meeting_prep/submit-additional-info", {
+        session_id: sessionId,
+        user_responses: questionResponses,
+      });
+
+      setShowQuestions(false);
+      setIsSubmittingResponses(false);
+
+      // Continue polling
+      await pollWorkflowStatus(sessionId);
+    } catch (error) {
+      console.error("Error submitting additional info:", error);
+      setIsSubmittingResponses(false);
+      alert("Failed to submit responses. Please try again.");
+    }
+  };
+
+  // Handle question response change
+  const handleQuestionResponseChange = (question: string, value: string) => {
+    setQuestionResponses((prev) => ({
+      ...prev,
+      [question]: value,
+    }));
+  };
+
+  // Check if all questions are answered
+  const areAllQuestionsAnswered = () => {
+    return additionalQuestions.every(
+      (question) =>
+        questionResponses[question] && questionResponses[question].trim() !== ""
+    );
+  };
+
+  // Download document functions
+  const downloadDocument = (format: "pdf" | "doc" | "txt") => {
+    if (!finalDocument) return;
+
+    let blob: Blob;
+    let filename = `FDA_Meeting_Document.${format}`;
+
+    if (format === "pdf") {
+      // Generate PDF using jsPDF
+      const doc = new jsPDF();
+      const lines = finalDocument.split("\n");
+
+      doc.setFontSize(12);
+      let yPosition = 20;
+
+      lines.forEach((line) => {
+        if (yPosition > 280) {
+          // Start new page if needed
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        // Split long lines to fit page width
+        const splitText = doc.splitTextToSize(line, 180);
+        splitText.forEach((textLine: string) => {
+          doc.text(textLine, 10, yPosition);
+          yPosition += 7;
+        });
+      });
+
+      doc.save(filename);
+      return;
+    } else if (format === "doc") {
+      const docContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>FDA Meeting Document</title></head>
+        <body><pre>${finalDocument}</pre></body></html>
+      `;
+      blob = new Blob([docContent], { type: "application/msword" });
+    } else {
+      blob = new Blob([finalDocument], { type: "text/plain" });
+    }
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleGetAIRecommendation = async () => {
@@ -186,6 +357,27 @@ const FdaMeetingPrepAgent = () => {
     resetForm();
   };
 
+  const components: any = {
+    code({ node, ...props }: { node: any; [key: string]: any }) {
+      let language;
+      if (props.className) {
+        const match = props.className.match(/language-(\w+)/);
+        language = match ? match[1] : undefined;
+      }
+      const codeString = node.children[0].value ?? "";
+      return (
+        <SyntaxHighlighter
+          style={nord}
+          language={language}
+          PreTag="div"
+          {...props}
+        >
+          {codeString}
+        </SyntaxHighlighter>
+      );
+    },
+  };
+
   const handleViewDetails = (submission: any) => {
     setFormData(submission.formData);
     setAiRecommendation(submission.aiRecommendation);
@@ -203,18 +395,37 @@ const FdaMeetingPrepAgent = () => {
     }));
   }, [activeSubmission]);
 
-  const handleCreateWithAIWizard = (_document: any) => {
-    setShowWizardModal(true);
+  const handleCreateWithAIWizard = async (_document: any) => {
+    // setShowWizardModal(true);
+    const uuid = crypto.randomUUID();
+    setSessionId(uuid);
+
+    try {
+      const response = await api.post("/agents/meeting_prep/start-workflow", {
+        fda_document_type: activeSubmission?.submission_type,
+        meeting_type: aiRecommendation?.recommendedMeetingType,
+        session_id: uuid,
+      });
+
+      console.log("Workflow started:", response.data);
+
+      // Start polling for workflow status
+      await pollWorkflowStatus(uuid);
+    } catch (error) {
+      console.error("Error starting workflow:", error);
+      alert("Failed to start workflow. Please try again.");
+    }
+
     setWizardStep(1);
-    setWizardData({
-      productName: "",
-      companyName: "",
-      indication: "",
-      primaryObjective: "",
-      specificQuestions: "",
-      preferredMeetingDate: "",
-      questions: {},
-    });
+    // setWizardData({
+    //   productName: formData.productName || "",
+    //   companyName: "",
+    //   indication: activeSubmission?.intended_use || "",
+    //   primaryObjective: "",
+    //   specificQuestions: "",
+    //   preferredMeetingDate: "",
+    //   questions: {},
+    // });
   };
 
   const handleWizardInputChange = (field: string, value: string) => {
@@ -1144,6 +1355,237 @@ const FdaMeetingPrepAgent = () => {
                   Generate Document
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Questions Modal */}
+      {showQuestions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Additional Information Required
+              </h2>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-600 mb-6">
+                Please provide the following information to complete your
+                document:
+              </p>
+
+              <div className="space-y-4">
+                {additionalQuestions.map((question, index) => (
+                  <div key={index} className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {question} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={3}
+                      placeholder="Please provide your answer here..."
+                      value={questionResponses[question] || ""}
+                      onChange={(e) =>
+                        handleQuestionResponseChange(question, e.target.value)
+                      }
+                      disabled={isSubmittingResponses}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {isSubmittingResponses && (
+                <div className="mt-4 flex items-center justify-center">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                    <span className="text-gray-600">
+                      Submitting responses...
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <Button
+                onClick={submitAdditionalInfo}
+                disabled={!areAllQuestionsAnswered() || isSubmittingResponses}
+                className="flex items-center gap-2"
+              >
+                {isSubmittingResponses ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                Submit Responses
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Preview Modal */}
+      {showDocumentPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                FDA Meeting Document Ready
+              </h2>
+              <button
+                onClick={() => setShowDocumentPreview(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Document Preview
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Your FDA meeting document has been generated successfully. You
+                  can preview it below and download it in your preferred format.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                {/* <MarkD className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+                  {finalDocument}
+                </MarkD> */}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, supersub]}
+                  children={finalDocument}
+                  components={components}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowDocumentPreview(false)}
+              >
+                Close
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => downloadDocument("txt")}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download TXT
+                </Button>
+                <Button
+                  onClick={() => downloadDocument("doc")}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download DOC
+                </Button>
+                <Button
+                  onClick={() => downloadDocument("pdf")}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Polling Status Loader */}
+      {isPolling && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              {/* Animated AI Icon */}
+              <div className="relative mb-6">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Wand2 className="w-10 h-10 text-white animate-pulse" />
+                </div>
+                <div className="absolute inset-0 w-20 h-20 mx-auto border-4 border-purple-200 rounded-full animate-spin border-t-purple-500"></div>
+              </div>
+
+              {/* Status Text */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                AI Document Generation
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {workflowStatus?.status === "processing"
+                  ? "Our AI is crafting your FDA meeting document..."
+                  : "Preparing your personalized meeting request..."}
+              </p>
+
+              {/* Progress Animation */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Analyzing requirements</span>
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Generating content</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>Finalizing document</span>
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full"></div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-6">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse"
+                    style={{ width: "60%" }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  This usually takes 30-60 seconds
+                </p>
+              </div>
+
+              {/* Floating particles animation */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div
+                  className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "0s", animationDuration: "2s" }}
+                ></div>
+                <div
+                  className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-pink-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.5s", animationDuration: "2.5s" }}
+                ></div>
+                <div
+                  className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-blue-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "1s", animationDuration: "1.8s" }}
+                ></div>
+                <div
+                  className="absolute bottom-1/4 right-1/3 w-1.5 h-1.5 bg-purple-200 rounded-full animate-bounce"
+                  style={{ animationDelay: "1.5s", animationDuration: "2.2s" }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
