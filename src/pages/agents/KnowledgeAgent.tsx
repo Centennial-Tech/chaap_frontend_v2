@@ -587,9 +587,8 @@ const KnowledgeAgent = () => {
           <div
             ref={convRef}
             className={`
-              flex-1 
-              items-start 
-              ${isMaximized ? "pr-4 py-4" : "pr-4 py-3"} 
+              flex-1
+              ${isMaximized ? "p-4" : "px-4 py-3"} 
               overflow-y-auto 
               flex 
               flex-col 
@@ -603,7 +602,7 @@ const KnowledgeAgent = () => {
           >
             <div
               className={`
-              w-auto
+              w-[90%]
               max-w-[800px]
               flex 
               flex-col
