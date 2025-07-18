@@ -74,6 +74,9 @@ const PostMarketSurveillanceAgent = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
+  
+  // TODO: Use fileContent for AI processing
+  console.log('Available file content for AI:', fileContent);
 
   const defaultPredictedReportType: PredictedReportType = {
     type: "MDR",
