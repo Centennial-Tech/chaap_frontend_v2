@@ -59,6 +59,7 @@ export default function FormEditor() {
       }
     };
     fetchFormQuestions();
+    
   }, [activeSubmission]);
 
   const currentQuestion = formQuestions[currentQuestionIndex];
@@ -138,6 +139,31 @@ export default function FormEditor() {
     }
   };
 
+  const downloadZip = async (downloadLink: string, fileName: string = 'download') => {
+    try {
+      const response = await fetch(downloadLink);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file: ${response.statusText}`);
+      }
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName}.zip`;  // Safe fallback name
+      document.body.appendChild(a);    // Required for Firefox
+      a.click();
+      a.remove();
+  
+      window.URL.revokeObjectURL(url); // Clean up
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+  
+  
+
   const handleNext = async () => {
     if (!isCurrentQuestionValid()) {
       setShowValidationError(true);
@@ -156,6 +182,11 @@ export default function FormEditor() {
     } else {
       setIsSubmitting(true);
       //TODO: Submit submission endpoint and pdf output
+      //const repsonse = await api.post(`/application/submit/${activeSubmission?.id}`)
+      //const downloadLink = response.data.download_link
+
+      const downloadLink = 'https://rgchaapsandbox9a4b.blob.core.windows.net/zips/submitted_forms.zip?sp=r&st=2025-07-18T14:47:45Z&se=2025-07-18T23:02:45Z&spr=https&sv=2024-11-04&sr=b&sig=jvhWdp8OZ9WCLDentaRaCfr3E%2BTpq%2FBxJAzu%2FGrR%2FIg%3D'
+      await downloadZip(downloadLink, activeSubmission?.name)
       setIsSubmitting(false);
 
     }
@@ -196,79 +227,119 @@ export default function FormEditor() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Main Header */}
-      {/* TODO: Get form name from form id */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Form Editor</h1>
-        <p className="text-sm text-gray-600 mt-1"> 
-          Submission: {activeSubmission?.name} | Form: {activeSubmission?.submission_type} 
-        </p>
-      </div>
+    <div className="flex justify-center">
+      <div className="flex gap-6 max-w-[1200px] w-full">
+        {/* Main Form Content */}
+        <div className="flex-1 min-w-0">
+          <div className="px-4 py-8">
+            {/* Main Header */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Form Editor</h1>
+              <p className="text-sm text-gray-600 mt-1"> 
+                Submission: {activeSubmission?.name} | Form: {activeSubmission?.submission_type} 
+              </p>
+            </div>
 
-      {/* Question Header */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-8">
-        <div className="mb-2">
-          <h2 className="text-xl font-semibold text-gray-800">{currentQuestion.name}</h2>
-          <p className="text-base text-gray-600 mt-1">{currentQuestion.title}</p>
+            {/* Question Header */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-8">
+              <div className="mb-2">
+                <h2 className="text-xl font-semibold text-gray-800">{currentQuestion.name}</h2>
+                <p className="text-base text-gray-600 mt-1">{currentQuestion.title}</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>Part {currentQuestionIndex + 1} of {formQuestions.length}</span>
+                <span>{calculateProgress()}% Complete</span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="h-2 bg-gray-200 rounded-full">
+                <div 
+                  className="h-2 bg-blue-600 rounded-full transition-all duration-300"
+                  style={{ width: `${calculateProgress()}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Form Content */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+              <div className="space-y-6">
+                {Object.entries(currentQuestion.data).map(([fieldId, field]) => (
+                  <DynamicFormField
+                    key={fieldId}
+                    id={fieldId}
+                    field={field}
+                    value={formData[fieldId] || ''}
+                    onChange={(value) => handleInputChange(fieldId, value)}
+                    error={showValidationError && field.required && !formData[fieldId]}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0 || isSubmitting || isSaving}
+              >
+                Previous
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  disabled={isSubmitting || isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+                
+                <Button 
+                  onClick={handleNext}
+                  disabled={isSubmitting || isSaving}
+                >
+                  {isSubmitting ? 'Saving...' : currentQuestionIndex === formQuestions.length - 1 ? 'Submit' : 'Next'}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>Part {currentQuestionIndex + 1} of {formQuestions.length}</span>
-          <span>{calculateProgress()}% Complete</span>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="h-2 bg-gray-200 rounded-full">
-          <div 
-            className="h-2 bg-blue-600 rounded-full transition-all duration-300"
-            style={{ width: `${calculateProgress()}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Form Content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div className="space-y-6">
-          {Object.entries(currentQuestion.data).map(([fieldId, field]) => (
-            <DynamicFormField
-              key={fieldId}
-              id={fieldId}
-              field={field}
-              value={formData[fieldId] || ''}
-              onChange={(value) => handleInputChange(fieldId, value)}
-              error={showValidationError && field.required && !formData[fieldId]}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentQuestionIndex === 0 || isSubmitting || isSaving}
-        >
-          Previous
-        </Button>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleSave}
-            disabled={isSubmitting || isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
-          
-          <Button 
-            onClick={handleNext}
-            disabled={isSubmitting || isSaving}
-          >
-            {isSubmitting ? 'Saving...' : currentQuestionIndex === formQuestions.length - 1 ? 'Submit' : 'Next'}
-          </Button>
+        {/* Side Menu - Fixed Width */}
+        <div className="w-44 shrink-0">
+          <div className="sticky top-24">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-100">
+              <div className="p-3 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                <h3 className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">Form Sections</h3>
+                <div className="space-y-1">
+                  {formQuestions.map((question, index) => (
+                    <button
+                      key={question.id}
+                      onClick={() => setCurrentQuestionIndex(index)}
+                      className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors
+                        ${currentQuestionIndex === index 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'hover:bg-gray-100 text-gray-600'}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px]
+                          ${currentQuestionIndex === index 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200 text-gray-600'}`}
+                        >
+                          {index + 1}
+                        </span>
+                        <span className="truncate text-xs">{question.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
