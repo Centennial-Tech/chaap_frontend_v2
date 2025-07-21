@@ -30,6 +30,7 @@ import ReactMarkdown from "react-markdown";
 import { useAuth } from "../../provider/authProvider";
 const FdaMeetingPrepAgent = () => {
   const { user } = useAuth();
+  const { activeSubmission, submissions, setActiveSubmission, createNewSubmission } = useSubmission();
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
@@ -69,6 +70,7 @@ const FdaMeetingPrepAgent = () => {
     preferredMeetingDate: "",
     questions: {}, // Object to be populated by AI later
   });
+  const [showSubmissionDropdown, setShowSubmissionDropdown] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -593,6 +595,16 @@ const FdaMeetingPrepAgent = () => {
     // If the meeting has stored formData, use that, otherwise use mapped data
     setFormData(meeting.formData || mappedFormData);
 
+    // Find and set the corresponding submission
+    const relatedSubmission = submissions?.find(sub => 
+      sub.name === (meeting.product_name || meeting.productName) || 
+      sub.id === meeting.submission_id
+    );
+    
+    if (relatedSubmission) {
+      setActiveSubmission(relatedSubmission);
+    }
+
     // Set AI recommendation if available
     if (meeting.aiRecommendation) {
       setAiRecommendation(meeting.aiRecommendation);
@@ -621,7 +633,6 @@ const FdaMeetingPrepAgent = () => {
     setCurrentTab("product-info");
     setEditingSubmissionId(meeting.id);
   };
-  const { activeSubmission } = useSubmission();
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -785,97 +796,93 @@ const FdaMeetingPrepAgent = () => {
     </Card>
   );
 
-  if (currentTab === "main") {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">
-              FDA Meeting Preparation
-            </h1>
-            <p className="text-gray-600">
-              Streamline your FDA meeting process with AI-powered assistance
-            </p>
-          </div>
-          <Button
-            className="flex items-center gap-2"
-            onClick={() => {
-              setCurrentTab("product-info");
-              resetForm();
-            }}
-          >
-            <Plus className="w-5 h-5" />
-            New Meeting Request
-          </Button>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-green-500" />
-            <h2 className="text-xl font-semibold text-gray-900">
-              Recent Meetings
-            </h2>
-          </div>
-          {meetings.length === 0 ? (
-            <EmptyState
-              title="No recent meetings"
-              description="Create your first meeting request to get started"
-            />
-          ) : (
-            <div className="space-y-4">
-              {meetings
-                .sort(
-                  (a, b) =>
-                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
-                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
-                )
-                .slice(0, 3)
-                .map((meeting) => (
-                  <MeetingCard
-                    key={meeting.id}
-                    meeting={meeting}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-            </div>
-          )}
-        </div>
-
+  return currentTab === "main" ? (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-900">
-              All Meeting Requests
-            </h2>
-          </div>
-          {meetings.length === 0 ? (
-            <EmptyState
-              title="No meeting requests yet"
-              description="Create your first meeting request to get started"
-            />
-          ) : (
-            <div className="space-y-4">
-              {meetings
-                .sort(
-                  (a, b) =>
-                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
-                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
-                )
-                .map((request) => (
-                  <MeetingCard
-                    key={request.id}
-                    meeting={request}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-            </div>
-          )}
+          <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">
+            FDA Meeting Preparation
+          </h1>
+          <p className="text-gray-600">
+            Streamline your FDA meeting process with AI-powered assistance
+          </p>
         </div>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => {
+            setCurrentTab("product-info");
+            resetForm();
+          }}
+        >
+          <Plus className="w-5 h-5" />
+          New Meeting Request
+        </Button>
       </div>
-    );
-  }
 
-  return (
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="w-5 h-5 text-green-500" />
+          <h2 className="text-xl font-semibold text-gray-900">
+            Recent Meetings
+          </h2>
+        </div>
+        {meetings.length === 0 ? (
+          <EmptyState
+            title="No recent meetings"
+            description="Create your first meeting request to get started"
+          />
+        ) : (
+          <div className="space-y-4">
+            {meetings
+              .sort(
+                (a, b) =>
+                  new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                  new Date(a.timestamp || a.lastUpdated || 0).getTime()
+              )
+              .slice(0, 3)
+              .map((meeting) => (
+                <MeetingCard
+                  key={meeting.id}
+                  meeting={meeting}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5 text-blue-500" />
+          <h2 className="text-xl font-semibold text-gray-900">
+            All Meeting Requests
+          </h2>
+        </div>
+        {meetings.length === 0 ? (
+          <EmptyState
+            title="No meeting requests yet"
+            description="Create your first meeting request to get started"
+          />
+        ) : (
+          <div className="space-y-4">
+            {meetings
+              .sort(
+                (a, b) =>
+                  new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                  new Date(a.timestamp || a.lastUpdated || 0).getTime()
+              )
+              .map((request) => (
+                <MeetingCard
+                  key={request.id}
+                  meeting={request}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ) : (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -909,17 +916,84 @@ const FdaMeetingPrepAgent = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+              {/* First row - 3 columns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Submission Selector */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Submission Name
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowSubmissionDropdown(!showSubmissionDropdown)}
+                      className="flex items-center justify-between w-full rounded-md border border-gray-300 px-3 py-2 bg-white text-gray-900 text-sm focus:border-purple-500 focus:ring-purple-500"
+                    >
+                      <span className="truncate">{activeSubmission?.name || "Select submission"}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform duration-200 ${
+                          showSubmissionDropdown ? "transform rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {showSubmissionDropdown && (
+                      <div className="absolute left-0 right-0 mt-1 bg-white rounded-md border border-gray-300 py-1 z-50 shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            createNewSubmission();
+                            setShowSubmissionDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-sm text-blue-600 hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-200"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Create New</span>
+                        </button>
+
+                        {submissions?.length > 0 ? (
+                          submissions.map((submission) => (
+                            <button
+                              type="button"
+                              key={submission.id}
+                              onClick={() => {
+                                setActiveSubmission(submission);
+                                setShowSubmissionDropdown(false);
+                              }}
+                              className={`
+                                w-full text-left px-3 py-1.5 text-sm
+                                ${activeSubmission?.id === submission.id
+                                  ? "bg-gray-50 text-gray-900"
+                                  : "text-gray-700 hover:bg-gray-50"
+                                }
+                                transition-colors duration-200
+                              `}
+                            >
+                              <div className="font-medium truncate">{submission.name}</div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-1.5 text-sm text-gray-500">
+                            No submissions
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product Type */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
                     Product Type
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
                     value={formData.productType}
                     onChange={(e) =>
                       handleInputChange("productType", e.target.value)
                     }
+                    disabled={!!activeSubmission}
                   >
                     <option value="">Select product type...</option>
                     {productTypes.map((type) => (
@@ -930,12 +1004,13 @@ const FdaMeetingPrepAgent = () => {
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                {/* Development Stage */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
                     Development Stage
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
                     value={formData.developmentStage}
                     onChange={(e) =>
                       handleInputChange("developmentStage", e.target.value)
@@ -952,26 +1027,29 @@ const FdaMeetingPrepAgent = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Product Name
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
+                  className={`w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm ${
+                    activeSubmission ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                   placeholder="Enter product name"
                   value={formData.productName}
                   onChange={(e) =>
                     handleInputChange("productName", e.target.value)
                   }
+                  disabled={!!activeSubmission}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Regulatory Objective
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0b0080] focus:border-[#0b0080]"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
                   rows={4}
                   placeholder="Describe your regulatory objective (e.g., IND readiness, EOP2 design alignment)"
                   value={formData.regulatoryObjective}
@@ -980,31 +1058,32 @@ const FdaMeetingPrepAgent = () => {
                   }
                 />
               </div>
-            </div>
 
-            <div className="flex justify-center pt-6">
-              <Button
-                className={`flex items-center gap-2 ${
-                  !Object.values(formData).every(Boolean) ||
-                  isLoadingRecommendation
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                onClick={handleGetAIRecommendation}
-                disabled={
-                  !Object.values(formData).every(Boolean) ||
-                  isLoadingRecommendation
-                }
-              >
-                {isLoadingRecommendation ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Lightbulb className="w-5 h-5" />
-                )}
-                {isLoadingRecommendation
-                  ? "Getting Recommendation..."
-                  : "Get AI Recommendation"}
-              </Button>
+              {/* Submit button section */}
+              <div className="flex justify-center pt-6">
+                <Button
+                  className={`flex items-center gap-2 ${
+                    !Object.values(formData).every(Boolean) ||
+                    isLoadingRecommendation
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  onClick={handleGetAIRecommendation}
+                  disabled={
+                    !Object.values(formData).every(Boolean) ||
+                    isLoadingRecommendation
+                  }
+                >
+                  {isLoadingRecommendation ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Lightbulb className="w-5 h-5" />
+                  )}
+                  {isLoadingRecommendation
+                    ? "Getting Recommendation..."
+                    : "Get AI Recommendation"}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>

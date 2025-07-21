@@ -229,8 +229,7 @@ export function TestingRoadmap({
                         initiated immediately.
                       </>
                     )}
-                    Consider parallel testing for EMC and Performance to
-                    optimize timeline. Total estimated testing duration:{" "}
+                    Total estimated testing duration:{" "}
                     {Math.ceil(totalDuration / 4)}-
                     {Math.ceil(totalDuration / 3)} weeks.
                   </p>

@@ -66,15 +66,15 @@ export function AiInsights({ aiInsights, isLoading }: any) {
   const getInsightShadowColor = (insightType: string) => {
     switch (insightType) {
       case "success_probability":
-        return "shadow-[0_4px_20px_-4px_rgba(20,184,166,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(20,184,166,0.5)]"; // teal
+        return "shadow-lg hover:shadow-xl"; // back to simple shadow
       case "timeline_optimization":
-        return "shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(249,115,22,0.5)]"; // orange
+        return "shadow-lg hover:shadow-xl";
       case "regulatory_risk":
-        return "shadow-[0_4px_20px_-4px_rgba(147,51,234,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(147,51,234,0.5)]"; // purple
+        return "shadow-lg hover:shadow-xl";
       case "real_world_evidence":
-        return "shadow-[0_4px_20px_-4px_rgba(59,130,246,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(59,130,246,0.5)]"; // blue
+        return "shadow-lg hover:shadow-xl";
       default:
-        return "shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(249,115,22,0.5)]"; // orange
+        return "shadow-lg hover:shadow-xl";
     }
   };
 
@@ -123,7 +123,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
   }
 
   return (
-    <Card className="healthcare-card healthcare-fade-in !shadow-2xl">
+    <Card className="healthcare-card healthcare-fade-in">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

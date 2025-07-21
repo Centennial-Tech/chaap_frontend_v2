@@ -181,13 +181,10 @@ export function PathwayRecommendation({
                                 ? "default"
                                 : "outline"
                             }
-                            disabled={!!activeSubmission}
                             className={`text-sm ${
                               formData.riskClassification === classification
                                 ? "bg-purple-600 hover:bg-purple-700 text-white"
                                 : "hover:bg-gray-50"
-                            } ${
-                              activeSubmission ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                             onClick={() =>
                               handleInputChange(
@@ -214,7 +211,6 @@ export function PathwayRecommendation({
                     }
                     placeholder="Enter K-number or device name"
                     value={formData.predicateDevice}
-                    disabled={!!activeSubmission}
                   />
                 </>
               )}
@@ -231,7 +227,6 @@ export function PathwayRecommendation({
                 textarea
                 required
                 value={formData.intendedUse}
-                disabled={!!activeSubmission}
               />
 
               <Input
@@ -247,7 +242,6 @@ export function PathwayRecommendation({
                 textarea
                 required
                 value={formData.technologicalCharacteristics}
-                disabled={!!activeSubmission}
               />
             </div>
           </div>
@@ -259,10 +253,8 @@ export function PathwayRecommendation({
             </div>
             <Button
               type="submit"
-              disabled={isLoading || !!activeSubmission}
-              className={`bg-purple-600 hover:bg-purple-700 text-white ${
-                activeSubmission ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              disabled={isLoading}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               <Sparkles className="h-4 w-4 mr-2" />
               {isLoading ? "Analyzing..." : "Get AI Recommendation"}
