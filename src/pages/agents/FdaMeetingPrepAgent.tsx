@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/Button";
 import {
   Plus,
@@ -15,14 +15,25 @@ import {
   ChevronDown,
   CalendarDays,
   Loader2,
+  Download,
 } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import api from "../../api";
 import { productTypes } from "../../constants";
+import { useSubmission } from "../../provider/submissionProvider";
+import jsPDF from "jspdf";
+import remarkGfm from "remark-gfm";
+import supersub from "remark-supersub";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
+import ReactMarkdown from "react-markdown";
+import { useAuth } from "../../provider/authProvider";
 const FdaMeetingPrepAgent = () => {
+  const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [formData, setFormData] = useState({
     productType: "",
     developmentStage: "",
@@ -31,14 +42,24 @@ const FdaMeetingPrepAgent = () => {
   });
   const [aiRecommendation, setAiRecommendation] = useState<any>(null);
   const [meetingDate, setMeetingDate] = useState("");
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [meetingRequests, setMeetingRequests] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
   const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(
     null
   );
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [openHelpId, setOpenHelpId] = useState<string | null>(null);
   const [showWizardModal, setShowWizardModal] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
+  const [isPolling, setIsPolling] = useState(false);
+  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
+  const [additionalQuestions, setAdditionalQuestions] = useState<string[]>([]);
+  const [questionResponses, setQuestionResponses] = useState<
+    Record<string, string>
+  >({});
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [isSubmittingResponses, setIsSubmittingResponses] = useState(false);
+  const [finalDocument, setFinalDocument] = useState<string>("");
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
   const [wizardData, setWizardData] = useState({
     productName: "",
     companyName: "",
@@ -51,19 +72,29 @@ const FdaMeetingPrepAgent = () => {
 
   const resetForm = () => {
     setFormData({
-      productType: "",
+      productType: activeSubmission?.product_type || "",
       developmentStage: "",
-      productName: "",
+      productName: activeSubmission?.name || "",
       regulatoryObjective: "",
     });
     setAiRecommendation(null);
     setMeetingDate("");
     setShowRecommendation(false);
     setIsLoadingRecommendation(false);
+    setIsLoadingDocuments(false);
     setEditingSubmissionId(null);
+    setSessionId(null);
     setOpenHelpId(null);
     setShowWizardModal(false);
     setWizardStep(1);
+    setIsPolling(false);
+    setWorkflowStatus(null);
+    setAdditionalQuestions([]);
+    setQuestionResponses({});
+    setShowQuestions(false);
+    setIsSubmittingResponses(false);
+    setFinalDocument("");
+    setShowDocumentPreview(false);
     setWizardData({
       productName: "",
       companyName: "",
@@ -79,6 +110,18 @@ const FdaMeetingPrepAgent = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const getMeetings = async () => {
+    try {
+      const response = await api.get("/agents/meeting_prep/meetings", {
+        params: { user_id: user?.id },
+      });
+      console.log("Meetings response:", response?.data?.data);
+      setMeetings(response?.data?.data || []);
+    } catch (error) {
+      console.error("Error fetching meetings:", error);
+    }
+  };
+
   const getRecommendation = async () => {
     const response = await api.post("/agents/meeting_prep/get-meeting-type", {
       ProductType: formData.productType,
@@ -88,6 +131,324 @@ const FdaMeetingPrepAgent = () => {
     });
 
     return response?.data?.meeting_type?.messages[0] || {};
+  };
+
+  const predictMeetings = async () => {
+    const response: any = await api.post(
+      "/agents/meeting_prep/predict_meetings",
+      {
+        ProductType: formData.productType,
+        DevelopmentStage: formData.developmentStage,
+        ProductName: formData.productName,
+        RegulatoryObjective: formData.regulatoryObjective,
+      }
+    );
+
+    return response?.data?.doclist.messages[0]?.recommendedDocuments || {};
+  };
+
+  // Poll workflow status
+  const pollWorkflowStatus = async (sessionId: string) => {
+    try {
+      setIsPolling(true);
+      const response = await api.get(
+        `/agents/meeting_prep/workflow-status/${sessionId}`
+      );
+      console.log("Workflow status:", response.data);
+
+      setWorkflowStatus(response.data);
+
+      if (response.data.status === "processing") {
+        // Continue polling after a delay
+        setTimeout(() => pollWorkflowStatus(sessionId), 3000);
+      } else if (response.data.status === "awaiting_user_input") {
+        // Show additional questions
+        setAdditionalQuestions(response.data.additional_questions || []);
+
+        // Initialize question responses
+        const initialResponses: Record<string, string> = {};
+        (response.data.additional_questions || []).forEach(
+          (question: string) => {
+            initialResponses[question] = "";
+          }
+        );
+        setQuestionResponses(initialResponses);
+
+        setIsPolling(false);
+        setShowQuestions(true);
+      } else if (response.data.status === "completed") {
+        // Show final document
+        setFinalDocument(response.data.final_document || "");
+        setIsPolling(false);
+        setShowDocumentPreview(true);
+        setShowWizardModal(false);
+      } else if (response.data.status === "error") {
+        console.error("Workflow error:", response.data.error);
+        setIsPolling(false);
+        alert(
+          "Workflow encountered an error: " +
+            (response.data.error || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Error polling workflow status:", error);
+      setIsPolling(false);
+      alert("Failed to check workflow status. Please try again.");
+    }
+  };
+
+  // Submit additional user responses
+  const submitAdditionalInfo = async () => {
+    if (!sessionId) return;
+
+    setIsSubmittingResponses(true);
+    try {
+      await api.post("/agents/meeting_prep/submit-additional-info", {
+        session_id: sessionId,
+        user_responses: questionResponses,
+      });
+
+      setShowQuestions(false);
+      setIsSubmittingResponses(false);
+
+      // Continue polling
+      await pollWorkflowStatus(sessionId);
+    } catch (error) {
+      console.error("Error submitting additional info:", error);
+      setIsSubmittingResponses(false);
+      alert("Failed to submit responses. Please try again.");
+    }
+  };
+
+  // Handle question response change
+  const handleQuestionResponseChange = (question: string, value: string) => {
+    setQuestionResponses((prev) => ({
+      ...prev,
+      [question]: value,
+    }));
+  };
+
+  // Check if all questions are answered
+  const areAllQuestionsAnswered = () => {
+    return additionalQuestions.every(
+      (question) =>
+        questionResponses[question] && questionResponses[question].trim() !== ""
+    );
+  };
+
+  // Helper function to convert markdown to plain text with formatting
+  const markdownToPlainText = (markdown: string): string => {
+    let text = markdown;
+
+    // Convert headers (preserve hierarchy with indentation)
+    text = text.replace(/^### (.+)$/gm, "   $1");
+    text = text.replace(/^## (.+)$/gm, "  $1");
+    text = text.replace(/^# (.+)$/gm, "$1");
+
+    // Convert bold and italic (remove markdown syntax but keep content)
+    text = text.replace(/\*\*(.+?)\*\*/g, "$1");
+    text = text.replace(/\*(.+?)\*/g, "$1");
+
+    // Convert lists (improve bullet point formatting)
+    text = text.replace(/^[\s]*[-*+] (.+)$/gm, "• $1");
+    text = text.replace(/^[\s]*\d+\. (.+)$/gm, "1. $1");
+
+    // Convert code blocks (remove code block markers)
+    text = text.replace(/```[\w]*\n/g, "");
+    text = text.replace(/```/g, "");
+
+    // Convert inline code (remove backticks)
+    text = text.replace(/`(.+?)`/g, "$1");
+
+    // Clean up extra whitespace and normalize line breaks
+    text = text.replace(/\n{3,}/g, "\n\n");
+    text = text.replace(/^\s+|\s+$/g, "");
+
+    return text;
+  };
+
+  // Helper function to convert markdown to HTML
+  const markdownToHTML = (markdown: string): string => {
+    let html = markdown;
+
+    // Convert headers
+    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
+    // Convert bold and italic (be more specific to avoid conflicts)
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+    // Convert code blocks
+    html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+
+    // Convert inline code
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+    // Convert lists (improved pattern)
+    const lines = html.split("\n");
+    let inList = false;
+    let result = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const listMatch = line.match(/^[\s]*[-*+] (.+)$/);
+
+      if (listMatch) {
+        if (!inList) {
+          result.push("<ul>");
+          inList = true;
+        }
+        result.push(`<li>${listMatch[1]}</li>`);
+      } else {
+        if (inList) {
+          result.push("</ul>");
+          inList = false;
+        }
+        result.push(line);
+      }
+    }
+
+    if (inList) {
+      result.push("</ul>");
+    }
+
+    html = result.join("\n");
+
+    // Convert line breaks to paragraphs (but preserve existing HTML tags)
+    html = html.replace(/\n\n+/g, "</p><p>");
+
+    // Only wrap in paragraphs if not already wrapped in HTML tags
+    if (
+      !html.includes("<h1>") &&
+      !html.includes("<h2>") &&
+      !html.includes("<h3>") &&
+      !html.includes("<ul>") &&
+      !html.includes("<pre>")
+    ) {
+      html = "<p>" + html + "</p>";
+    } else {
+      // Clean up empty paragraphs
+      html = html.replace(/<p><\/p>/g, "");
+      html = html.replace(/^<p>/, "").replace(/<\/p>$/, "");
+    }
+
+    return html;
+  };
+
+  // Enhanced download document functions with proper formatting
+  const downloadDocument = (format: "pdf" | "doc" | "txt") => {
+    if (!finalDocument) return;
+
+    let blob: Blob;
+    let filename = `FDA_Meeting_Document.${format}`;
+
+    if (format === "pdf") {
+      // Generate PDF using jsPDF with proper formatting
+      const doc = new jsPDF();
+      const plainText = markdownToPlainText(finalDocument);
+      const lines = plainText.split("\n");
+
+      let yPosition = 20;
+
+      lines.forEach((line) => {
+        if (yPosition > 280) {
+          // Start new page if needed
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        // Determine text style based on content and indentation
+        let fontSize = 12;
+        let fontStyle: "normal" | "bold" = "normal";
+
+        // Check if it's a header (no leading spaces and content)
+        if (line.trim() && !line.startsWith(" ")) {
+          // Main header
+          fontSize = 16;
+          fontStyle = "bold";
+        } else if (line.startsWith("  ") && !line.startsWith("   ")) {
+          // Secondary header
+          fontSize = 14;
+          fontStyle = "bold";
+        } else if (line.startsWith("   ")) {
+          // Tertiary header
+          fontSize = 13;
+          fontStyle = "bold";
+        } else {
+          // Regular text
+          fontSize = 12;
+          fontStyle = "normal";
+        }
+
+        // Apply font settings
+        doc.setFontSize(fontSize);
+        doc.setFont("helvetica", fontStyle);
+
+        // Handle empty lines
+        if (!line.trim()) {
+          yPosition += 5;
+          return;
+        }
+
+        // Split long lines to fit page width
+        const splitText = doc.splitTextToSize(line, 180);
+        splitText.forEach((textLine: string) => {
+          doc.text(textLine, 10, yPosition);
+          yPosition += fontSize === 16 ? 8 : fontSize === 14 ? 7 : 6;
+        });
+
+        // Add extra space after headers
+        if (fontStyle === "bold") {
+          yPosition += 4;
+        }
+      });
+
+      doc.save(filename);
+      return;
+    } else if (format === "doc") {
+      const htmlContent = markdownToHTML(finalDocument);
+      const docContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset='utf-8'>
+          <title>FDA Meeting Document</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            h2 { color: #666; margin-top: 30px; }
+            h3 { color: #888; margin-top: 20px; }
+            ul { margin: 10px 0; padding-left: 20px; }
+            li { margin: 5px 0; }
+            code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+            pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+            strong { font-weight: bold; }
+            em { font-style: italic; }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+        </html>
+      `;
+      blob = new Blob([docContent], { type: "application/msword" });
+    } else {
+      // For TXT format, use plain text with basic formatting
+      const plainText = markdownToPlainText(finalDocument);
+      blob = new Blob([plainText], { type: "text/plain" });
+    }
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleGetAIRecommendation = async () => {
@@ -104,198 +465,206 @@ const FdaMeetingPrepAgent = () => {
         justification: recommendation?.Justification || [],
         typicalQuestions: recommendation?.CommonQuestions || [],
         meetingCategory: recommendation?.MeetingCategory || "N/A",
-        // recommendedDocuments: [
-        //   {
-        //     id: "meeting-request-letter",
-        //     title: "Meeting Request Letter",
-        //     description: "Formal letter requesting the meeting with FDA",
-        //     status: "required",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "A structured letter outlining your request, objectives, and proposed agenda",
-        //         "Clear statement of meeting purpose",
-        //         "Specific questions or topics for discussion",
-        //         "Proposed meeting date and format preference"
-        //       ],
-        //       tips: [
-        //         "Submit 30-75 days before desired meeting date",
-        //         "Include your contact information and preferred FDA attendees",
-        //         "Be specific about what decisions or feedback you need"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "product-development-summary",
-        //     title: "Product Development Summary",
-        //     description: "Comprehensive overview of your product and development program",
-        //     status: "required",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Product description and intended use",
-        //         "Current development status and milestones",
-        //         "Summary of available data and key findings",
-        //         "Proposed development plan and timeline"
-        //       ],
-        //       tips: [
-        //         "Focus on data that supports your meeting objectives",
-        //         "Highlight any significant safety or efficacy findings",
-        //         "Include relevant regulatory precedents or guidance"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "cmc-information",
-        //     title: "CMC Information Package",
-        //     description: "Chemistry, Manufacturing, and Controls documentation",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Manufacturing process description and controls",
-        //         "Stability data and specifications",
-        //         "Analytical methods and validation data",
-        //         "Any manufacturing changes and their impact"
-        //       ],
-        //       tips: [
-        //         "Ensure all CMC data is current and complete",
-        //         "Address any CMC-related questions or concerns",
-        //         "Include relevant FDA guidance compliance"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "risk-assessment",
-        //     title: "Risk Assessment and Mitigation Strategy",
-        //     description: "Evaluation of product risks and mitigation plans",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Identification of potential risks associated with the product",
-        //         "Current risk mitigation strategies and plans",
-        //         "Safety monitoring protocols and procedures",
-        //         "Risk-benefit analysis framework"
-        //       ],
-        //       tips: [
-        //         "Be comprehensive in risk identification",
-        //         "Provide evidence-based mitigation strategies",
-        //         "Address any emerging safety concerns proactively"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "literature-review",
-        //     title: "Literature Review",
-        //     description: "Relevant scientific literature supporting your development",
-        //     status: "optional",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Relevant published studies and clinical data",
-        //         "Key findings and their relevance to your product",
-        //         "Analysis of conflicting data or controversial findings",
-        //         "Context for your development program"
-        //       ],
-        //       tips: [
-        //         "Focus on recent and relevant literature",
-        //         "Address any conflicting data transparently",
-        //         "Include regulatory decisions on similar products"
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     id: "regulatory-precedent",
-        //     title: "Regulatory Precedent Analysis",
-        //     description: "Analysis of similar products and regulatory decisions",
-        //     status: "recommended",
-        //     helpContent: {
-        //       whatToInclude: [
-        //         "Analysis of similar products and their regulatory pathways",
-        //         "Relevant FDA decisions and guidance documents",
-        //         "Precedents that support your approach",
-        //         "Lessons learned from similar development programs"
-        //       ],
-        //       tips: [
-        //         "Focus on recent and relevant precedents",
-        //         "Address any differences from precedents and their justification",
-        //         "Include both positive and negative precedents"
-        //       ]
-        //     }
-        //   }
-        // ]
       };
       setAiRecommendation(recommendationTemp);
       setShowRecommendation(true);
+      setIsLoadingRecommendation(false);
+
+      // Start loading documents
+      setIsLoadingDocuments(true);
+      const predictedMeetings = await predictMeetings();
+      setAiRecommendation((prev: any) => ({
+        ...prev,
+        recommendedDocuments: predictedMeetings,
+      }));
+      setIsLoadingDocuments(false);
     } catch (error) {
       console.error("Error getting AI recommendation:", error);
-    } finally {
       setIsLoadingRecommendation(false);
+      setIsLoadingDocuments(false);
     }
   };
 
-  const handleSubmitMeetingRequest = () => {
-    const submissionData = {
-      id: editingSubmissionId || Date.now().toString(),
-      productName: formData.productName || "Drug",
-      productType: formData.productType,
-      meetingType:
-        aiRecommendation?.recommendedMeetingType
-          ?.toLowerCase()
-          .replace(/\s+/g, "_") || "end_of_phase1",
-      developmentStage: formData.developmentStage,
-      submittedDate: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      lastUpdated: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      formData,
-      aiRecommendation,
-      meetingDate,
+  const handleSubmitMeetingRequest = async () => {
+    try {
+      setIsLoadingDocuments(true);
+
+      // Prepare API payload
+      const apiPayload = {
+        user_id: user?.id, // Get user_id from localStorage or default
+        productType: formData.productType,
+        developmentStage: formData.developmentStage,
+        productName: formData.productName || "Drug",
+        regulatoryObjective: formData.regulatoryObjective,
+        meetingType:
+          aiRecommendation?.recommendedMeetingType || "End of Phase 1",
+        recommendedDocuments: aiRecommendation?.recommendedDocuments || [],
+        preferredDate: meetingDate || "",
+      };
+
+      // Call the API to save meeting prep data
+      await api.post("/agents/meeting_prep/save_meetingprep_data", {
+        ...apiPayload,
+      });
+
+      // Create submission data for local state
+      const submissionData = {
+        id: editingSubmissionId || Date.now().toString(),
+        productName: formData.productName || "Drug",
+        productType: formData.productType,
+        meetingType:
+          aiRecommendation?.recommendedMeetingType
+            ?.toLowerCase()
+            .replace(/\s+/g, "_") || "end_of_phase1",
+        developmentStage: formData.developmentStage,
+        submittedDate: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        lastUpdated: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        timestamp: new Date().toISOString(), // Add timestamp for proper sorting
+        formData,
+        aiRecommendation,
+        meetingDate,
+      };
+
+      // Update local state
+      if (editingSubmissionId) {
+        setMeetings((prev) =>
+          prev.map((sub) =>
+            sub.id === editingSubmissionId ? submissionData : sub
+          )
+        );
+      } else {
+        setMeetings((prev) => [submissionData, ...prev]);
+      }
+
+      setCurrentTab("main");
+      resetForm();
+
+      // Show success message
+      alert(
+        "Meeting request submitted successfully! You can view it in the Recent Meetings section."
+      );
+    } catch (error) {
+      console.error("Error saving meeting prep data:", error);
+      // Show error message to user (you can add error handling UI here)
+      alert("Failed to save meeting request. Please try again.");
+    } finally {
+      setIsLoadingDocuments(false);
+    }
+  };
+
+  const components: any = {
+    code({ node, ...props }: { node: any; [key: string]: any }) {
+      let language;
+      if (props.className) {
+        const match = props.className.match(/language-(\w+)/);
+        language = match ? match[1] : undefined;
+      }
+      const codeString = node.children[0].value ?? "";
+      return (
+        <SyntaxHighlighter
+          style={nord}
+          language={language}
+          PreTag="div"
+          {...props}
+        >
+          {codeString}
+        </SyntaxHighlighter>
+      );
+    },
+  };
+
+  const handleViewDetails = (meeting: any) => {
+    // Map meeting data to form data structure
+    const mappedFormData = {
+      productType: meeting.product_type || meeting.productType || "",
+      developmentStage: meeting.development_stage || meeting.developmentStage || "",
+      productName: meeting.product_name || meeting.productName || "",
+      regulatoryObjective: meeting.regulatory_objective || meeting.regulatoryObjective || "",
     };
 
-    if (editingSubmissionId) {
-      setSubmissions((prev) =>
-        prev.map((sub) =>
-          sub.id === editingSubmissionId ? submissionData : sub
-        )
-      );
-      setMeetingRequests((prev) =>
-        prev.map((req) =>
-          req.id === editingSubmissionId ? submissionData : req
-        )
-      );
+    // If the meeting has stored formData, use that, otherwise use mapped data
+    setFormData(meeting.formData || mappedFormData);
+
+    // Set AI recommendation if available
+    if (meeting.aiRecommendation) {
+      setAiRecommendation(meeting.aiRecommendation);
+      setShowRecommendation(true);
     } else {
-      setSubmissions((prev) => [submissionData, ...prev.slice(0, 2)]);
-      setMeetingRequests((prev) => [submissionData, ...prev.slice(0, 0)]);
+      // Create a basic AI recommendation from meeting data
+      const basicRecommendation = {
+        recommendedMeetingType: meeting.meeting_type || meeting.meetingType || "FDA Meeting",
+        icon: "M",
+        subtitle: "Meeting to discuss regulatory objectives",
+        matchPercentage: "90%",
+        timeline: "N/A",
+        justification: ["Meeting recommendation based on stored data"],
+        typicalQuestions: ["Standard regulatory questions"],
+        meetingCategory: "General",
+        recommendedDocuments: meeting.recommended_documents || meeting.recommendedDocuments || []
+      };
+      setAiRecommendation(basicRecommendation);
+      setShowRecommendation(true);
     }
 
-    setCurrentTab("main");
-    resetForm();
-  };
+    // Set meeting date
+    setMeetingDate(meeting.meetingDate || meeting.preferred_date || "");
 
-  const handleViewDetails = (submission: any) => {
-    setFormData(submission.formData);
-    setAiRecommendation(submission.aiRecommendation);
-    setMeetingDate(submission.meetingDate);
-    setShowRecommendation(true);
+    // Switch to product-info tab and set editing mode
     setCurrentTab("product-info");
-    setEditingSubmissionId(submission.id);
+    setEditingSubmissionId(meeting.id);
   };
+  const { activeSubmission } = useSubmission();
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      productType: activeSubmission?.product_type || "",
+      productName: activeSubmission?.name || "",
+    }));
+  }, [activeSubmission]);
 
-  const handleCreateWithAIWizard = (_document: any) => {
-    setShowWizardModal(true);
+  // Call getMeetings when switching to main tab
+  useEffect(() => {
+    if (currentTab === "main") {
+      getMeetings();
+    }
+  }, [currentTab, user?.id]);
+
+  const handleCreateWithAIWizard = async (_document: any) => {
+    // setShowWizardModal(true);
+    const uuid = crypto.randomUUID();
+    setSessionId(uuid);
+
+    try {
+      await api.post("/agents/meeting_prep/start-workflow", {
+        fda_document_type: _document?.title,
+        meeting_type: aiRecommendation?.recommendedMeetingType,
+        session_id: uuid,
+      });
+      // Start polling for workflow status
+      await pollWorkflowStatus(uuid);
+    } catch (error) {
+      console.error("Error starting workflow:", error);
+      alert("Failed to start workflow. Please try again.");
+    }
+
     setWizardStep(1);
-    setWizardData({
-      productName: "",
-      companyName: "",
-      indication: "",
-      primaryObjective: "",
-      specificQuestions: "",
-      preferredMeetingDate: "",
-      questions: {},
-    });
+    // setWizardData({
+    //   productName: formData.productName || "",
+    //   companyName: "",
+    //   indication: activeSubmission?.intended_use || "",
+    //   primaryObjective: "",
+    //   specificQuestions: "",
+    //   preferredMeetingDate: "",
+    //   questions: {},
+    // });
   };
 
   const handleWizardInputChange = (field: string, value: string) => {
@@ -364,20 +733,20 @@ const FdaMeetingPrepAgent = () => {
     </Card>
   );
 
-  const SubmissionCard = ({
-    submission,
+  const MeetingCard = ({
+    meeting,
     onViewDetails,
   }: {
-    submission: any;
-    onViewDetails: (submission: any) => void;
+    meeting: any;
+    onViewDetails: (meeting: any) => void;
   }) => (
-    <Card key={submission.id}>
+    <Card key={meeting.id}>
       <CardContent className="p-6">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-gray-900">
-                {submission.productName}
+                {meeting.product_name}
               </h3>
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                 <CalendarDays className="w-3 h-3" />
@@ -386,15 +755,19 @@ const FdaMeetingPrepAgent = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
-                <p>Product Type: {submission.productType}</p>
-                <p>Meeting Type: {submission.meetingType}</p>
+                <p>Product Type: {meeting.product_type}</p>
+                <p>Meeting Type: {meeting.meeting_type}</p>
               </div>
               <div>
-                <p>Development Stage: {submission.developmentStage}</p>
+                <p>Development Stage: {meeting.development_stage}</p>
                 <p>
-                  {submission.submittedDate
-                    ? `Submitted: ${submission.submittedDate}`
-                    : `Last Updated: ${submission.lastUpdated}`}
+                  {meeting.submittedDate
+                    ? `Submitted: ${new Date(
+                        meeting.submittedDate
+                      ).toLocaleDateString()}`
+                    : `Last Updated: ${new Date(
+                        meeting.timestamp
+                      ).toLocaleDateString()}`}
                 </p>
               </div>
             </div>
@@ -402,7 +775,7 @@ const FdaMeetingPrepAgent = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onViewDetails(submission)}
+            onClick={() => onViewDetails(meeting)}
             className="ml-4"
           >
             View Details
@@ -440,23 +813,30 @@ const FdaMeetingPrepAgent = () => {
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-green-500" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Recent Submissions
+              Recent Meetings
             </h2>
           </div>
-          {submissions.length === 0 ? (
+          {meetings.length === 0 ? (
             <EmptyState
-              title="No recent submissions"
+              title="No recent meetings"
               description="Create your first meeting request to get started"
             />
           ) : (
             <div className="space-y-4">
-              {submissions.map((submission) => (
-                <SubmissionCard
-                  key={submission.id}
-                  submission={submission}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+              {meetings
+                .sort(
+                  (a, b) =>
+                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
+                )
+                .slice(0, 3)
+                .map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -468,20 +848,26 @@ const FdaMeetingPrepAgent = () => {
               All Meeting Requests
             </h2>
           </div>
-          {meetingRequests.length === 0 ? (
+          {meetings.length === 0 ? (
             <EmptyState
               title="No meeting requests yet"
               description="Create your first meeting request to get started"
             />
           ) : (
             <div className="space-y-4">
-              {meetingRequests.map((request) => (
-                <SubmissionCard
-                  key={request.id}
-                  submission={request}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+              {meetings
+                .sort(
+                  (a, b) =>
+                    new Date(b.timestamp || b.lastUpdated || 0).getTime() -
+                    new Date(a.timestamp || a.lastUpdated || 0).getTime()
+                )
+                .map((request) => (
+                  <MeetingCard
+                    key={request.id}
+                    meeting={request}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -727,122 +1113,141 @@ const FdaMeetingPrepAgent = () => {
               </p>
 
               <div className="space-y-4">
-                {aiRecommendation?.recommendedDocuments?.map(
-                  (document: any, index: number) => (
-                    <div
-                      key={document.id}
-                      className={`flex items-center justify-between py-4 ${
-                        index < aiRecommendation.recommendedDocuments.length - 1
-                          ? "border-b border-gray-200"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            document.status === "completed"
-                              ? "bg-green-500"
-                              : document.status === "required"
-                              ? "bg-red-500"
-                              : document.status === "recommended"
-                              ? "bg-yellow-500"
-                              : "bg-gray-400"
-                          }`}
-                        >
-                          {document.status === "completed" ? (
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-white" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">
-                            {document.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {document.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
-                          onClick={() => handleCreateWithAIWizard(document)}
-                        >
-                          <Wand2 className="w-4 h-4" />
-                          Create with AI Wizard
-                        </Button>
-                        <div className="relative">
-                          <div
-                            className="flex items-center gap-1 text-gray-500 cursor-pointer"
-                            onClick={() =>
-                              setOpenHelpId(
-                                openHelpId === document.id ? null : document.id
-                              )
-                            }
-                          >
-                            <span className="text-sm">Need Help?</span>
-                            <HelpCircle className="w-4 h-4" />
-                            <ChevronDown
-                              className={`w-4 h-4 transition-transform ${
-                                openHelpId === document.id ? "rotate-180" : ""
-                              }`}
-                            />
-                          </div>
-                          {openHelpId === document.id &&
-                            document.helpContent && (
-                              <div className="absolute right-0 top-full mt-2 w-80 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-10">
-                                <div className="mb-3">
-                                  <h5 className="font-semibold text-blue-900">
-                                    Need Help?
-                                  </h5>
-                                </div>
-
-                                <div className="space-y-4">
-                                  <div>
-                                    <h6 className="font-semibold text-blue-800 mb-2">
-                                      What to Include:
-                                    </h6>
-                                    <ul className="space-y-1">
-                                      {document.helpContent.whatToInclude.map(
-                                        (item: string, idx: number) => (
-                                          <li
-                                            key={idx}
-                                            className="flex items-start gap-2 text-sm text-blue-700"
-                                          >
-                                            <span className="inline-block w-1.5 h-1.5 mt-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                                            <span>{item}</span>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-
-                                  <div>
-                                    <h6 className="font-semibold text-blue-800 mb-2">
-                                      Tips:
-                                    </h6>
-                                    <ul className="space-y-1">
-                                      {document.helpContent.tips.map(
-                                        (item: string, idx: number) => (
-                                          <li
-                                            key={idx}
-                                            className="flex items-start gap-2 text-sm text-blue-700"
-                                          >
-                                            <Lightbulb className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
-                                            <span>{item}</span>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
+                {isLoadingDocuments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                      <span className="text-gray-600">
+                        Loading recommended documents...
+                      </span>
                     </div>
+                  </div>
+                ) : aiRecommendation?.recommendedDocuments?.length > 0 ? (
+                  aiRecommendation.recommendedDocuments.map(
+                    (document: any, index: number) => (
+                      <div
+                        key={document.id}
+                        className={`flex items-center justify-between py-4 ${
+                          index <
+                          aiRecommendation.recommendedDocuments.length - 1
+                            ? "border-b border-gray-200"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              document.status === "completed"
+                                ? "bg-green-500"
+                                : document.status === "required"
+                                ? "bg-red-500"
+                                : document.status === "recommended"
+                                ? "bg-yellow-500"
+                                : "bg-gray-400"
+                            }`}
+                          >
+                            {document.status === "completed" ? (
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {document.title}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {document.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
+                            onClick={() => handleCreateWithAIWizard(document)}
+                          >
+                            <Wand2 className="w-4 h-4" />
+                            Create with AI Wizard
+                          </Button>
+                          <div className="relative">
+                            <div
+                              className="flex items-center gap-1 text-gray-500 cursor-pointer"
+                              onClick={() =>
+                                setOpenHelpId(
+                                  openHelpId === document.id
+                                    ? null
+                                    : document.id
+                                )
+                              }
+                            >
+                              <span className="text-sm">Need Help?</span>
+                              <HelpCircle className="w-4 h-4" />
+                              <ChevronDown
+                                className={`w-4 h-4 transition-transform ${
+                                  openHelpId === document.id ? "rotate-180" : ""
+                                }`}
+                              />
+                            </div>
+                            {openHelpId === document.id &&
+                              document.helpContent && (
+                                <div className="absolute right-0 top-full mt-2 w-80 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-10">
+                                  <div className="mb-3">
+                                    <h5 className="font-semibold text-blue-900">
+                                      Need Help?
+                                    </h5>
+                                  </div>
+
+                                  <div className="space-y-4">
+                                    <div>
+                                      <h6 className="font-semibold text-blue-800 mb-2">
+                                        What to Include:
+                                      </h6>
+                                      <ul className="space-y-1">
+                                        {document.helpContent.whatToInclude.map(
+                                          (item: string, idx: number) => (
+                                            <li
+                                              key={idx}
+                                              className="flex items-start gap-2 text-sm text-blue-700"
+                                            >
+                                              <span className="inline-block w-1.5 h-1.5 mt-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                                              <span>{item}</span>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+
+                                    <div>
+                                      <h6 className="font-semibold text-blue-800 mb-2">
+                                        Tips:
+                                      </h6>
+                                      <ul className="space-y-1">
+                                        {document.helpContent.tips.map(
+                                          (item: string, idx: number) => (
+                                            <li
+                                              key={idx}
+                                              className="flex items-start gap-2 text-sm text-blue-700"
+                                            >
+                                              <Lightbulb className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
+                                              <span>{item}</span>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No documents available for this meeting type.</p>
+                  </div>
                 )}
               </div>
 
@@ -1206,6 +1611,237 @@ const FdaMeetingPrepAgent = () => {
                   Generate Document
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Questions Modal */}
+      {showQuestions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Additional Information Required
+              </h2>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-600 mb-6">
+                Please provide the following information to complete your
+                document:
+              </p>
+
+              <div className="space-y-4">
+                {additionalQuestions.map((question, index) => (
+                  <div key={index} className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {question} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={3}
+                      placeholder="Please provide your answer here..."
+                      value={questionResponses[question] || ""}
+                      onChange={(e) =>
+                        handleQuestionResponseChange(question, e.target.value)
+                      }
+                      disabled={isSubmittingResponses}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {isSubmittingResponses && (
+                <div className="mt-4 flex items-center justify-center">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                    <span className="text-gray-600">
+                      Submitting responses...
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <Button
+                onClick={submitAdditionalInfo}
+                disabled={!areAllQuestionsAnswered() || isSubmittingResponses}
+                className="flex items-center gap-2"
+              >
+                {isSubmittingResponses ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                Submit Responses
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Preview Modal */}
+      {showDocumentPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                FDA Meeting Document Ready
+              </h2>
+              <button
+                onClick={() => setShowDocumentPreview(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Document Preview
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Your FDA meeting document has been generated successfully. You
+                  can preview it below and download it in your preferred format.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                {/* <MarkD className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+                  {finalDocument}
+                </MarkD> */}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, supersub]}
+                  children={finalDocument}
+                  components={components}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowDocumentPreview(false)}
+              >
+                Close
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => downloadDocument("txt")}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download TXT
+                </Button>
+                <Button
+                  onClick={() => downloadDocument("doc")}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download DOC
+                </Button>
+                <Button
+                  onClick={() => downloadDocument("pdf")}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Polling Status Loader */}
+      {isPolling && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              {/* Animated AI Icon */}
+              <div className="relative mb-6">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Wand2 className="w-10 h-10 text-white animate-pulse" />
+                </div>
+                <div className="absolute inset-0 w-20 h-20 mx-auto border-4 border-purple-200 rounded-full animate-spin border-t-purple-500"></div>
+              </div>
+
+              {/* Status Text */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                AI Document Generation
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {workflowStatus?.status === "processing"
+                  ? "Our AI is crafting your FDA meeting document..."
+                  : "Preparing your personalized meeting request..."}
+              </p>
+
+              {/* Progress Animation */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Analyzing requirements</span>
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Generating content</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>Finalizing document</span>
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full"></div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-6">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse"
+                    style={{ width: "60%" }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  This usually takes 30-60 seconds
+                </p>
+              </div>
+
+              {/* Floating particles animation */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div
+                  className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "0s", animationDuration: "2s" }}
+                ></div>
+                <div
+                  className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-pink-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.5s", animationDuration: "2.5s" }}
+                ></div>
+                <div
+                  className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-blue-300 rounded-full animate-bounce"
+                  style={{ animationDelay: "1s", animationDuration: "1.8s" }}
+                ></div>
+                <div
+                  className="absolute bottom-1/4 right-1/3 w-1.5 h-1.5 bg-purple-200 rounded-full animate-bounce"
+                  style={{ animationDelay: "1.5s", animationDuration: "2.2s" }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
