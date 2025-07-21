@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Route, Sparkles, Info, CheckCircle } from "lucide-react";
+import { Route, Sparkles, Info, CheckCircle, Plus, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "./ui/Card";
 import { Button } from "./ui/Button";
 import Input from "./Input";
@@ -21,7 +21,14 @@ export function PathwayRecommendation({
     predicateDevice: "",
   });
 
-  const { activeSubmission } = useSubmission();
+  const { 
+    activeSubmission, 
+    submissions, 
+    setActiveSubmission, 
+    createNewSubmission 
+  } = useSubmission();
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     setFormData((prev: any) => ({
@@ -64,27 +71,97 @@ export function PathwayRecommendation({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Product Type
-                </label>
-                <select
-                  value={formData.productType}
-                  onChange={(e) =>
-                    handleInputChange("productType", e.target.value)
-                  }
-                  required
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm"
-                >
-                  <option value="" disabled>
-                    Select product type
-                  </option>
-                  {productTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Submission Selector */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Submission Name
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center justify-between w-full rounded-md border border-gray-300 px-3 py-2 bg-white text-gray-900 text-sm focus:border-purple-500 focus:ring-purple-500"
+                    >
+                      <span className="truncate">{activeSubmission?.name || "Select submission"}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform duration-200 ${
+                          isDropdownOpen ? "transform rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 right-0 mt-1 bg-white rounded-md border border-gray-300 py-1 z-50 shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            createNewSubmission();
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-sm text-blue-600 hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-200"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Create New</span>
+                        </button>
+
+                        {submissions?.length > 0 ? (
+                          submissions.map((submission) => (
+                            <button
+                              type="button"
+                              key={submission.id}
+                              onClick={() => {
+                                setActiveSubmission(submission);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`
+                                w-full text-left px-3 py-1.5 text-sm
+                                ${activeSubmission?.id === submission.id
+                                  ? "bg-gray-50 text-gray-900"
+                                  : "text-gray-700 hover:bg-gray-50"
+                                }
+                                transition-colors duration-200
+                              `}
+                            >
+                              <div className="font-medium truncate">{submission.name}</div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-1.5 text-sm text-gray-500">
+                            No submissions
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product Type */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Product Type
+                  </label>
+                  <select
+                    value={formData.productType}
+                    onChange={(e) =>
+                      handleInputChange("productType", e.target.value)
+                    }
+                    required
+                    disabled={!!activeSubmission}
+                    className={`block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-purple-500 focus:ring-purple-500 text-sm ${
+                      activeSubmission ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <option value="" disabled>
+                      Select product type
                     </option>
-                  ))}
-                </select>
+                    {productTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {isMedicalDevice && (
@@ -104,10 +181,13 @@ export function PathwayRecommendation({
                                 ? "default"
                                 : "outline"
                             }
+                            disabled={!!activeSubmission}
                             className={`text-sm ${
                               formData.riskClassification === classification
                                 ? "bg-purple-600 hover:bg-purple-700 text-white"
                                 : "hover:bg-gray-50"
+                            } ${
+                              activeSubmission ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                             onClick={() =>
                               handleInputChange(
@@ -134,6 +214,7 @@ export function PathwayRecommendation({
                     }
                     placeholder="Enter K-number or device name"
                     value={formData.predicateDevice}
+                    disabled={!!activeSubmission}
                   />
                 </>
               )}
@@ -142,7 +223,6 @@ export function PathwayRecommendation({
             <div className="space-y-4">
               <Input
                 label="Intended Use"
-                // value={formData.intendedUse}
                 onChange={
                   ((e: any) =>
                     handleInputChange("intendedUse", e.target.value)) as any
@@ -151,11 +231,11 @@ export function PathwayRecommendation({
                 textarea
                 required
                 value={formData.intendedUse}
+                disabled={!!activeSubmission}
               />
 
               <Input
                 label="Technological Characteristics"
-                // value={formData.technologicalCharacteristics as any}
                 onChange={
                   ((e: any) =>
                     handleInputChange(
@@ -167,6 +247,7 @@ export function PathwayRecommendation({
                 textarea
                 required
                 value={formData.technologicalCharacteristics}
+                disabled={!!activeSubmission}
               />
             </div>
           </div>
@@ -178,8 +259,10 @@ export function PathwayRecommendation({
             </div>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={isLoading || !!activeSubmission}
+              className={`bg-purple-600 hover:bg-purple-700 text-white ${
+                activeSubmission ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               <Sparkles className="h-4 w-4 mr-2" />
               {isLoading ? "Analyzing..." : "Get AI Recommendation"}

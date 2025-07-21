@@ -1,7 +1,6 @@
-import { Bell, ChevronDown, Plus } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useAuth } from "../provider/authProvider";
-import { useSubmission } from "../provider/submissionProvider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Z_INDEX } from "../constants/zIndex";
 import { useState, useRef, useEffect } from "react";
@@ -11,31 +10,12 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
-  const {
-    activeSubmission,
-    submissions,
-    setActiveSubmission,
-    createNewSubmission,
-  } = useSubmission();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Hide submission dropdown on specific routes
-  const hideSubmissionDropdown = ["/", "/dashboard", "/profile"].includes(
-    location.pathname
-  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
       if (
         profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target as Node)
@@ -172,96 +152,6 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center space-x-4 pr-6">
-          {/* Submission Selector */}
-          {!hideSubmissionDropdown && (
-            <div className="relative" ref={dropdownRef}>
-              <div className="relative">
-                {/* Gradient border wrapper */}
-                <div
-                  className="rounded-xl p-[3px]"
-                  style={{
-                    background: activeSubmission 
-                      ? 'linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)'
-                      : 'linear-gradient(45deg, #d1d5db, #9ca3af, #6b7280)',
-                    backgroundSize: activeSubmission ? '400% 400%' : '100% 100%',
-                    animation: activeSubmission ? 'gradientShift 3s ease infinite' : 'none'
-                  }}
-                >
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className={`
-                      flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium w-full
-                      ${
-                        activeSubmission
-                          ? "text-blue-700 hover:text-blue-800"
-                          : "text-gray-700 hover:text-gray-800"
-                      }
-                      transition-all duration-300 bg-white
-                      ${activeSubmission ? "shadow-lg" : "shadow-md"}
-                    `}
-                  >
-                    {/* Content */}
-                    <span>
-                      {activeSubmission?.name || "Select Submission"}
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        isDropdownOpen ? "transform rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {isDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-[300px] overflow-y-auto"
-                  style={{ scrollbarWidth: "thin" }}
-                >
-                  {/* Create New Option */}
-                  <button
-                    onClick={() => {
-                      createNewSubmission();
-                      setIsDropdownOpen(false);
-                      navigate("/dashboard");
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-100"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create New Submission</span>
-                  </button>
-
-                  {submissions?.length > 0 ? (
-                    submissions.map((submission) => (
-                      <button
-                        key={submission.id}
-                        onClick={() => {
-                          setActiveSubmission(submission);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`
-                          w-full text-left px-4 py-2 text-sm
-                          ${
-                            activeSubmission?.id === submission.id
-                              ? "bg-blue-50 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }
-                          transition-colors duration-200
-                        `}
-                      >
-                        <div className="font-medium">{submission.name}</div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-4 py-2 text-sm text-gray-500">
-                      No submissions available
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5 text-gray-600" />
