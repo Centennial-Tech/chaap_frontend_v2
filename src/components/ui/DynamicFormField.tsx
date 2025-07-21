@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FormField, RadioGroupContext } from '../../types/form';
+import type { FormField} from '../../types/form';
 import { getRadioGroupName, getRadioValue } from '../../types/form';
 
 interface DynamicFormFieldProps {
@@ -8,7 +8,6 @@ interface DynamicFormFieldProps {
   value: any;
   onChange: (value: any) => void;
   error?: boolean;
-  radioContext?: RadioGroupContext;
 }
 
 export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
@@ -17,7 +16,7 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
   value,
   onChange,
   error = false,
-  radioContext
+
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const newValue = field.type === 'checkbox' ? (e.target as HTMLInputElement).checked 
