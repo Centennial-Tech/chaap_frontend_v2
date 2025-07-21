@@ -109,13 +109,13 @@ export default function FormEditor() {
 
   };
 
-  const updateSubmissionProgress = async () => {
+  const updateSubmissionProgress = async () => { 
     if (!activeSubmission) return;
-    if (activeSubmission.progress === Math.round((completedFields / totalFields) * 100)) return;
+    if (activeSubmission.progress === calculateProgress()) return;
 
     await api.put(`/applications/${activeSubmission.id}`, {
       ...activeSubmission,
-      progress: Math.round((completedFields / totalFields) * 100)
+      progress: calculateProgress()
     });
     refreshSubmissions();
   }
@@ -162,8 +162,6 @@ export default function FormEditor() {
     }
   };
   
-  
-
   const handleNext = async () => {
     if (!isCurrentQuestionValid()) {
       setShowValidationError(true);
