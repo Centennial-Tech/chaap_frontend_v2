@@ -2,6 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Badge } from "./ui/Badge";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./ui/Table";
+import {
   CalendarDays,
   Edit,
   Plus,
@@ -27,13 +35,13 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "completed":
-        return "bg-teal-600";
+        return "bg-teal-100 text-teal-800";
       case "in_progress":
-        return "bg-yellow-400";
+        return "bg-yellow-100 text-yellow-800";
       case "pending":
-        return "bg-gray-300";
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-300";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -68,14 +76,7 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
           <div className="animate-pulse">
             <div className="space-y-6">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-start space-x-4">
-                  <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                  </div>
-                </div>
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
               ))}
             </div>
           </div>
@@ -109,66 +110,67 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
       <CardContent>
         {timelineItems.length > 0 ? (
           <>
-            {/* Timeline visualization */}
-            <div className="relative">
-              <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-
-              <div className="space-y-6">
-                {timelineItems.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="relative flex items-start space-x-4"
-                  >
-                    <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full z-10 ${getStatusColor(
-                        item.status
-                      )}`}
-                    >
-                      {getStatusIcon(item.status)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left font-medium text-gray-900">
+                      Phase
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-gray-900">
+                      Description
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-gray-900">
+                      Duration
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-gray-900">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-gray-900">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {timelineItems.map((item: any) => (
+                    <TableRow key={item.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="font-medium text-gray-900">
                           {item.phaseName}
-                        </h4>
-                        <span className="text-sm text-gray-500">
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {item.description}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-900">
                           {item.weekRange || item.duration}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <Badge
-                          className={
-                            item.status === "completed"
-                              ? "bg-teal-100 text-teal-800"
-                              : item.status === "in_progress"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }
-                        >
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(item.status)}>
                           {getStatusLabel(item.status)}
                         </Badge>
-                        {/* <span className="text-gray-500">
-                          Target: {item.targetDate}
-                        </span> */}
+                      </TableCell>
+                      <TableCell>
                         <select
                           value={item.status}
                           onChange={(e) =>
                             handleStatusChange(item.id, e.target.value)
                           }
-                          className="text-xs border border-gray-300 rounded px-2 py-1 ml-2"
+                          className="text-xs border border-gray-300 rounded px-2 py-1"
                         >
                           <option value="pending">Pending</option>
                           <option value="in_progress">In Progress</option>
                           <option value="completed">Completed</option>
                         </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
 
             {/* Timeline controls */}

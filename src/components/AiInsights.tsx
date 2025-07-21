@@ -18,48 +18,6 @@ export function AiInsights({ aiInsights, isLoading }: any) {
   const [selectedInsight, setSelectedInsight] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  //   const { data: aiInsights, isLoading } = useQuery<AiInsight[]>({
-  //     queryKey: ["/api/submissions", submissionId, "insights"],
-  //     enabled: !!submissionId,
-  //   });
-  //   const [isLoading, setIsLoading] = useState(false);
-  //   const [aiInsights, setAiInsights] = useState<AiInsight[]>([
-  //     {
-  //       id: 1,
-  //       title: "Success Probability",
-  //       description:
-  //         "High likelihood of successful submission based on current data.",
-  //       insightType: "success_probability",
-  //       confidence: 85,
-  //       actionable: true,
-  //     },
-  //     {
-  //       id: 2,
-  //       title: "Timeline Optimization",
-  //       description:
-  //         "Potential to reduce review time by 20% with additional data.",
-  //       insightType: "timeline_optimization",
-  //       metadata: { time_saved: "2 months" },
-  //       actionable: true,
-  //     },
-  //     {
-  //       id: 3,
-  //       title: "Regulatory Risk",
-  //       description:
-  //         "Identified potential regulatory risks in the device classification.",
-  //       insightType: "regulatory_risk",
-  //       actionable: true,
-  //     },
-  //     {
-  //       id: 4,
-  //       title: "Real-World Evidence",
-  //       description:
-  //         "Incorporating real-world evidence could enhance the submission's strength.",
-  //       insightType: "real_world_evidence",
-  //       actionable: true,
-  //     },
-  //   ]);
-
   const getInsightIcon = (insightType: string) => {
     switch (insightType) {
       case "success_probability":
@@ -102,6 +60,21 @@ export function AiInsights({ aiInsights, isLoading }: any) {
         return "healthcare-insight-info";
       default:
         return "bg-gradient-to-r from-orange-50 to-orange-100";
+    }
+  };
+
+  const getInsightShadowColor = (insightType: string) => {
+    switch (insightType) {
+      case "success_probability":
+        return "shadow-[0_4px_20px_-4px_rgba(20,184,166,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(20,184,166,0.5)]"; // teal
+      case "timeline_optimization":
+        return "shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(249,115,22,0.5)]"; // orange
+      case "regulatory_risk":
+        return "shadow-[0_4px_20px_-4px_rgba(147,51,234,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(147,51,234,0.5)]"; // purple
+      case "real_world_evidence":
+        return "shadow-[0_4px_20px_-4px_rgba(59,130,246,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(59,130,246,0.5)]"; // blue
+      default:
+        return "shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)] hover:shadow-[0_20px_60px_-12px_rgba(249,115,22,0.5)]"; // orange
     }
   };
 
@@ -174,7 +147,7 @@ export function AiInsights({ aiInsights, isLoading }: any) {
                 key={insight.id}
                 className={`${getInsightBgGradient(
                   insight.insightType
-                )} rounded-lg p-4 transition-all duration-200 shadow-lg hover:shadow-2xl`}
+                )} rounded-lg p-4 transition-all duration-300 ${getInsightShadowColor(insight.insightType)}`}
               >
                 <div className="flex items-start space-x-3">
                   <div
@@ -184,11 +157,13 @@ export function AiInsights({ aiInsights, isLoading }: any) {
                   >
                     {getInsightIcon(insight.insightType)}
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 mb-2">
-                      {insight.title}
-                    </h4>
-                    <p className="text-gray-700 text-sm mb-3 leading-relaxed">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">
+                        {insight.title}
+                      </h4>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">
                       {insight.description}
                     </p>
 
