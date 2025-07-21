@@ -1840,26 +1840,14 @@ const DocPrepAgent = () => {
                   </span>
                 </div>
 
-                {(workflowResponse?.session_id || currentSessionId) && (
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-sm font-medium ${
-                        workflowResponse?.success !== false
-                          ? "text-green-800"
-                          : "text-red-800"
-                      }`}
-                    >
-                      Session ID:
-                    </span>
-                    <span
-                      className={`text-sm font-mono px-2 py-1 rounded ${
-                        workflowResponse?.success !== false
-                          ? "text-green-700 bg-green-100"
-                          : "text-red-700 bg-red-100"
-                      }`}
-                    >
-                      {workflowResponse?.session_id || currentSessionId}
-                    </span>
+                {workflowResponse?.error && (
+                  <div className="text-red-800 text-sm mt-2">
+                    {workflowResponse.error}
+                  </div>
+                )}
+                {workflowResponse?.success && (
+                  <div className="text-green-800 text-sm mt-2">
+                    Workflow started successfully
                   </div>
                 )}
 
