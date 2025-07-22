@@ -1,6 +1,5 @@
 import React from 'react';
-import type { FormField} from '../../types/form';
-import { getRadioGroupName, getRadioValue } from '../../types/form';
+import type { FormField } from '../../types/form';
 
 interface DynamicFormFieldProps {
   id: string;
@@ -16,11 +15,9 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
   value,
   onChange,
   error = false,
-
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const newValue = field.type === 'checkbox' ? (e.target as HTMLInputElement).checked 
-      : field.type === 'radio button' ? (e.target as HTMLInputElement).value
       : e.target.value;
     onChange(newValue);
   };
@@ -85,18 +82,14 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
         );
 
       case 'radio button':
-        const groupName = getRadioGroupName(id);
-        const radioValue = getRadioValue(id);
-        
         return (
           <div className="flex items-start space-x-2">
             <div className="flex items-center h-5">
               <input
                 type="radio"
                 id={id}
-                name={groupName}
-                value={radioValue}
-                checked={value === radioValue}
+                name={id}
+                checked={!!value}
                 onChange={handleChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
               />
