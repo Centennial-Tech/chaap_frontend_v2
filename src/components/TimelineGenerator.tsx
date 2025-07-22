@@ -13,24 +13,24 @@ import {
   CalendarDays,
   Edit,
   Plus,
-  CheckCircle,
-  Clock,
-  Circle,
+  // CheckCircle,
+  // Clock,
+  // Circle,
 } from "lucide-react";
 
 export function TimelineGenerator({ timelineItems, isLoading }: any) {
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-white" />;
-      case "in_progress":
-        return <Clock className="h-4 w-4 text-white" />;
-      case "pending":
-        return <Circle className="h-4 w-4 text-white" />;
-      default:
-        return <Circle className="h-4 w-4 text-white" />;
-    }
-  };
+  // const getStatusIcon = (status: string) => {
+  //   switch (status?.toLowerCase()) {
+  //     case "completed":
+  //       return <CheckCircle className="h-4 w-4 text-white" />;
+  //     case "in_progress":
+  //       return <Clock className="h-4 w-4 text-white" />;
+  //     case "pending":
+  //       return <Circle className="h-4 w-4 text-white" />;
+  //     default:
+  //       return <Circle className="h-4 w-4 text-white" />;
+  //   }
+  // };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
