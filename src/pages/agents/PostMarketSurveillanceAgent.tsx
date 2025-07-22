@@ -3,6 +3,7 @@ import AnimatedBackground from "../../components/AnimatedBackground";
 import { useState } from "react";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../../components/Toast";
+import { useAuth } from "../../provider/authProvider";
 
 interface PredictedReportType {
   type: string;
@@ -110,12 +111,14 @@ const PostMarketSurveillanceAgent = ({
 }: Pick<PostMarketSurveillanceAgentProps, "generatedReports">) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
 
   // Toast notifications
   const toast = useToast();
+  const { user } = useAuth();
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -467,10 +470,13 @@ Generated at: ${new Date().toLocaleString()}
         is_capa: formData.capaRequired,
         file_info: fileContent?.data,
         submittedAt: new Date().toISOString(),
+        user_id: user?.id,
       };
 
       const response = await api.post(
-        "/agent/post_market_surveillance/analyze?type=ADVERSE_REPORT",
+        `/agent/post_market_surveillance/analyze?type=${
+          formData.capaRequired ? "CAPA_GENERATION" : "ADVERSE_REPORT"
+        }`,
         submissionData
       );
       setGeneratedData(response.data?.messages[0]);
@@ -492,7 +498,7 @@ Generated at: ${new Date().toLocaleString()}
       }
 
       // Reset form after successful report generation
-      startNewReport();
+      // startNewReport();
       // User can manually reset if needed
     } catch (error) {
       console.error("Error submitting report:", error);
@@ -651,6 +657,57 @@ Generated at: ${new Date().toLocaleString()}
       };
 
       setFileContent(fileContentData);
+
+      // Start auto-fill process
+      setIsAutoFilling(true);
+
+      // auto fill form
+      const response = await api.post(
+        "/agent/post_market_surveillance/analyze?type=EXCEL_FILLOUT",
+        {
+          file_info: fileContentData.data,
+        }
+      );
+
+      const autoFilledData = response.data?.messages[0];
+
+      // Auto-fill form with extracted data
+      if (autoFilledData) {
+        setFormData((prevData) => ({
+          ...prevData,
+          productType: autoFilledData.product_type || prevData.productType,
+          productName: autoFilledData.product_name || prevData.productName,
+          lotNumber: autoFilledData.lot_number || prevData.lotNumber,
+          indication: autoFilledData.indication || prevData.indication,
+          manufacturer: autoFilledData.manufacturer || prevData.manufacturer,
+          eventDescription:
+            autoFilledData.event_description || prevData.eventDescription,
+          eventDate: autoFilledData.date_of_event || prevData.eventDate,
+          eventOutcome: autoFilledData.event_outcome || prevData.eventOutcome,
+          severityClassification:
+            autoFilledData.severity_classification ||
+            prevData.severityClassification,
+          reporterType: autoFilledData.reporter_type || prevData.reporterType,
+          reporterLocation:
+            autoFilledData.reporter_location || prevData.reporterLocation,
+          manufacturerResponse:
+            autoFilledData.manufacturer_response ||
+            prevData.manufacturerResponse,
+          capaRequired:
+            autoFilledData.is_capa !== undefined
+              ? autoFilledData.is_capa
+              : prevData.capaRequired,
+        }));
+
+        toast.success(
+          "Form auto-filled with extracted data from uploaded file!"
+        );
+      }
+
+      // End auto-fill process
+      setIsAutoFilling(false);
+
+      console.log("Auto-filled data:", autoFilledData);
       console.log("File content extracted:", {
         fileName: fileContentData.fileName,
         totalRows: fileContentData.totalRows,
@@ -665,6 +722,7 @@ Generated at: ${new Date().toLocaleString()}
     } catch (error) {
       console.error("Error reading file:", error);
       setIsUploading(false);
+      setIsAutoFilling(false);
       setUploadedFile(null);
       toast.error(
         `Error processing file: ${
@@ -693,8 +751,8 @@ Generated at: ${new Date().toLocaleString()}
   const productTypes = [
     "drug",
     "biologic",
-    "medical-device",
-    "combination-product",
+    "medical_device",
+    "combination_product",
   ];
   const outcomes = [
     "Death",
@@ -1020,92 +1078,295 @@ Generated at: ${new Date().toLocaleString()}
                   </div>
                 </div> */}
 
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Product Details
-                    </h3>
-                    <FormField label="Product Type" required>
-                      <FormSelect
-                        name="productType"
-                        value={formData.productType}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">Select product type</option>
-                        {productTypes.map((type) => (
-                          <option key={type} value={type}>
-                            {type
-                              .replace("-", " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase())}
-                          </option>
-                        ))}
-                      </FormSelect>
-                    </FormField>
-                    <FormField label="Product Name" required>
-                      <FormInput
-                        name="productName"
-                        value={formData.productName}
-                        onChange={handleInputChange}
-                        placeholder="Enter product name"
-                      />
-                    </FormField>
-                    <FormField label="Lot Number" required>
-                      <FormInput
-                        name="lotNumber"
-                        value={formData.lotNumber}
-                        onChange={handleInputChange}
-                        placeholder="Enter lot number"
-                      />
-                    </FormField>
-                    <FormField label="Indication" required>
-                      <FormInput
-                        name="indication"
-                        value={formData.indication}
-                        onChange={handleInputChange}
-                        placeholder="Product indication"
-                      />
-                    </FormField>
-                    <FormField label="Manufacturer">
-                      <FormInput
-                        name="manufacturer"
-                        value={formData.manufacturer}
-                        onChange={handleInputChange}
-                        placeholder="Enter manufacturer name"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Event Description
-                    </h3>
-                    <FormField label="Event Description" required>
-                      <FormTextarea
-                        name="eventDescription"
-                        value={formData.eventDescription}
-                        onChange={handleInputChange}
-                        placeholder="Describe the adverse event in detail"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Event Details
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField label="Date of Event" required>
-                        <div className="relative">
-                          <FormInput
-                            type="date"
-                            name="eventDate"
-                            value={formData.eventDate}
-                            onChange={handleInputChange}
-                            placeholder="mm/dd/yyyy"
+                {isAutoFilling ? (
+                  // Auto-fill loading state
+                  <div className="space-y-6">
+                    <div className="flex flex-col items-center justify-center py-16 px-8">
+                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                        <svg
+                          className="w-8 h-8 text-purple-600 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                        AI is analyzing your data...
+                      </h3>
+                      <p className="text-gray-600 text-center max-w-md">
+                        Our AI is extracting adverse event information from your
+                        uploaded file and auto-filling the form. This may take a
+                        few moments.
+                      </p>
+                      <div className="mt-6 flex items-center gap-2 text-sm text-purple-600">
+                        <svg
+                          className="w-4 h-4 animate-pulse"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
                           />
-                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        </svg>
+                        Processing uploaded file data
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <form className="space-y-6" onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Product Details
+                      </h3>
+                      <FormField label="Product Type" required>
+                        <FormSelect
+                          name="productType"
+                          value={formData.productType}
+                          onChange={handleInputChange}
+                        >
+                          <option value="">Select product type</option>
+                          {productTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type
+                                .replace("-", " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase())}
+                            </option>
+                          ))}
+                        </FormSelect>
+                      </FormField>
+                      <FormField label="Product Name" required>
+                        <FormInput
+                          name="productName"
+                          value={formData.productName}
+                          onChange={handleInputChange}
+                          placeholder="Enter product name"
+                        />
+                      </FormField>
+                      <FormField label="Lot Number" required>
+                        <FormInput
+                          name="lotNumber"
+                          value={formData.lotNumber}
+                          onChange={handleInputChange}
+                          placeholder="Enter lot number"
+                        />
+                      </FormField>
+                      <FormField label="Indication" required>
+                        <FormInput
+                          name="indication"
+                          value={formData.indication}
+                          onChange={handleInputChange}
+                          placeholder="Product indication"
+                        />
+                      </FormField>
+                      <FormField label="Manufacturer">
+                        <FormInput
+                          name="manufacturer"
+                          value={formData.manufacturer}
+                          onChange={handleInputChange}
+                          placeholder="Enter manufacturer name"
+                        />
+                      </FormField>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Event Description
+                      </h3>
+                      <FormField label="Event Description" required>
+                        <FormTextarea
+                          name="eventDescription"
+                          value={formData.eventDescription}
+                          onChange={handleInputChange}
+                          placeholder="Describe the adverse event in detail"
+                        />
+                      </FormField>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Event Details
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField label="Date of Event" required>
+                          <div className="relative">
+                            <FormInput
+                              type="date"
+                              name="eventDate"
+                              value={formData.eventDate}
+                              onChange={handleInputChange}
+                              placeholder="mm/dd/yyyy"
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <svg
+                                className="h-5 w-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </FormField>
+                        <FormField label="Event Outcome" required>
+                          <FormSelect
+                            name="eventOutcome"
+                            value={formData.eventOutcome}
+                            onChange={handleInputChange}
+                          >
+                            <option value="" disabled>
+                              Select outcome
+                            </option>
+                            {outcomes.map((outcome) => (
+                              <option key={outcome} value={outcome}>
+                                {outcome}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormField>
+                        <FormField label="Severity Classification">
+                          <FormSelect
+                            name="severityClassification"
+                            value={formData.severityClassification}
+                            onChange={handleInputChange}
+                          >
+                            <option value="" disabled>
+                              Select severity
+                            </option>
+                            {severities.map((severity) => (
+                              <option key={severity} value={severity}>
+                                {severity}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormField>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField label="Reporter Type" required>
+                          <div className="space-y-2">
+                            {reporterTypes.map((type, index) => (
+                              <label
+                                key={index}
+                                className="flex items-center gap-2"
+                              >
+                                <input
+                                  type="radio"
+                                  name="reporterType"
+                                  value={type.toLowerCase().replace(" ", "-")}
+                                  checked={
+                                    formData.reporterType ===
+                                    type.toLowerCase().replace(" ", "-")
+                                  }
+                                  onChange={handleInputChange}
+                                  className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  {type}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </FormField>
+                        <FormField label="Reporter Location" required>
+                          <FormSelect
+                            name="reporterLocation"
+                            value={formData.reporterLocation}
+                            onChange={handleInputChange}
+                          >
+                            <option value="" disabled>
+                              Select location
+                            </option>
+                            {locations.map((location) => (
+                              <option key={location} value={location}>
+                                {location}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormField>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <FormField label="Manufacturer Response (Optional)">
+                        <FormTextarea
+                          name="manufacturerResponse"
+                          value={formData.manufacturerResponse}
+                          onChange={handleInputChange}
+                          placeholder="Internal assessment summary or manufacturer response"
+                        />
+                      </FormField>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="capa-required"
+                          name="capaRequired"
+                          checked={formData.capaRequired}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <label
+                          htmlFor="capa-required"
+                          className="text-sm text-gray-700"
+                        >
+                          This event requires CAPA (Corrective and Preventive
+                          Action)
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="pt-6">
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      >
+                        {isSubmitting ? (
+                          <>
                             <svg
-                              className="h-5 w-5 text-gray-400"
+                              className="w-5 h-5 animate-spin"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Generating Report...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1114,168 +1375,16 @@ Generated at: ${new Date().toLocaleString()}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                               />
                             </svg>
-                          </div>
-                        </div>
-                      </FormField>
-                      <FormField label="Event Outcome" required>
-                        <FormSelect
-                          name="eventOutcome"
-                          value={formData.eventOutcome}
-                          onChange={handleInputChange}
-                        >
-                          <option value="" disabled>
-                            Select outcome
-                          </option>
-                          {outcomes.map((outcome) => (
-                            <option key={outcome} value={outcome}>
-                              {outcome}
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormField>
-                      <FormField label="Severity Classification">
-                        <FormSelect
-                          name="severityClassification"
-                          value={formData.severityClassification}
-                          onChange={handleInputChange}
-                        >
-                          <option value="" disabled>
-                            Select severity
-                          </option>
-                          {severities.map((severity) => (
-                            <option key={severity} value={severity}>
-                              {severity}
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormField>
+                            Generate Report
+                          </>
+                        )}
+                      </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField label="Reporter Type" required>
-                        <div className="space-y-2">
-                          {reporterTypes.map((type, index) => (
-                            <label
-                              key={index}
-                              className="flex items-center gap-2"
-                            >
-                              <input
-                                type="radio"
-                                name="reporterType"
-                                value={type.toLowerCase().replace(" ", "-")}
-                                checked={
-                                  formData.reporterType ===
-                                  type.toLowerCase().replace(" ", "-")
-                                }
-                                onChange={handleInputChange}
-                                className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                              />
-                              <span className="text-sm text-gray-700">
-                                {type}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </FormField>
-                      <FormField label="Reporter Location" required>
-                        <FormSelect
-                          name="reporterLocation"
-                          value={formData.reporterLocation}
-                          onChange={handleInputChange}
-                        >
-                          <option value="" disabled>
-                            Select location
-                          </option>
-                          {locations.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormField>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <FormField label="Manufacturer Response (Optional)">
-                      <FormTextarea
-                        name="manufacturerResponse"
-                        value={formData.manufacturerResponse}
-                        onChange={handleInputChange}
-                        placeholder="Internal assessment summary or manufacturer response"
-                      />
-                    </FormField>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="capa-required"
-                        name="capaRequired"
-                        checked={formData.capaRequired}
-                        onChange={handleInputChange}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <label
-                        htmlFor="capa-required"
-                        className="text-sm text-gray-700"
-                      >
-                        This event requires CAPA (Corrective and Preventive
-                        Action)
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="pt-6">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <svg
-                            className="w-5 h-5 animate-spin"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Generating Report...
-                        </>
-                      ) : (
-                        <>
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                          Generate Report
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                  </form>
+                )}
               </div>
 
               <div className="space-y-6">
@@ -1291,14 +1400,14 @@ Generated at: ${new Date().toLocaleString()}
                   <p className="text-sm text-gray-600 text-center mb-4">
                     {generatedData?.description || "No description available"}
                   </p>
-                  {/* <div className="flex justify-between items-center">
+                  <div className="flex gap-2 items-center">
                     <span className="text-sm font-medium text-gray-700">
                       Due Date:
                     </span>
                     <span className="text-gray-500">
-                      {currentPredictedReportType.dueDate}
+                      {generatedData?.due_date}
                     </span>
-                  </div> */}
+                  </div>
                 </Card>
 
                 <Card title="Generated Reports">
