@@ -542,7 +542,7 @@ Generated at: ${new Date().toLocaleString()}
 
       const response = await api.post(
         `/agent/post_market_surveillance/analyze?type=ADVERSE_REPORT`,
-        submissionData
+        { ...submissionData, is_capa: false }
       );
 
       setGeneratedData(response.data?.messages[0]);
