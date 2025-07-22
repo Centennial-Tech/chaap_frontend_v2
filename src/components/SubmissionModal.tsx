@@ -1,8 +1,11 @@
 import { CheckCircle } from "lucide-react";
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Modal from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { productTypes } from "../constants";
+import api from "../api";
+import { useSubmission } from "../provider/submissionProvider";
+import { createSubmission, type Submission } from "../helpers/submissionApiHelper";
 
 interface FormData {
   name: string;
@@ -14,41 +17,63 @@ interface FormData {
 
 interface SubmissionModalProps {
   open: boolean;
-  formData: FormData;
   onClose: () => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  onInputChange: (field: keyof FormData, value: string) => void;
-  questions?: string[];
-  questionAnswers?: { [q: string]: string };
-  onQuestionAnswerChange?: (q: string, value: string) => void;
-  loading?: boolean;
-  formSuggestion?: string;
-  canCreate?: boolean;
-  suggestionError?: string;
 }
 
 const SubmissionModal: React.FC<SubmissionModalProps> = ({
   open,
-  formData,
   onClose,
-  onSubmit,
-  onInputChange,
-  questions = [],
-  questionAnswers = {},
-  onQuestionAnswerChange,
-  loading = false,
-  formSuggestion = "",
-  canCreate = false,
-  suggestionError = "",
 }) => {
+  const { refreshSubmissions, setActiveSubmission } = useSubmission();
   const [hideQuestions, setHideQuestions] = React.useState(false);
-  // Add local state to control hiding of questions after suggestion error
   const [forceHideQuestions, setForceHideQuestions] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formSuggestion, setFormSuggestion] = useState<string>("");
+  const [suggestionError, setSuggestionError] = useState("");
+  const [readyToCreate, setReadyToCreate] = useState(false);
+  const [allowManualCreate, setAllowManualCreate] = useState(false);
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [questionAnswers, setQuestionAnswers] = useState<{[q: string]: string}>({});
+  const questionAnswersRef = useRef<{ [q: string]: string }>({});
+  
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    type: "",
+    submissionType: "",
+    end_time: "",
+    productDescription: "",
+  });
 
   // Compute showSubmissionType internally
   const showSubmissionType = !!formSuggestion || !!suggestionError;
+  const canCreate = readyToCreate || allowManualCreate;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (formSuggestion) {
+      setReadyToCreate(true);
+    } else {
+      setReadyToCreate(false);
+    }
+  }, [formSuggestion]);
+
+  useEffect(() => {
+    questionAnswersRef.current = questionAnswers;
+  }, [questionAnswers]);
+
+  useEffect(() => {
+    if (suggestionError) {
+      setAllowManualCreate(true);
+      setReadyToCreate(true);
+    } else if (formSuggestion) {
+      setAllowManualCreate(false);
+      setReadyToCreate(true);
+    } else {
+      setAllowManualCreate(false);
+      setReadyToCreate(false);
+    }
+  }, [formSuggestion, suggestionError]);
+
+  useEffect(() => {
     if (showSubmissionType && formSuggestion) {
       const timeout = setTimeout(() => setHideQuestions(true), 400);
       return () => clearTimeout(timeout);
@@ -57,7 +82,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     }
   }, [showSubmissionType, formSuggestion]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (suggestionError) {
       setForceHideQuestions(true);
     } else {
@@ -65,17 +90,132 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     }
   }, [suggestionError]);
 
+  const handleClose = () => {
+    setFormData({
+      name: "",
+      type: "",
+      submissionType: "",
+      end_time: "",
+      productDescription: "",
+    });
+    setQuestions([]);
+    setQuestionAnswers({});
+    setLoading(false);
+    setFormSuggestion("");
+    setSuggestionError("");
+    setReadyToCreate(false);
+    setAllowManualCreate(false);
+    onClose();
+  };
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      if (field === "type") {
+        updated.submissionType = "";
+      }
+      return updated;
+    });
+  };
+
+  const handleQuestionAnswerChange = (q: string, value: string) => {
+    setQuestionAnswers((prev) => {
+      const updated = { ...prev, [q]: value };
+      return updated;
+    });
+  };
+
+  const handleAdditionalQuestionsSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuggestionError("");
+    let suggestion = "";
+    let response;
+    let attempts = 0;
+    try {
+      do {
+        const answers = { ...questionAnswersRef.current };
+        response = await api.post("/agent/suggested_form", {
+          user_answers: JSON.stringify(answers),
+        });
+        suggestion = response.data?.suggested_form || "";
+        attempts++;
+      } while (suggestion.length > 10 && attempts < 2);
+      
+      if (suggestion.length > 10) {
+        setSuggestionError(
+          "We are not able to get a suggestion based on your inputs. Please select the submission type manually."
+        );
+        setFormSuggestion("");
+        setFormData((prev) => ({ ...prev, submissionType: "" }));
+      } else {
+        setFormSuggestion(suggestion);
+        setFormData((prev) => ({ ...prev, submissionType: suggestion }));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const newSubmission: Partial<Submission> = {
+        name: formData.name,
+        submission_type: formData.submissionType,
+        end_time: formData.end_time,
+        intended_use: formData.productDescription,
+        product_type: formData.type,
+        form_id: '9ed3855e-c972-458c-bd51-dd9bafad8d7d', //TODO: currenlty hardcoded to 'ind', have a map or api to get the form_id from the submissionType
+      };
+
+      const createdSubmission = await createSubmission(newSubmission);
+      await refreshSubmissions();
+      if (createdSubmission) {
+        setActiveSubmission(createdSubmission);
+      }
+      handleClose();
+    } catch (error) {
+      console.error("Error creating submission:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (questions.length === 0) {
+      setLoading(true);
+      try {
+        const response = await api.post("/agent/form_questions", {
+          user_input: formData.productDescription,
+        });
+        const qs =
+          response.data?.questions
+            ?.match(/- (.+?)(?=\n|$)/g)
+            ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
+        setQuestions(qs);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    await handleAdditionalQuestionsSubmission(e);
+    return;
+  };
+
   return (
     <Modal
       isOpen={open}
-      onClose={onClose}
+      onClose={handleClose}
       title="New Submission"
       maxWidth="max-w-2xl"
       maxHeight="max-h-[90vh]"
       showCloseButton={true}
     >
       <form
-        onSubmit={onSubmit}
+        onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
         className="flex-1 flex flex-col overflow-hidden"
       >
         <div className="space-y-4 flex-1 overflow-y-auto">
@@ -90,7 +230,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               id="name"
               type="text"
               value={formData.name}
-              onChange={(e) => onInputChange("name", e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               required
               className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
               placeholder="Enter drug/device name: "
@@ -106,7 +246,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
             <select
               id="type"
               value={formData.type}
-              onChange={(e) => onInputChange("type", e.target.value)}
+              onChange={(e) => handleInputChange("type", e.target.value)}
               required
               className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
             >
@@ -132,7 +272,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               id="productDescription"
               value={formData.productDescription}
               onChange={(e) =>
-                onInputChange("productDescription", e.target.value)
+                handleInputChange("productDescription", e.target.value)
               }
               required
               rows={3}
@@ -155,8 +295,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                     type="text"
                     value={questionAnswers[q] || ""}
                     onChange={(e) =>
-                      onQuestionAnswerChange &&
-                      onQuestionAnswerChange(q, e.target.value)
+                      handleQuestionAnswerChange(q, e.target.value)
                     }
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
                     placeholder="Your answer..."
@@ -197,7 +336,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 id="submissionType"
                 value={formData.submissionType}
                 onChange={(e) =>
-                  onInputChange("submissionType", e.target.value)
+                  handleInputChange("submissionType", e.target.value)
                 }
                 required
                 disabled={!formData.type}
@@ -237,7 +376,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 id="end_time"
                 type="date"
                 value={formData.end_time}
-                onChange={(e) => onInputChange("end_time", e.target.value)}
+                onChange={(e) => handleInputChange("end_time", e.target.value)}
                 required
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
               />
@@ -245,7 +384,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
           )}
         </div>
         <div className="flex justify-end gap-2 pt-4 border-t mt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={handleClose}>
             Cancel
           </Button>
           <Button

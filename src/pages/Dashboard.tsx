@@ -1,18 +1,13 @@
 import { CheckCircle, Clock, FileText, Plus } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
 import { useSubmission } from "../provider/submissionProvider";
 import { useLocation } from "react-router-dom";
-import {
-  createSubmission,
-  deleteSubmission,
-  type Submission,
-} from "../helpers/submissionApiHelper";
-import api from "../api";
+import { deleteSubmission, type Submission } from "../helpers/submissionApiHelper";
 import Modal from "../components/ui/Modal";
 
 interface Stats {
@@ -22,9 +17,6 @@ interface Stats {
   total: number;
   approvalRate: number;
 }
-
-// Constants
-// Utility functions
 
 const calculateStats = (submissions: Submission[]): Stats => {
   const drafts = submissions.filter((s) => s.status === "draft").length;
@@ -47,7 +39,7 @@ const Dashboard = () => {
   const location = useLocation();
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState("");
-  const { submissions, refreshSubmissions } = useSubmission(); //TODO: Why 3 api calls on load?
+  const { submissions, refreshSubmissions } = useSubmission();
 
   // Check for redirect message
   useEffect(() => {
@@ -81,75 +73,6 @@ const Dashboard = () => {
     }
   };
 
-  // Form state (update type to match new fields)
-  type SubmissionFormData = {
-    name: string;
-    type: string;
-    submissionType: string;
-    end_time: string;
-    productDescription: string;
-  };
-
-  const [formData, setFormData] = useState<SubmissionFormData>({
-    name: "",
-    type: "",
-    submissionType: "",
-    end_time: "",
-    productDescription: "",
-  });
-
-  // Add state for generated questions and their answers
-  const [questions, setQuestions] = useState<string[]>([]);
-  const [questionAnswers, setQuestionAnswers] = useState<{
-    [q: string]: string;
-  }>({});
-
-  // Add ref to track latest questionAnswers for async operations
-  const questionAnswersRef = useRef<{ [q: string]: string }>({});
-  // Add loading state for API call
-  const [loading, setLoading] = useState(false);
-  // Add state for form suggestion
-  const [formSuggestion, setFormSuggestion] = useState<string>("");
-  const [suggestionError, setSuggestionError] = useState("");
-
-  // Track if we are in the final create step
-  const [readyToCreate, setReadyToCreate] = useState(false);
-  // Track if user can skip suggestion and go to create after error
-  const [allowManualCreate, setAllowManualCreate] = useState(false);
-
-  const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
-
-  // Update readyToCreate when formSuggestion is set
-  useEffect(() => {
-    if (formSuggestion) {
-      setReadyToCreate(true);
-    } else {
-      setReadyToCreate(false);
-    }
-  }, [formSuggestion]);
-
-  // Sync questionAnswersRef with questionAnswers state
-  useEffect(() => {
-    questionAnswersRef.current = questionAnswers;
-  }, [questionAnswers]);
-
-  useEffect(() => {
-    if (suggestionError) {
-      setAllowManualCreate(true);
-      setReadyToCreate(true);
-    } else if (formSuggestion) {
-      setAllowManualCreate(false);
-      setReadyToCreate(true);
-    } else {
-      setAllowManualCreate(false);
-      setReadyToCreate(false);
-    }
-  }, [formSuggestion, suggestionError]);
-
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
-
   const handleDeleteSubmission = React.useCallback(async (id: string) => {
     try {
       await deleteSubmission(id);
@@ -160,137 +83,9 @@ const Dashboard = () => {
   }, []);
 
   const handleOpen = React.useCallback(() => setOpen(true), []);
+  const handleClose = React.useCallback(() => setOpen(false), []);
 
-  const handleClose = React.useCallback(() => {
-    setOpen(false);
-    setFormData({
-      name: "",
-      type: "",
-      submissionType: "",
-      end_time: "",
-      productDescription: "",
-    });
-    setQuestions([]);
-    setQuestionAnswers({});
-    setLoading(false);
-  }, []);
-
-  const handleAdditionalQuestionsSubmission = React.useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setLoading(true);
-      setSuggestionError("");
-      let suggestion = "";
-      let response;
-      let attempts = 0;
-      try {
-        do {
-          // Use the ref to get the latest answers
-          const answers = { ...questionAnswersRef.current };
-          console.log("API will send answers:", answers);
-          response = await api.post("/agent/suggested_form", {
-            user_answers: JSON.stringify(answers),
-          });
-          suggestion = response.data?.suggested_form || "";
-          attempts++;
-        } while (suggestion.length > 10 && attempts < 2);
-        if (suggestion.length > 10) {
-          setSuggestionError(
-            "We are not able to get a suggestion based on your inputs. Please select the submission type manually."
-          );
-          setFormSuggestion("");
-          setFormData((prev) => ({ ...prev, submissionType: "" }));
-        } else {
-          setFormSuggestion(suggestion);
-          setFormData((prev) => ({ ...prev, submissionType: suggestion }));
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [] // Remove questionAnswers from deps, use ref instead
-  );
-
-  const handleCreateSubmission = React.useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setLoading(true);
-      try {
-        const newSubmission: Partial<Submission> = {
-          name: formData.name,
-          submission_type: formData.submissionType,
-          end_time: formData.end_time,
-          intended_use: formData.productDescription,
-          product_type: formData.type,
-          form_id: '9ed3855e-c972-458c-bd51-dd9bafad8d7d', //TODO: currenlty hardcoded to 'ind', have a map or api to get the form_id from the submissionType
-        };
-
-        await createSubmission(newSubmission);
-        await refreshSubmissions();
-        handleClose();
-      } catch (error) {
-        console.error("Error creating submission:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [formData, handleClose]
-  );
-
-  const handleFormSubmit = React.useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (questions.length === 0) {
-        setLoading(true);
-        try {
-          // First submit: get questions from API
-          const response = await api.post("/agent/form_questions", {
-            user_input: formData.productDescription,
-          });
-          const qs =
-            response.data?.questions
-              ?.match(/- (.+?)(?=\n|$)/g)
-              ?.map((q: any) => q.replace(/^\-\s*/, "")) || [];
-          setQuestions(qs);
-        } finally {
-          setLoading(false);
-        }
-        // Don't close modal yet, let user answer questions
-        return;
-      }
-      // Second submit: save submission with answers
-      await handleAdditionalQuestionsSubmission(e);
-      // Now show the submissionType field with default value from formSuggestion
-      return;
-    },
-    [formData, submissions, handleClose, questions]
-  );
-
-  // Handler for question answers
-  const handleQuestionAnswerChange = React.useCallback(
-    (q: string, value: string) => {
-      setQuestionAnswers((prev) => {
-        const updated = { ...prev, [q]: value };
-        console.log("handleQuestionAnswerChange", updated);
-        return updated;
-      });
-    },
-    []
-  );
-
-  const handleInputChange = React.useCallback(
-    (field: keyof SubmissionFormData, value: string) => {
-      setFormData((prev) => {
-        const updated = { ...prev, [field]: value };
-        // Reset submission type when type changes
-        if (field === "type") {
-          updated.submissionType = "";
-        }
-        return updated;
-      });
-    },
-    []
-  );
+  const stats = React.useMemo(() => calculateStats(submissions), [submissions]);
 
   return (
     <div className="overflow-x-hidden">
@@ -338,7 +133,7 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-      {/* TODO: Refactor to use global overlay provider for confirm dialog */}
+      {/* Confirm Delete Modal */}
       {confirmDeleteOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 z-40"></div>
@@ -437,17 +232,7 @@ const Dashboard = () => {
         {/* Modal */}
         <SubmissionModal
           open={open}
-          formData={formData}
           onClose={handleClose}
-          onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
-          onInputChange={handleInputChange}
-          questions={questions}
-          questionAnswers={questionAnswers}
-          onQuestionAnswerChange={handleQuestionAnswerChange}
-          loading={loading}
-          formSuggestion={formSuggestion}
-          canCreate={readyToCreate || allowManualCreate}
-          suggestionError={suggestionError}
         />
       </div>
     </div>
