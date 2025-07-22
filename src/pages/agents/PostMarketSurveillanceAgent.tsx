@@ -115,6 +115,7 @@ const PostMarketSurveillanceAgent = ({
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
+  const [capaData, setCapaData] = useState<any>(null);
 
   // Toast notifications
   const toast = useToast();
@@ -149,7 +150,10 @@ const PostMarketSurveillanceAgent = ({
   };
 
   // Function to download report as PDF
-  const downloadReportAsPDF = async (reportData: any) => {
+  const downloadReportAsPDF = async (
+    reportData: any,
+    reportType: "adverse" | "capa" = "adverse"
+  ) => {
     try {
       // Import jsPDF dynamically
       const { jsPDF } = await import("jspdf");
@@ -157,7 +161,9 @@ const PostMarketSurveillanceAgent = ({
 
       // Set up PDF styling
       doc.setFontSize(20);
-      doc.text("ADVERSE EVENT REPORT", 20, 30);
+      const title =
+        reportType === "capa" ? "CAPA REPORT" : "ADVERSE EVENT REPORT";
+      doc.text(title, 20, 30);
 
       doc.setFontSize(12);
       doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
@@ -166,65 +172,129 @@ const PostMarketSurveillanceAgent = ({
       const lineHeight = 8;
       const maxWidth = 170;
 
-      // Report Type
-      doc.setFontSize(14);
-      doc.text("Report Type:", 20, yPosition);
-      doc.setFontSize(12);
-      doc.text(reportData.predicted_report || "N/A", 70, yPosition);
-      yPosition += lineHeight * 2;
-
-      // Product Information
-      doc.setFontSize(14);
-      doc.text("Product Information:", 20, yPosition);
-      yPosition += lineHeight;
-
-      doc.setFontSize(10);
-      const productInfo = [
-        `Product Type: ${formData.productType}`,
-        `Product Name: ${formData.productName}`,
-        `Lot Number: ${formData.lotNumber}`,
-        `Indication: ${formData.indication}`,
-        `Manufacturer: ${formData.manufacturer}`,
-      ];
-
-      productInfo.forEach((info) => {
-        doc.text(info, 25, yPosition);
-        yPosition += lineHeight;
-      });
-      yPosition += lineHeight;
-
-      // Event Details
-      doc.setFontSize(14);
-      doc.text("Event Details:", 20, yPosition);
-      yPosition += lineHeight;
-
-      doc.setFontSize(10);
-      const eventInfo = [
-        `Date of Event: ${formData.eventDate}`,
-        `Event Outcome: ${formData.eventOutcome}`,
-        `Severity: ${formData.severityClassification}`,
-        `Reporter Type: ${formData.reporterType}`,
-        `Reporter Location: ${formData.reporterLocation}`,
-      ];
-
-      eventInfo.forEach((info) => {
-        doc.text(info, 25, yPosition);
-        yPosition += lineHeight;
-      });
-      yPosition += lineHeight;
-
-      // Event Description
-      if (formData.eventDescription) {
+      if (reportType === "capa") {
+        // CAPA Report Format
         doc.setFontSize(14);
-        doc.text("Event Description:", 20, yPosition);
+        doc.text("CAPA Report", 20, yPosition);
+        yPosition += lineHeight * 2;
+
+        doc.setFontSize(10);
+        const capaContent =
+          reportData.generated_report || "No CAPA content available";
+        const capaLines = doc.splitTextToSize(capaContent, maxWidth);
+        capaLines.forEach((line: string) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, 20, yPosition);
+          yPosition += lineHeight;
+        });
+
+        // Due Date
+        if (reportData.due_date) {
+          yPosition += lineHeight;
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.setFontSize(12);
+          doc.text(`Due Date: ${reportData.due_date}`, 20, yPosition);
+        }
+
+        // Footer
+        yPosition += lineHeight * 2;
+        doc.setFontSize(8);
+        doc.text(`Generated at: ${new Date().toLocaleString()}`, 20, yPosition);
+
+        // Save the PDF
+        const fileName = `CAPA_Report_${
+          new Date().toISOString().split("T")[0]
+        }.pdf`;
+        doc.save(fileName);
+      } else {
+        // Existing Adverse Event Report Format
+        // Report Type
+        doc.setFontSize(14);
+        doc.text("Report Type:", 20, yPosition);
+        doc.setFontSize(12);
+        doc.text(reportData.predicted_report || "N/A", 70, yPosition);
+        yPosition += lineHeight * 2;
+
+        // Product Information
+        doc.setFontSize(14);
+        doc.text("Product Information:", 20, yPosition);
         yPosition += lineHeight;
 
         doc.setFontSize(10);
-        const descriptionLines = doc.splitTextToSize(
-          formData.eventDescription,
+        const productInfo = [
+          `Product Type: ${formData.productType}`,
+          `Product Name: ${formData.productName}`,
+          `Lot Number: ${formData.lotNumber}`,
+          `Indication: ${formData.indication}`,
+          `Manufacturer: ${formData.manufacturer}`,
+        ];
+
+        productInfo.forEach((info) => {
+          doc.text(info, 25, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += lineHeight;
+
+        // Event Details
+        doc.setFontSize(14);
+        doc.text("Event Details:", 20, yPosition);
+        yPosition += lineHeight;
+
+        doc.setFontSize(10);
+        const eventInfo = [
+          `Date of Event: ${formData.eventDate}`,
+          `Event Outcome: ${formData.eventOutcome}`,
+          `Severity: ${formData.severityClassification}`,
+          `Reporter Type: ${formData.reporterType}`,
+          `Reporter Location: ${formData.reporterLocation}`,
+        ];
+
+        eventInfo.forEach((info) => {
+          doc.text(info, 25, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += lineHeight;
+
+        // Event Description
+        if (formData.eventDescription) {
+          doc.setFontSize(14);
+          doc.text("Event Description:", 20, yPosition);
+          yPosition += lineHeight;
+
+          doc.setFontSize(10);
+          const descriptionLines = doc.splitTextToSize(
+            formData.eventDescription,
+            maxWidth
+          );
+          descriptionLines.forEach((line: string) => {
+            if (yPosition > 270) {
+              // Check if we need a new page
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(line, 25, yPosition);
+            yPosition += lineHeight;
+          });
+          yPosition += lineHeight;
+        }
+
+        // AI Generated Analysis
+        doc.setFontSize(14);
+        doc.text("AI Generated Analysis:", 20, yPosition);
+        yPosition += lineHeight;
+
+        doc.setFontSize(10);
+        const analysisLines = doc.splitTextToSize(
+          reportData.generated_report || "No analysis available",
           maxWidth
         );
-        descriptionLines.forEach((line: string) => {
+        analysisLines.forEach((line: string) => {
           if (yPosition > 270) {
             // Check if we need a new page
             doc.addPage();
@@ -233,79 +303,58 @@ const PostMarketSurveillanceAgent = ({
           doc.text(line, 25, yPosition);
           yPosition += lineHeight;
         });
-        yPosition += lineHeight;
-      }
 
-      // AI Generated Analysis
-      doc.setFontSize(14);
-      doc.text("AI Generated Analysis:", 20, yPosition);
-      yPosition += lineHeight;
-
-      doc.setFontSize(10);
-      const analysisLines = doc.splitTextToSize(
-        reportData.generated_report || "No analysis available",
-        maxWidth
-      );
-      analysisLines.forEach((line: string) => {
-        if (yPosition > 270) {
-          // Check if we need a new page
-          doc.addPage();
-          yPosition = 20;
-        }
-        doc.text(line, 25, yPosition);
-        yPosition += lineHeight;
-      });
-
-      // Manufacturer Response
-      if (formData.manufacturerResponse) {
-        yPosition += lineHeight;
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(14);
-        doc.text("Manufacturer Response:", 20, yPosition);
-        yPosition += lineHeight;
-
-        doc.setFontSize(10);
-        const responseLines = doc.splitTextToSize(
-          formData.manufacturerResponse,
-          maxWidth
-        );
-        responseLines.forEach((line: string) => {
-          if (yPosition > 270) {
+        // Manufacturer Response
+        if (formData.manufacturerResponse) {
+          yPosition += lineHeight;
+          if (yPosition > 250) {
             doc.addPage();
             yPosition = 20;
           }
-          doc.text(line, 25, yPosition);
+
+          doc.setFontSize(14);
+          doc.text("Manufacturer Response:", 20, yPosition);
           yPosition += lineHeight;
-        });
+
+          doc.setFontSize(10);
+          const responseLines = doc.splitTextToSize(
+            formData.manufacturerResponse,
+            maxWidth
+          );
+          responseLines.forEach((line: string) => {
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(line, 25, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+
+        // CAPA Status
+        yPosition += lineHeight;
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.setFontSize(10);
+        doc.text(
+          `CAPA Required: ${formData.capaRequired ? "Yes" : "No"}`,
+          20,
+          yPosition
+        );
+
+        // Footer
+        yPosition += lineHeight * 2;
+        doc.setFontSize(8);
+        doc.text(`Generated at: ${new Date().toLocaleString()}`, 20, yPosition);
+
+        // Save the PDF
+        const fileName = `${
+          reportData.predicted_report || "Adverse_Event_Report"
+        }_${new Date().toISOString().split("T")[0]}.pdf`;
+        doc.save(fileName);
       }
-
-      // CAPA Status
-      yPosition += lineHeight;
-      if (yPosition > 270) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      doc.setFontSize(10);
-      doc.text(
-        `CAPA Required: ${formData.capaRequired ? "Yes" : "No"}`,
-        20,
-        yPosition
-      );
-
-      // Footer
-      yPosition += lineHeight * 2;
-      doc.setFontSize(8);
-      doc.text(`Generated at: ${new Date().toLocaleString()}`, 20, yPosition);
-
-      // Save the PDF
-      const fileName = `${
-        reportData.predicted_report || "Adverse_Event_Report"
-      }_${new Date().toISOString().split("T")[0]}.pdf`;
-      doc.save(fileName);
 
       toast.success("PDF report downloaded successfully!");
     } catch (error) {
@@ -316,7 +365,20 @@ const PostMarketSurveillanceAgent = ({
       );
 
       // Fallback to text download
-      const reportContent = `
+      const reportContent =
+        reportType === "capa"
+          ? `
+CAPA REPORT
+${new Date().toLocaleDateString()}
+
+CAPA Analysis:
+${reportData.generated_report || "No CAPA content available"}
+
+Due Date: ${reportData.due_date || "Not specified"}
+
+Generated at: ${new Date().toLocaleString()}
+      `.trim()
+          : `
 ADVERSE EVENT REPORT
 ${new Date().toLocaleDateString()}
 
@@ -355,9 +417,13 @@ Generated at: ${new Date().toLocaleString()}
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${
-        reportData.predicted_report || "Adverse_Event_Report"
-      }_${new Date().toISOString().split("T")[0]}.txt`;
+      const filename =
+        reportType === "capa"
+          ? `CAPA_Report_${new Date().toISOString().split("T")[0]}.txt`
+          : `${reportData.predicted_report || "Adverse_Event_Report"}_${
+              new Date().toISOString().split("T")[0]
+            }.txt`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -385,6 +451,7 @@ Generated at: ${new Date().toLocaleString()}
     setUploadedFile(null);
     setFileContent(null);
     setGeneratedData(null);
+    setCapaData(null);
     toast.info("Started new report. Please fill out the form.");
   };
 
@@ -474,17 +541,28 @@ Generated at: ${new Date().toLocaleString()}
       };
 
       const response = await api.post(
-        `/agent/post_market_surveillance/analyze?type=${
-          formData.capaRequired ? "CAPA_GENERATION" : "ADVERSE_REPORT"
-        }`,
+        `/agent/post_market_surveillance/analyze?type=ADVERSE_REPORT`,
         submissionData
       );
+
       setGeneratedData(response.data?.messages[0]);
+
+      if (formData.capaRequired) {
+        const capResponse = await api.post(
+          `/agent/post_market_surveillance/analyze?type=CAPA_GENERATION`,
+          submissionData
+        );
+        debugger;
+        setCapaData(capResponse.data?.messages[0]);
+      }
 
       console.log("Submitting adverse event report:", submissionData);
 
       // Success handling
-      toast.success("Adverse event report generated successfully!");
+      const successMessage = formData.capaRequired
+        ? "Adverse event report and CAPA analysis generated successfully!"
+        : "Adverse event report generated successfully!";
+      toast.success(successMessage);
 
       // Scroll to the Predicted Report Type section to show generated report
       const predictedReportSection = document.getElementById(
@@ -859,8 +937,10 @@ Generated at: ${new Date().toLocaleString()}
                         <div className="mt-2 text-sm text-green-700">
                           <p>
                             Your {generatedData.predicted_report} report has
-                            been generated. Check the "Generated Reports"
-                            section to download or view the report.
+                            been generated
+                            {capaData ? " along with CAPA analysis" : ""}. Check
+                            the "Generated Reports" section to download or view
+                            the {capaData ? "reports" : "report"}.
                           </p>
                         </div>
                       </div>
@@ -1419,6 +1499,7 @@ Generated at: ${new Date().toLocaleString()}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-sm font-semibold text-purple-900">
+                                {formData.productName} -{" "}
                                 {generatedData.predicted_report ||
                                   "AI Generated Report"}
                               </span>
@@ -1499,6 +1580,85 @@ Generated at: ${new Date().toLocaleString()}
                           </button>
                         </div>
                       </div>
+
+                      {/* CAPA Report */}
+                      {capaData && (
+                        <div className="border-2 border-orange-200 bg-orange-50 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-semibold text-orange-900">
+                                  CAPA Report - {formData.productName}
+                                </span>
+                                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
+                                  Generated
+                                </span>
+                              </div>
+                              <div className="text-xs text-orange-700 mb-3">
+                                CAPA Analysis •{" "}
+                                {new Date().toLocaleDateString()}
+                                {capaData.due_date &&
+                                  ` • Due: ${capaData.due_date}`}
+                              </div>
+                              <div className="text-sm text-gray-700 bg-white rounded p-3 border max-h-40 overflow-y-auto">
+                                <p className="leading-relaxed">
+                                  {capaData.generated_report?.length > 300
+                                    ? `${capaData.generated_report.substring(
+                                        0,
+                                        300
+                                      )}...`
+                                    : capaData.generated_report ||
+                                      "No CAPA content available"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                downloadReportAsPDF(capaData, "capa")
+                              }
+                              className="flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded-lg transition-colors"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                              Download CAPA PDF
+                            </button>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(capaData.generated_report)
+                              }
+                              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 002 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                              Copy CAPA
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Existing Reports */}
                       {generatedReports.length > 0 && (
