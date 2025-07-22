@@ -6,6 +6,7 @@ import { productTypes } from "../constants";
 import api from "../api";
 import { useSubmission } from "../provider/submissionProvider";
 import { createSubmission, type Submission } from "../helpers/submissionApiHelper";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
   name: string;
@@ -24,6 +25,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   open,
   onClose,
 }) => {
+  const navigate = useNavigate();
   const { refreshSubmissions, setActiveSubmission } = useSubmission();
   const [hideQuestions, setHideQuestions] = React.useState(false);
   const [forceHideQuestions, setForceHideQuestions] = React.useState(false);
@@ -35,6 +37,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   const [questions, setQuestions] = useState<string[]>([]);
   const [questionAnswers, setQuestionAnswers] = useState<{[q: string]: string}>({});
   const questionAnswersRef = useRef<{ [q: string]: string }>({});
+  const [createdSubmission, setCreatedSubmission] = useState<Submission | null>(null);
   
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -47,6 +50,69 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   // Compute showSubmissionType internally
   const showSubmissionType = !!formSuggestion || !!suggestionError;
   const canCreate = readyToCreate || allowManualCreate;
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      type: "",
+      submissionType: "",
+      end_time: "",
+      productDescription: "",
+    });
+    setQuestions([]);
+    setQuestionAnswers({});
+    setLoading(false);
+    setFormSuggestion("");
+    setSuggestionError("");
+    setReadyToCreate(false);
+    setAllowManualCreate(false);
+    setCreatedSubmission(null);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSaveAndClose = () => {
+    if (createdSubmission) {
+      setActiveSubmission(createdSubmission);
+      handleClose();
+    }
+  };
+
+  const handleSaveAndContinue = () => {
+    if (createdSubmission) {
+      setActiveSubmission(createdSubmission);
+      handleClose();
+      navigate('/form-editor');
+    }
+  };
+
+  const handleCreateSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const formId = (await api.get(`form/name/${formData.submissionType}`)).data.id;
+
+      const newSubmission: Partial<Submission> = {
+        name: formData.name,
+        submission_type: formData.submissionType,
+        end_time: formData.end_time,
+        intended_use: formData.productDescription,
+        product_type: formData.type,
+        form_id: formId,
+      };
+
+      const submission = await createSubmission(newSubmission);
+      await refreshSubmissions();
+      setCreatedSubmission(submission);
+    } catch (error) {
+      console.error("Error creating submission:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (formSuggestion) {
@@ -89,24 +155,6 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
       setForceHideQuestions(false);
     }
   }, [suggestionError]);
-
-  const handleClose = () => {
-    setFormData({
-      name: "",
-      type: "",
-      submissionType: "",
-      end_time: "",
-      productDescription: "",
-    });
-    setQuestions([]);
-    setQuestionAnswers({});
-    setLoading(false);
-    setFormSuggestion("");
-    setSuggestionError("");
-    setReadyToCreate(false);
-    setAllowManualCreate(false);
-    onClose();
-  };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => {
@@ -157,32 +205,6 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     }
   };
 
-  const handleCreateSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const newSubmission: Partial<Submission> = {
-        name: formData.name,
-        submission_type: formData.submissionType,
-        end_time: formData.end_time,
-        intended_use: formData.productDescription,
-        product_type: formData.type,
-        form_id: '9ed3855e-c972-458c-bd51-dd9bafad8d7d', //TODO: currenlty hardcoded to 'ind', have a map or api to get the form_id from the submissionType
-      };
-
-      const createdSubmission = await createSubmission(newSubmission);
-      await refreshSubmissions();
-      if (createdSubmission) {
-        setActiveSubmission(createdSubmission);
-      }
-      handleClose();
-    } catch (error) {
-      console.error("Error creating submission:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (questions.length === 0) {
@@ -212,10 +234,10 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
       title="New Submission"
       maxWidth="max-w-2xl"
       maxHeight="max-h-[90vh]"
-      showCloseButton={true}
+      showCloseButton={!createdSubmission}
     >
       <form
-        onSubmit={readyToCreate ? handleCreateSubmission : handleFormSubmit}
+        onSubmit={!canCreate ? handleFormSubmit : handleCreateSubmission}
         className="flex-1 flex flex-col overflow-hidden"
       >
         <div className="space-y-4 flex-1 overflow-y-auto">
@@ -232,7 +254,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
               required
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+              disabled={!!createdSubmission}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:text-gray-500"
               placeholder="Enter drug/device name: "
             />
           </div>
@@ -248,7 +271,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               value={formData.type}
               onChange={(e) => handleInputChange("type", e.target.value)}
               required
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+              disabled={!!createdSubmission}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:text-gray-500"
             >
               <option value="" disabled>
                 Select type
@@ -276,7 +300,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               }
               required
               rows={3}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm resize-none"
+              disabled={!!createdSubmission}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm resize-none disabled:bg-gray-100 disabled:text-gray-500"
               placeholder="Explain your product in a few lines... (e.g. 'This is a drug for hypertension', 'This is a wearable device for heart rate monitoring')"
             />
           </div>
@@ -297,7 +322,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                     onChange={(e) =>
                       handleQuestionAnswerChange(q, e.target.value)
                     }
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                    disabled={!!createdSubmission}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:text-gray-500"
                     placeholder="Your answer..."
                   />
                 </div>
@@ -339,9 +365,9 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                   handleInputChange("submissionType", e.target.value)
                 }
                 required
-                disabled={!formData.type}
+                disabled={!formData.type || !!createdSubmission}
                 className={`block w-full rounded-md border px-3 py-2 text-sm ${
-                  !formData.type
+                  !formData.type || !!createdSubmission
                     ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
                     : "border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                 }`}
@@ -378,50 +404,73 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 value={formData.end_time}
                 onChange={(e) => handleInputChange("end_time", e.target.value)}
                 required
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                disabled={!!createdSubmission}
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:text-gray-500"
               />
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2 pt-4 border-t mt-4">
-          <Button type="button" variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="bg-[#2094f3] hover:bg-blue-800 text-white min-w-[90px]"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
-                Loading...
-              </span>
-            ) : canCreate ? (
-              "Create"
-            ) : (
-              "Continue"
-            )}
-          </Button>
+        <div className="flex justify-between gap-2 pt-4 border-t mt-4">
+          {!createdSubmission ? (
+            <>
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-[#2094f3] hover:bg-blue-800 text-white min-w-[90px]"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="animate-spin h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      ></path>
+                    </svg>
+                    Loading...
+                  </span>
+                ) : !canCreate ? (
+                  "Continue"
+                ) : (
+                  "Create Submission"
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="flex gap-2 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveAndClose}
+                className="min-w-[120px]"
+              >
+                Save & Close
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSaveAndContinue}
+                className="bg-[#2094f3] hover:bg-blue-800 text-white min-w-[120px]"
+              >
+                Save & Continue
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </Modal>
