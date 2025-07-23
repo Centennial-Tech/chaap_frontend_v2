@@ -19,9 +19,9 @@ const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
       
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden">
+        <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-2xl font-bold text-gray-900">
               Terms and Conditions
             </h2>
@@ -34,7 +34,7 @@ const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
           </div>
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6 space-y-6">
+          <div className="overflow-y-auto flex-1 p-6 space-y-6">
             <p className="text-gray-600 text-sm">
               Last updated: {new Date().toLocaleDateString()}
             </p>
@@ -213,10 +213,10 @@ const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end p-6 border-t border-gray-200">
+          <div className="flex justify-end p-6 border-t border-gray-200 flex-shrink-0">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-600 border border-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
             >
               Close
             </button>

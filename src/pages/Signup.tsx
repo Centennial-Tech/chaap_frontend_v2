@@ -38,11 +38,33 @@ const Signup = () => {
     acceptTerms: false,
   });
 
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format based on length
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    
+    let processedValue = value;
+    
+    // Auto-format phone number
+    if (name === 'phone_number') {
+      processedValue = formatPhoneNumber(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : processedValue
     }));
     // Clear error when user starts typing
     if (error) setError(null);
@@ -253,6 +275,8 @@ const Signup = () => {
                 value={formData.phone_number}
                 onChange={handleInputChange}
                 autoComplete="tel"
+                placeholder="(555) 123-4567"
+                maxLength={14}
                 className="block w-full rounded-md border bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-gray-500 sm:text-sm/6"
               />
             </div>
@@ -286,7 +310,7 @@ const Signup = () => {
             >
               Password *
             </label>
-            <div className="mt-2">
+            <div className="mt-2"> {/* TODO: Hash password */}
               <input
                 type="password"
                 name="password"
@@ -322,7 +346,7 @@ const Signup = () => {
             </div>
           </div>
 
-                     {/* Terms and Conditions */}
+          {/* Terms and Conditions */}
            <div className="flex items-start">
              <div className="flex items-center h-5">
                <input
