@@ -60,7 +60,10 @@ const components: any = {
     );
   },
   ul: ({ children, ...props }: any) => (
-    <ul className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4" {...props}>
+    <ul
+      className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4"
+      {...props}
+    >
       {children}
     </ul>
   ),
@@ -70,7 +73,10 @@ const components: any = {
     </ol>
   ),
   li: ({ children, ...props }: any) => (
-    <li className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold" {...props}>
+    <li
+      className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold"
+      {...props}
+    >
       {children}
     </li>
   ),
@@ -237,11 +243,11 @@ const KnowledgeAgent = () => {
   const convRef: any = useRef(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, _setSessionId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([
     "How can you help me?",
     "What are the key requirements for FDA submission?",
-    "Can you explain the 510(k) pathway?"
+    "Can you explain the 510(k) pathway?",
   ]);
 
   const toggleMaximize = () => {
@@ -409,7 +415,10 @@ const KnowledgeAgent = () => {
                   return;
                 }
 
-                if (data.follow_up_suggestions && Array.isArray(data.follow_up_suggestions)) {
+                if (
+                  data.follow_up_suggestions &&
+                  Array.isArray(data.follow_up_suggestions)
+                ) {
                   setSuggestions(data.follow_up_suggestions);
                 }
 
