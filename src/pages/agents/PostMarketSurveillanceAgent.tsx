@@ -2032,7 +2032,10 @@ Generated at: ${new Date().toLocaleString()}
                     </div>
                   ) : recentReports.length > 0 ? (
                     <div className="space-y-3">
-                      {(showAllReports ? recentReports : recentReports.slice(0, 5)).map((report) => (
+                      {(showAllReports
+                        ? recentReports
+                        : recentReports.slice(0, 5)
+                      ).map((report) => (
                         <div
                           key={report.id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -2116,11 +2119,13 @@ Generated at: ${new Date().toLocaleString()}
                       ))}
                       {recentReports.length > 5 && (
                         <div className="text-center pt-2">
-                          <button 
+                          <button
                             onClick={() => setShowAllReports(!showAllReports)}
                             className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
                           >
-                            {showAllReports ? 'Show less' : `View all ${recentReports.length} reports`}
+                            {showAllReports
+                              ? "Show less"
+                              : `View all ${recentReports.length} reports`}
                           </button>
                         </div>
                       )}
