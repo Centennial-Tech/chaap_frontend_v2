@@ -103,6 +103,7 @@ const Routes = () => {
           path: "signup", 
           element: <PublicOnlyRoute><Signup /></PublicOnlyRoute>
         },
+
       ],
     },
   ];

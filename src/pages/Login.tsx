@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../provider/authProvider"; // update path if needed
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/Button";
 import { Loader2 } from "lucide-react";
 
@@ -8,9 +8,20 @@ const Login = () => {
   const logo = new URL("../assets/logo.svg", import.meta.url).href;
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle success message from signup redirect
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the state to prevent showing the message again on refresh
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,6 +51,9 @@ const Login = () => {
         <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
           Sign in to your account
         </h2>
+        {successMessage && (
+          <p className="mt-4 text-center text-sm text-green-600">{successMessage}</p>
+        )}
         {error && (
           <p className="mt-4 text-center text-sm text-red-500">{error}</p>
         )}
