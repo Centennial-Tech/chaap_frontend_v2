@@ -417,7 +417,7 @@ const FdaMeetingPrepAgent = () => {
               xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
           <meta charset='utf-8'>
-          <title>FDA Meeting Document</title>
+          <title>Meeting Document</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
             h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -612,7 +612,7 @@ const FdaMeetingPrepAgent = () => {
     } else {
       // Create a basic AI recommendation from meeting data
       const basicRecommendation = {
-        recommendedMeetingType: meeting.meeting_type || meeting.meetingType || "FDA Meeting",
+        recommendedMeetingType: meeting.meeting_type || meeting.meetingType || "Meeting",
         icon: "M",
         subtitle: "Meeting to discuss regulatory objectives",
         matchPercentage: "90%",
@@ -800,12 +800,12 @@ const FdaMeetingPrepAgent = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">
-            FDA Meeting Preparation
-          </h1>
-          <p className="text-gray-600">
-            Streamline your FDA meeting process with AI-powered assistance
-          </p>
+                      <h1 className="text-3xl font-semibold text-[#0b0080] mb-2">
+              Meeting Preparation
+            </h1>
+            <p className="text-gray-600">
+              Streamline your meeting process with AI-powered assistance
+            </p>
         </div>
         <Button
           className="flex items-center gap-2"
@@ -890,21 +890,21 @@ const FdaMeetingPrepAgent = () => {
             Meeting Type Identification
           </h1>
           <p className="text-gray-600">
-            Recommend the appropriate FDA meeting type based on your product and
-            development stage
+                          Recommend the appropriate meeting type based on your product and
+              development stage
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-          onClick={() => {
-            setCurrentTab("main");
-            resetForm();
-          }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to FDA Meeting Preparation Agent
-        </Button>
+                  <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={() => {
+              setCurrentTab("main");
+              resetForm();
+            }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Meeting Preparation Agent
+          </Button>
       </div>
 
       <Card className="mb-8">
@@ -1572,7 +1572,7 @@ const FdaMeetingPrepAgent = () => {
                       </h3>
                     </div>
                     <p className="text-gray-600 mb-4">
-                      What do you hope to achieve from this FDA meeting?
+                      What do you hope to achieve from this meeting?
                     </p>
 
                     <div className="space-y-4">
@@ -1767,7 +1767,7 @@ const FdaMeetingPrepAgent = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
-                FDA Meeting Document Ready
+                Meeting Document Ready
               </h2>
               <button
                 onClick={() => setShowDocumentPreview(false)}
@@ -1795,7 +1795,7 @@ const FdaMeetingPrepAgent = () => {
                   Document Preview
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Your FDA meeting document has been generated successfully. You
+                  Your meeting document has been generated successfully. You
                   can preview it below and download it in your preferred format.
                 </p>
               </div>
@@ -1869,7 +1869,7 @@ const FdaMeetingPrepAgent = () => {
               </h3>
               <p className="text-gray-600 mb-6">
                 {workflowStatus?.status === "processing"
-                  ? "Our AI is crafting your FDA meeting document..."
+                  ? "Our AI is crafting your meeting document..."
                   : "Preparing your personalized meeting request..."}
               </p>
 
