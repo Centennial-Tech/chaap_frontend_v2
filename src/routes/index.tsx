@@ -71,7 +71,7 @@ const Routes = () => {
                   element: <DocPrepAgent />,
                 },
                 {
-                  path: "FDA-Meeting-Prep",
+                  path: "meeting-prep",
                   element: <FdaMeetingPrepAgent />,
                 },
                 {
