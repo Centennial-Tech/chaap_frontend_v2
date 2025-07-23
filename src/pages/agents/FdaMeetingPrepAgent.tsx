@@ -761,10 +761,10 @@ const FdaMeetingPrepAgent = () => {
               <h3 className="font-semibold text-gray-900">
                 {meeting.product_name}
               </h3>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                <CalendarDays className="w-3 h-3" />
-                Submitted
-              </span>
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                  <CalendarDays className="w-3 h-3" />
+                  Scheduled
+                </span>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
