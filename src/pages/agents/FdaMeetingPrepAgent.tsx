@@ -32,7 +32,7 @@ import { useAuth } from "../../provider/authProvider";
 const FdaMeetingPrepAgent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { activeSubmission, submissions, setActiveSubmission, createNewSubmission } = useSubmission();
+  const { activeSubmission, submissions, setActiveSubmission } = useSubmission();
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
