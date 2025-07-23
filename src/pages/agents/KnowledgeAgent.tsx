@@ -363,7 +363,7 @@ const KnowledgeAgent = () => {
     setLoading(false); // Stop loading since we now have the message placeholder
 
     try {
-      const response = await fetch(`${Config.API}agent/regulatory`, {
+      const response = await fetch(`${Config.API}/agent/regulatory`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -651,7 +651,7 @@ const KnowledgeAgent = () => {
             <div
               className={`
               w-[90%]
-              max-w-[800px]
+              max-w-[900px]
               flex 
               flex-col
               -ml-12
