@@ -59,6 +59,41 @@ const components: any = {
       </SyntaxHighlighter>
     );
   },
+  ul: ({ children, ...props }: any) => (
+    <ul className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4" {...props}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }: any) => (
+    <ol className="list-decimal pl-6 mb-4" {...props}>
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }: any) => (
+    <li className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold" {...props}>
+      {children}
+    </li>
+  ),
+  p: ({ children, ...props }: any) => (
+    <p className="mb-4" {...props}>
+      {children}
+    </p>
+  ),
+  h1: ({ children, ...props }: any) => (
+    <h1 className="text-2xl font-semibold text-gray-900 mb-3 mt-6" {...props}>
+      {children}
+    </h1>
+  ),
+  h2: ({ children, ...props }: any) => (
+    <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5" {...props}>
+      {children}
+    </h2>
+  ),
+  h3: ({ children, ...props }: any) => (
+    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4" {...props}>
+      {children}
+    </h3>
+  ),
 };
 
 const AI = ({
@@ -169,7 +204,7 @@ const AI = ({
           <div className="bg-blue-50 rounded-2xl rounded-tl-none p-4 shadow-lg">
             {isTyping ? (
               // Show content with streaming cursor during streaming
-              <div className="whitespace-pre-wrap">
+              <div className="leading-relaxed text-gray-700 space-y-4">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, supersub]}
                   children={content}
@@ -179,11 +214,13 @@ const AI = ({
               </div>
             ) : (
               // Show rendered markdown when streaming is complete
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, supersub]}
-                children={content}
-                components={components}
-              />
+              <div className="leading-relaxed text-gray-700 space-y-4">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, supersub]}
+                  children={content}
+                  components={components}
+                />
+              </div>
             )}
           </div>
         )}
@@ -320,7 +357,7 @@ const KnowledgeAgent = () => {
     setLoading(false); // Stop loading since we now have the message placeholder
 
     try {
-      const response = await fetch(`${Config.API}/agent/regulatory`, {
+      const response = await fetch(`${Config.API}agent/regulatory`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
