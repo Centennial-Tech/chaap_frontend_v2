@@ -143,22 +143,23 @@ export default function FormEditor() {
 
   const downloadZip = async (downloadLink: string, fileName: string = 'download') => {
     try {
-      const response = await fetch(downloadLink);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.statusText}`);
-      }
+      // const response = await fetch(downloadLink);
+      // if (!response.ok) {
+      //   throw new Error(`Failed to fetch file: ${response.statusText}`);
+      // }
   
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // const blob = await response.blob();
+      // const url = window.URL.createObjectURL(blob);
   
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `${fileName}.zip`;  // Safe fallback name
+      a.href = downloadLink;
+      a.target = '_blank';
+      // a.download = `${fileName}.zip`;  // Safe fallback name
       document.body.appendChild(a);    // Required for Firefox
       a.click();
       a.remove();
   
-      window.URL.revokeObjectURL(url); // Clean up
+      // window.URL.revokeObjectURL(do); // Clean up
     } catch (error) {
       console.error("Download failed:", error);
     }
