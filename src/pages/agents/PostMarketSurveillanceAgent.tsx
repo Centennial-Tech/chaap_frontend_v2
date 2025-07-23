@@ -1,6 +1,6 @@
 import api from "../../api";
 import AnimatedBackground from "../../components/AnimatedBackground";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../../components/Toast";
 import { useAuth } from "../../provider/authProvider";
@@ -116,6 +116,9 @@ const PostMarketSurveillanceAgent = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
   const [capaData, setCapaData] = useState<any>(null);
+  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [showAllReports, setShowAllReports] = useState(false);
 
   // Toast notifications
   const toast = useToast();
@@ -137,6 +140,32 @@ const PostMarketSurveillanceAgent = ({
     manufacturerResponse: "",
     capaRequired: false,
   });
+
+  useEffect(() => {
+    const getRecentReports = async () => {
+      if (!user?.id) return;
+
+      setIsLoadingReports(true);
+      try {
+        const res = await api.post(
+          "/agent/post_market_surveillance/get_post_market_data",
+          {
+            user_id: user.id,
+          }
+        );
+
+        const recentReportsData = res.data?.data?.data || [];
+        setRecentReports(recentReportsData);
+      } catch (error) {
+        console.error("Error fetching recent reports:", error);
+        toast.error("Failed to load recent reports");
+      } finally {
+        setIsLoadingReports(false);
+      }
+    };
+
+    getRecentReports();
+  }, [user?.id]);
 
   // Utility function to copy text to clipboard
   const copyToClipboard = async (text: string) => {
@@ -431,6 +460,202 @@ Generated at: ${new Date().toLocaleString()}
     }
   };
 
+  // Function to download historical reports
+  const downloadHistoricalReport = async (reportData: any) => {
+    const reportContent = reportData.content || reportData;
+
+    try {
+      // Import jsPDF dynamically
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+
+      // Set up PDF styling
+      doc.setFontSize(20);
+      const title = reportData.is_capa ? "CAPA REPORT" : "ADVERSE EVENT REPORT";
+      doc.text(title, 20, 30);
+
+      doc.setFontSize(12);
+      doc.text(
+        `Generated on: ${new Date(reportData.timestamp).toLocaleDateString()}`,
+        20,
+        45
+      );
+
+      let yPosition = 60;
+      const lineHeight = 8;
+      const maxWidth = 170;
+
+      if (reportData.is_capa) {
+        // CAPA Report Format
+        doc.setFontSize(14);
+        doc.text("CAPA Report", 20, yPosition);
+        yPosition += lineHeight * 2;
+
+        doc.setFontSize(10);
+        const capaContent =
+          reportContent.generated_report || "No CAPA content available";
+        const capaLines = doc.splitTextToSize(capaContent, maxWidth);
+        capaLines.forEach((line: string) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, 20, yPosition);
+          yPosition += lineHeight;
+        });
+
+        // Due Date
+        if (reportContent.due_date) {
+          yPosition += lineHeight;
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.setFontSize(12);
+          doc.text(`Due Date: ${reportContent.due_date}`, 20, yPosition);
+        }
+      } else {
+        // Adverse Event Report Format
+        doc.setFontSize(14);
+        doc.text("Report Type:", 20, yPosition);
+        doc.setFontSize(12);
+        doc.text(reportContent.predicted_report || "N/A", 70, yPosition);
+        yPosition += lineHeight * 2;
+
+        // Product Information
+        doc.setFontSize(14);
+        doc.text("Product Information:", 20, yPosition);
+        yPosition += lineHeight;
+
+        doc.setFontSize(10);
+        const productInfo = [
+          `Product Type: ${reportData.product_type}`,
+          `Product Name: ${reportData.product_name}`,
+          `Lot Number: ${reportData.lot_number}`,
+          `Indication: ${reportData.indication}`,
+        ];
+
+        productInfo.forEach((info) => {
+          doc.text(info, 25, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += lineHeight;
+
+        // Event Details
+        doc.setFontSize(14);
+        doc.text("Event Details:", 20, yPosition);
+        yPosition += lineHeight;
+
+        doc.setFontSize(10);
+        const eventInfo = [
+          `Date of Event: ${reportData.date_of_event}`,
+          `Event Outcome: ${reportData.event_outcome}`,
+          `Severity: ${reportData.severity_classification}`,
+          `Reporter Type: ${reportData.reporter_type}`,
+          `Reporter Location: ${reportData.reporter_location}`,
+        ];
+
+        eventInfo.forEach((info) => {
+          doc.text(info, 25, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += lineHeight;
+
+        // Event Description
+        if (reportData.event_description) {
+          doc.setFontSize(14);
+          doc.text("Event Description:", 20, yPosition);
+          yPosition += lineHeight;
+
+          doc.setFontSize(10);
+          const descriptionLines = doc.splitTextToSize(
+            reportData.event_description,
+            maxWidth
+          );
+          descriptionLines.forEach((line: string) => {
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(line, 25, yPosition);
+            yPosition += lineHeight;
+          });
+          yPosition += lineHeight;
+        }
+
+        // AI Generated Analysis
+        doc.setFontSize(14);
+        doc.text("AI Generated Analysis:", 20, yPosition);
+        yPosition += lineHeight;
+
+        doc.setFontSize(10);
+        const analysisLines = doc.splitTextToSize(
+          reportContent.generated_report || "No analysis available",
+          maxWidth
+        );
+        analysisLines.forEach((line: string) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, 25, yPosition);
+          yPosition += lineHeight;
+        });
+
+        // Manufacturer Response
+        if (reportData.manufacturer_response) {
+          yPosition += lineHeight;
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          doc.setFontSize(14);
+          doc.text("Manufacturer Response:", 20, yPosition);
+          yPosition += lineHeight;
+
+          doc.setFontSize(10);
+          const responseLines = doc.splitTextToSize(
+            reportData.manufacturer_response,
+            maxWidth
+          );
+          responseLines.forEach((line: string) => {
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(line, 25, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+      }
+
+      // Footer
+      yPosition += lineHeight * 2;
+      doc.setFontSize(8);
+      doc.text(
+        `Generated at: ${new Date(reportData.timestamp).toLocaleString()}`,
+        20,
+        yPosition
+      );
+
+      // Save the PDF
+      const fileName = reportData.is_capa
+        ? `CAPA_Report_${reportData.product_name}_${
+            new Date(reportData.timestamp).toISOString().split("T")[0]
+          }.pdf`
+        : `${reportContent.predicted_report || "Adverse_Event_Report"}_${
+            reportData.product_name
+          }_${new Date(reportData.timestamp).toISOString().split("T")[0]}.pdf`;
+      doc.save(fileName);
+
+      toast.success("Historical report downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
+  };
+
   // Function to reset form for new report
   const startNewReport = () => {
     setFormData({
@@ -552,7 +777,7 @@ Generated at: ${new Date().toLocaleString()}
           `/agent/post_market_surveillance/analyze?type=CAPA_GENERATION`,
           submissionData
         );
-        debugger;
+        // debugger;
         setCapaData(capResponse.data?.messages[0]);
       }
 
@@ -1800,34 +2025,127 @@ Generated at: ${new Date().toLocaleString()}
                 </Card>
 
                 <Card title="Recent Reports">
-                  {generatedReports.length > 0 ? (
-                    <div className="space-y-2">
-                      {generatedReports.slice(0, 2).map((report) => (
+                  {isLoadingReports ? (
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 mx-auto mb-4 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                      <p className="text-gray-600">Loading recent reports...</p>
+                    </div>
+                  ) : recentReports.length > 0 ? (
+                    <div className="space-y-3">
+                      {(showAllReports ? recentReports : recentReports.slice(0, 5)).map((report) => (
                         <div
                           key={report.id}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {report.fileName}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="text-sm font-medium text-gray-900">
+                                {report.product_name}
+                              </div>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  report.is_capa
+                                    ? "bg-orange-100 text-orange-600"
+                                    : "bg-purple-100 text-purple-600"
+                                }`}
+                              >
+                                {report.is_capa
+                                  ? "CAPA"
+                                  : report.content?.predicted_report ||
+                                    "Adverse Report"}
+                              </span>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(report.createdAt).toLocaleDateString()}
+                            <div className="text-xs text-gray-500 space-y-1">
+                              <div>
+                                {new Date(
+                                  report.timestamp
+                                ).toLocaleDateString()}{" "}
+                                • {report.event_outcome}
+                              </div>
+                              <div className="text-gray-400">
+                                Lot: {report.lot_number} •{" "}
+                                {report.reporter_location}
+                              </div>
                             </div>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${getReportStatusColor(
-                              report.status
-                            )}`}
-                          >
-                            {report.status}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => downloadHistoricalReport(report)}
+                              className="text-purple-600 hover:text-purple-700 p-1 rounded transition-colors"
+                              title="Download PDF"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(
+                                  report.content?.generated_report || ""
+                                )
+                              }
+                              className="text-gray-600 hover:text-gray-700 p-1 rounded transition-colors"
+                              title="Copy content"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       ))}
+                      {recentReports.length > 5 && (
+                        <div className="text-center pt-2">
+                          <button 
+                            onClick={() => setShowAllReports(!showAllReports)}
+                            className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
+                          >
+                            {showAllReports ? 'Show less' : `View all ${recentReports.length} reports`}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-400">No recent reports</p>
+                      <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-6 h-6 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-gray-400 mb-2">No recent reports</p>
+                      <p className="text-sm text-gray-500">
+                        Generate your first report using the form
+                      </p>
                     </div>
                   )}
                 </Card>
