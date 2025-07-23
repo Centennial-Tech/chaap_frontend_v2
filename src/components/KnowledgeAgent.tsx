@@ -196,15 +196,16 @@ const KnowledgeAgent = () => {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([
+    "How can you help me?",
+    "What are the key requirements for FDA submission?",
+    "Can you explain the 510(k) pathway?"
+  ]);
 
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
   };
-
-  const suggestions = [
-    "What is a predicate device in the 510(k) pathway?",
-    "How can you help me?",
-  ];
 
   const [conversations, setConversations] = useState<IConversation[]>([
     {
@@ -405,19 +406,24 @@ const KnowledgeAgent = () => {
                 }
 
                 if (data.done) {
-                  // When streaming is complete, stop loading and add empty message
-                  setLoading(false);
-                  setConversations((prev) => [
-                    ...prev,
-                    {
-                      who: type.ai,
-                      what: "",
-                      isStreaming: true,
-                      isTyping: false,
-                    },
-                  ]);
-                  // Start typing effect
-                  startTypingEffect(accumulatedContent, aiMessageIndex);
+                  // Finalize the message
+                  setSessionId(data.session_id || null); // Update sessionId if provided
+                  setConversations((prev) => {
+                    const newConversations = [...prev];
+                    const lastIndex = newConversations.length - 1;
+                    if (newConversations[lastIndex]?.who === type.ai) {
+                      newConversations[lastIndex] = {
+                        ...newConversations[lastIndex],
+                        what: accumulatedContent,
+                        isStreaming: false,
+                        isTyping: false,
+                      };
+                    }
+                    return newConversations;
+                  });
+                  if (data.follow_up_suggestions && Array.isArray(data.follow_up_suggestions)) {
+                    setSuggestions(data.follow_up_suggestions);
+                  }
                   return;
                 }
               } catch (e) {

@@ -201,15 +201,15 @@ const KnowledgeAgent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([
+    "How can you help me?",
+    "What are the key requirements for FDA submission?",
+    "Can you explain the 510(k) pathway?"
+  ]);
 
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
   };
-
-  const suggestions = [
-    "What is a predicate device in the 510(k) pathway?",
-    "How can you help me?",
-  ];
 
   const [conversations, setConversations] = useState<IConversation[]>([
     {
@@ -372,6 +372,10 @@ const KnowledgeAgent = () => {
                   return;
                 }
 
+                if (data.follow_up_suggestions && Array.isArray(data.follow_up_suggestions)) {
+                  setSuggestions(data.follow_up_suggestions);
+                }
+
                 if (data.content) {
                   accumulatedContent += data.content;
 
@@ -392,8 +396,6 @@ const KnowledgeAgent = () => {
                 }
 
                 if (data.done) {
-                  // Finalize the message
-                  setSessionId(data.session_id || null); // Update sessionId if provided
                   setConversations((prev) => {
                     const newConversations = [...prev];
                     const lastIndex = newConversations.length - 1;
