@@ -114,6 +114,8 @@ const PostMarketSurveillanceAgent = ({
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progressStep, setProgressStep] = useState<string>("");
+  const [progressSteps, setProgressSteps] = useState<string[]>([]);
   const [generatedData, setGeneratedData] = useState<any>(null);
   const [capaData, setCapaData] = useState<any>(null);
   const [recentReports, setRecentReports] = useState<any[]>([]);
@@ -122,24 +124,24 @@ const PostMarketSurveillanceAgent = ({
   const [metrics, setMetrics] = useState({
     dueToday: 0,
     dueThisWeek: 0,
-    openCapa: 0
+    openCapa: 0,
   });
 
   // Calculate metrics from reports
   const calculateMetrics = (reports: any[]) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const endOfWeek = new Date(today);
     endOfWeek.setDate(today.getDate() + 7);
 
     const newMetrics = {
       dueToday: 0,
       dueThisWeek: 0,
-      openCapa: 0
+      openCapa: 0,
     };
 
-    reports.forEach(report => {
+    reports.forEach((report) => {
       if (report.due_date) {
         const dueDate = new Date(report.due_date);
         dueDate.setHours(0, 0, 0, 0);
@@ -151,7 +153,7 @@ const PostMarketSurveillanceAgent = ({
         }
       }
 
-      if (report.is_capa && report.status !== 'completed') {
+      if (report.is_capa && report.status !== "completed") {
         newMetrics.openCapa++;
       }
     });
@@ -167,7 +169,7 @@ const PostMarketSurveillanceAgent = ({
   const isFormValid = () => {
     const requiredFields = [
       "productType",
-      "productName", 
+      "productName",
       "lotNumber",
       "indication",
       "eventDescription",
@@ -176,12 +178,10 @@ const PostMarketSurveillanceAgent = ({
       "reporterLocation",
     ];
 
-    const fieldsValid = requiredFields.every(
-      (field) => {
-        const value = formData[field as keyof typeof formData];
-        return value && value.toString().trim() !== "";
-      }
-    );
+    const fieldsValid = requiredFields.every((field) => {
+      const value = formData[field as keyof typeof formData];
+      return value && value.toString().trim() !== "";
+    });
 
     // Also require file to be uploaded
     return fieldsValid && fileContent !== null;
@@ -200,14 +200,17 @@ const PostMarketSurveillanceAgent = ({
       { key: "reporterLocation", label: "Reporter Location" },
     ];
 
-    const missingFields = requiredFields.filter(field => {
+    const missingFields = requiredFields.filter((field) => {
       const value = formData[field.key as keyof typeof formData];
       return !value || value.toString().trim() === "";
     });
 
     // Add file upload requirement
     if (!fileContent) {
-      missingFields.push({ key: "fileUpload", label: "File Upload (CSV/Excel)" });
+      missingFields.push({
+        key: "fileUpload",
+        label: "File Upload (CSV/Excel)",
+      });
     }
 
     return missingFields;
@@ -299,7 +302,8 @@ const PostMarketSurveillanceAgent = ({
 
         doc.setFontSize(10);
         const capaContent =
-          reportData.generated_report || "No Corrective and Preventive Action content available";
+          reportData.generated_report ||
+          "No Corrective and Preventive Action content available";
         const capaLines = doc.splitTextToSize(capaContent, maxWidth);
         capaLines.forEach((line: string) => {
           if (yPosition > 270) {
@@ -561,7 +565,9 @@ Generated at: ${new Date().toLocaleString()}
 
       // Set up PDF styling
       doc.setFontSize(20);
-      const title = reportData.is_capa ? "CORRECTIVE AND PREVENTIVE ACTION REPORT" : "ADVERSE EVENT REPORT";
+      const title = reportData.is_capa
+        ? "CORRECTIVE AND PREVENTIVE ACTION REPORT"
+        : "ADVERSE EVENT REPORT";
       doc.text(title, 20, 30);
 
       doc.setFontSize(12);
@@ -583,7 +589,8 @@ Generated at: ${new Date().toLocaleString()}
 
         doc.setFontSize(10);
         const capaContent =
-          reportContent.generated_report || "No Corrective and Preventive Action content available";
+          reportContent.generated_report ||
+          "No Corrective and Preventive Action content available";
         const capaLines = doc.splitTextToSize(capaContent, maxWidth);
         capaLines.forEach((line: string) => {
           if (yPosition > 270) {
@@ -730,9 +737,9 @@ Generated at: ${new Date().toLocaleString()}
       );
 
       // Save the PDF
-              const fileName = reportData.is_capa
-          ? `Corrective_and_Preventive_Action_Report_${reportData.product_name}_${
-              new Date(reportData.timestamp).toISOString().split("T")[0]
+      const fileName = reportData.is_capa
+        ? `Corrective_and_Preventive_Action_Report_${reportData.product_name}_${
+            new Date(reportData.timestamp).toISOString().split("T")[0]
           }.pdf`
         : `${reportContent.predicted_report || "Adverse_Event_Report"}_${
             reportData.product_name
@@ -788,9 +795,15 @@ Generated at: ${new Date().toLocaleString()}
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setProgressSteps([]);
+    setProgressStep("Validating form data...");
 
     try {
-      // Validate required fields
+      // Step 1: Validate required fields
+      setProgressStep("Validating form data...");
+      setProgressSteps((prev) => [...prev, "✓ Validating form data..."]);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const requiredFields = [
         "productType",
         "productName",
@@ -813,8 +826,20 @@ Generated at: ${new Date().toLocaleString()}
           )} ${!fileContent ? " and upload a file" : ""}`
         );
         setIsSubmitting(false);
+        setProgressStep("");
+        setProgressSteps([]);
         return;
       }
+
+      // Step 2: Understanding your data
+      setProgressStep("Understanding your data...");
+      setProgressSteps((prev) => [...prev, "✓ Understanding your data..."]);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Step 3: Preparing submission data
+      setProgressStep("Preparing submission data...");
+      setProgressSteps((prev) => [...prev, "✓ Preparing submission data..."]);
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       //       {
       //     "productType": "drug",
@@ -854,21 +879,47 @@ Generated at: ${new Date().toLocaleString()}
         user_id: user?.id,
       };
 
+      // Step 4: Generating adverse event report
+      setProgressStep("Generating adverse event report...");
+      setProgressSteps((prev) => [
+        ...prev,
+        "✓ Generating adverse event report...",
+      ]);
+
       const response = await api.post(
         `/agent/post_market_surveillance/analyze?type=ADVERSE_REPORT`,
         { ...submissionData, is_capa: false }
       );
 
       setGeneratedData(response.data?.messages[0]);
+      setProgressSteps((prev) => [...prev, "✓ Adverse event report generated"]);
 
       if (formData.capaRequired) {
+        // Step 5: Generating CAPA analysis
+        setProgressStep(
+          "Generating Corrective and Preventive Action analysis..."
+        );
+        setProgressSteps((prev) => [
+          ...prev,
+          "✓ Generating Corrective and Preventive Action analysis...",
+        ]);
+
         const capResponse = await api.post(
           `/agent/post_market_surveillance/analyze?type=CAPA_GENERATION`,
           submissionData
         );
-        // debugger;
+
         setCapaData(capResponse.data?.messages[0]);
+        setProgressSteps((prev) => [
+          ...prev,
+          "✓ Corrective and Preventive Action analysis completed",
+        ]);
       }
+
+      // Step 6: Finalizing report
+      setProgressStep("Finalizing report...");
+      setProgressSteps((prev) => [...prev, "✓ Finalizing report..."]);
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       console.log("Submitting adverse event report:", submissionData);
 
@@ -882,11 +933,11 @@ Generated at: ${new Date().toLocaleString()}
       const newReport = {
         ...submissionData,
         due_date: response.data?.messages[0]?.due_date,
-        status: 'pending',
+        status: "pending",
         timestamp: new Date().toISOString(),
-        content: response.data?.messages[0]
+        content: response.data?.messages[0],
       };
-      
+
       const updatedReports = [...recentReports, newReport];
       setRecentReports(updatedReports);
       calculateMetrics(updatedReports);
@@ -905,11 +956,27 @@ Generated at: ${new Date().toLocaleString()}
       // Reset form after successful report generation
       // startNewReport();
       // User can manually reset if needed
+
+      setProgressSteps((prev) => [
+        ...prev,
+        "✓ Report generation completed successfully!",
+      ]);
+      setProgressStep("Complete!");
     } catch (error) {
       console.error("Error submitting report:", error);
       toast.error("Error generating report. Please try again.");
+      setProgressStep("Error occurred during report generation");
+      setProgressSteps((prev) => [
+        ...prev,
+        "✗ Error occurred during report generation",
+      ]);
     } finally {
       setIsSubmitting(false);
+      // Clear progress after a delay
+      setTimeout(() => {
+        setProgressStep("");
+        setProgressSteps([]);
+      }, 3000);
     }
   };
 
@@ -1249,17 +1316,33 @@ Generated at: ${new Date().toLocaleString()}
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        className="w-6 h-6 text-red-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Due Today</h3>
-                      <p className="text-sm text-gray-500">Reports requiring immediate attention</p>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Due Today
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Reports requiring immediate attention
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold text-red-600">{metrics.dueToday}</span>
+                    <span className="text-3xl font-bold text-red-600">
+                      {metrics.dueToday}
+                    </span>
                     <span className="ml-2 text-sm text-gray-500">reports</span>
                   </div>
                 </div>
@@ -1273,17 +1356,33 @@ Generated at: ${new Date().toLocaleString()}
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg
+                        className="w-6 h-6 text-yellow-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Due This Week</h3>
-                      <p className="text-sm text-gray-500">Upcoming report deadlines</p>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Due This Week
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Upcoming report deadlines
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold text-yellow-600">{metrics.dueThisWeek}</span>
+                    <span className="text-3xl font-bold text-yellow-600">
+                      {metrics.dueThisWeek}
+                    </span>
                     <span className="ml-2 text-sm text-gray-500">reports</span>
                   </div>
                 </div>
@@ -1297,17 +1396,33 @@ Generated at: ${new Date().toLocaleString()}
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      <svg
+                        className="w-6 h-6 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                        />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Open Corrective and Preventive Action</h3>
-                      <p className="text-sm text-gray-500">Active corrective actions</p>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Open Corrective and Preventive Action
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Active corrective actions
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold text-blue-600">{metrics.openCapa}</span>
+                    <span className="text-3xl font-bold text-blue-600">
+                      {metrics.openCapa}
+                    </span>
                     <span className="ml-2 text-sm text-gray-500">reports</span>
                   </div>
                 </div>
@@ -1342,9 +1457,11 @@ Generated at: ${new Date().toLocaleString()}
                           <p>
                             Your {generatedData.predicted_report} report has
                             been generated
-                            {capaData ? " along with Corrective and Preventive Action analysis" : ""}. Check
-                            the "Generated Reports" section to download or view
-                            the {capaData ? "reports" : "report"}.
+                            {capaData
+                              ? " along with Corrective and Preventive Action analysis"
+                              : ""}
+                            . Check the "Generated Reports" section to download
+                            or view the {capaData ? "reports" : "report"}.
                           </p>
                         </div>
                       </div>
@@ -1441,7 +1558,8 @@ Generated at: ${new Date().toLocaleString()}
                       </div>
                     ) : (
                       <p className="text-gray-600 mb-4">
-                        Upload structured AE logs (CSV/Excel) <span className="text-red-500">*</span>
+                        Upload structured AE logs (CSV/Excel){" "}
+                        <span className="text-red-500">*</span>
                       </p>
                     )}
                     <label className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg inline-flex items-center gap-2 mx-auto transition-colors cursor-pointer">
@@ -1812,7 +1930,8 @@ Generated at: ${new Date().toLocaleString()}
                           htmlFor="capa-required"
                           className="text-sm text-gray-700"
                         >
-                          This event requires CAPA (Corrective and Preventive Action)
+                          This event requires CAPA (Corrective and Preventive
+                          Action)
                         </label>
                       </div>
                     </div>
@@ -1850,7 +1969,8 @@ Generated at: ${new Date().toLocaleString()}
                               </div>
                             )}
                             <p className="text-xs text-yellow-700 mt-2">
-                              All fields marked with an asterisk (*) are required to generate the report.
+                              All fields marked with an asterisk (*) are
+                              required to generate the report.
                             </p>
                           </div>
                         </div>
@@ -1884,7 +2004,7 @@ Generated at: ${new Date().toLocaleString()}
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                               ></path>
                             </svg>
-                            Generating Report...
+                            {progressStep || "Generating Report..."}
                           </>
                         ) : (
                           <>
@@ -2031,7 +2151,8 @@ Generated at: ${new Date().toLocaleString()}
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-sm font-semibold text-orange-900">
-                                  Corrective and Preventive Action Report - {formData.productName}
+                                  Corrective and Preventive Action Report -{" "}
+                                  {formData.productName}
                                 </span>
                                 <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
                                   Generated
@@ -2076,7 +2197,7 @@ Generated at: ${new Date().toLocaleString()}
                                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                               </svg>
-                              Download Corrective and Preventive Action PDF
+                              Download CAPA Report
                             </button>
                             <button
                               onClick={() =>
@@ -2097,7 +2218,7 @@ Generated at: ${new Date().toLocaleString()}
                                   d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                                 />
                               </svg>
-                              Copy Corrective and Preventive Action
+                              Copy CAPA
                             </button>
                           </div>
                         </div>
@@ -2263,11 +2384,10 @@ Generated at: ${new Date().toLocaleString()}
                               <div className="text-sm font-medium text-gray-900">
                                 {report.product_name}
                               </div>
-                                                                                              <span
-                                  className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-600">
-                                  {report.is_capa
-                                                                      ? "Corrective and Preventive Action"
-                                    : report.content?.predicted_report ||
+                              <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-600">
+                                {report.is_capa
+                                  ? "Corrective and Preventive Action"
+                                  : report.content?.predicted_report ||
                                     "Adverse Report"}
                               </span>
                             </div>
