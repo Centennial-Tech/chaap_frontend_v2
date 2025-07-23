@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "./ui/Button";
 import Progress from "./ui/Progress";
-import { Edit, Download, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { useSubmission } from "../provider/submissionProvider";
 import { useNavigate } from "react-router-dom";
 import type { Submission } from "../helpers/submissionApiHelper";
@@ -133,9 +133,9 @@ const SubmissionTable: React.FC<SubmissionTableProps> = ({
                   <Button variant="ghost" size="icon" onClick={() => handleEditClick(submission)}>
                     <Edit className="w-4 h-4 text-blue-600 hover:text-blue-700" />
                   </Button>
-                  <Button variant="ghost" size="icon">
+                  {/* <Button variant="ghost" size="icon"> 
                     <Download className="w-4 h-4 text-green-600 hover:text-green-700" />
-                  </Button>
+                  </Button> */}
                   {submission.status === "draft" && (
                     <Button
                       variant="ghost"

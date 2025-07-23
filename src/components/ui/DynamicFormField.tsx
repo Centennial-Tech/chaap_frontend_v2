@@ -165,12 +165,11 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
           <div className="flex items-start space-x-2">
             <div className="flex items-center h-5">
               <input
-                type="radio"
+                type="checkbox"
                 id={id}
-                name={id}
                 checked={!!value}
                 onChange={handleChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
             <div className="flex items-start justify-between flex-1">
