@@ -1,4 +1,4 @@
-export type FormFieldType = 'text' | 'radio button' | 'checkbox' | 'dropdown';
+export type FormFieldType = 'text' | 'radio button' | 'checkbox' | 'dropdown' | 'date' | 'display';
 
 export interface FormFieldProperties {
   max_length: number | null;
@@ -13,6 +13,7 @@ export interface FormField {
   description: string;
   required: boolean;
   properties: FormFieldProperties;
+  label?: string; // Optional label field
 }
 
 export interface FormQuestion {

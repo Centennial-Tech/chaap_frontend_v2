@@ -16,6 +16,7 @@ export default function FormEditor() {
   const [completedFields, setCompletedFields] = useState(0);
   const [totalFields, setTotalFields] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingSubmission, setIsChangingSubmission] = useState(false);
 
   const countFields = useCallback(() => {
     let totalCount = 0;
@@ -41,19 +42,20 @@ export default function FormEditor() {
 
   useEffect(() => {
     const fetchFormQuestions = async () => {
-      if (!activeSubmission) {
+      if (!activeSubmission && submissions.length > 0) {
         setActiveSubmission(submissions[0]);
+        return;
       }
-      if(!activeSubmission) return; //TODO: In case of no submissions, need to check edge case later
+      if(!activeSubmission) return;
 
       try {
         setIsLoading(true);
         const response = await api.get(`/form/questions/?form_id=${activeSubmission.form_id}`);
         setFormQuestions(response.data);
         countFields();
-
       } catch (error) {
         console.error("Error fetching form questions:", error);
+        setFormQuestions([]);
       } finally {
         setIsLoading(false);
       }
@@ -178,15 +180,13 @@ export default function FormEditor() {
       setCurrentQuestionIndex(prev => prev + 1);
       setShowValidationError(false);
     } else {
+      
       setIsSubmitting(true);
-      //TODO: Submit submission endpoint and pdf output
-      //const repsonse = await api.post(`/application/submit/${activeSubmission?.id}`)
-      //const downloadLink = response.data.download_link
+      const response = await api.post(`/pdf_fill/application/${activeSubmission?.id}`)
+      const downloadLink = response.data.pdf_url
 
-      const downloadLink = 'https://rgchaapsandbox9a4b.blob.core.windows.net/zips/submitted_forms.zip?sp=r&st=2025-07-18T14:47:45Z&se=2025-07-18T23:02:45Z&spr=https&sv=2024-11-04&sr=b&sig=jvhWdp8OZ9WCLDentaRaCfr3E%2BTpq%2FBxJAzu%2FGrR%2FIg%3D'
       await downloadZip(downloadLink, activeSubmission?.name)
       setIsSubmitting(false);
-
     }
   };
 
@@ -203,22 +203,97 @@ export default function FormEditor() {
     }
   };
 
+  const handleSubmissionChange = async (submissionId: string) => {
+    const newSubmission = submissions.find(s => s.id === submissionId);
+    if (newSubmission) {
+      setIsChangingSubmission(true);
+      try {
+        // Save current form data if any
+        if (activeSubmission && currentQuestion) {
+          await api.put(`/form/answers/${activeSubmission.id}/${currentQuestion.id}`, formData);
+          await updateSubmissionProgress();
+        }
+        
+        // Reset states
+        setCurrentQuestionIndex(0);
+        setFormData({});
+        setShowValidationError(false);
+        
+        // Set new submission
+        setActiveSubmission(newSubmission);
+      } catch (error) {
+        console.error("Error changing submission:", error);
+      } finally {
+        setIsChangingSubmission(false);
+      }
+    }
+  };
+
+  // Extract the header component for reuse
+  const FormHeader = () => (
+    <div className="mb-6">
+      <h1 className="text-3xl font-bold text-gray-900">Form Editor</h1>
+      <div className="flex flex-col gap-2 mt-2">
+        <div className="flex items-center gap-4">
+          <select
+            value={activeSubmission?.id || ''}
+            onChange={(e) => handleSubmissionChange(e.target.value)}
+            disabled={isChangingSubmission || isSubmitting || isSaving}
+            className="block w-64 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="" disabled>Select a submission</option>
+            {submissions.map((submission) => (
+              <option key={submission.id} value={submission.id}>
+                {submission.name} ({submission.submission_type})
+              </option>
+            ))}
+          </select>
+          {isChangingSubmission && (
+            <span className="text-sm text-gray-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 inline-block mr-2"></div>
+              Changing submission...
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading form questions...</p>
+      <div className="flex justify-center">
+        <div className="flex gap-6 max-w-[1200px] w-full">
+          <div className="flex-1 min-w-0">
+            <div className="px-4 py-8">
+              <FormHeader />
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading form questions...</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!currentQuestion) {
+  if (!currentQuestion || formQuestions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-gray-600">
-          <p>No form questions available.</p>
+      <div className="flex justify-center">
+        <div className="flex gap-6 max-w-[1200px] w-full">
+          <div className="flex-1 min-w-0">
+            <div className="px-4 py-8">
+              <FormHeader />
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center text-gray-600">
+                  <p className="mb-2">No form questions available for this submission.</p>
+                  <p className="text-sm">Please select a different submission or contact support if you believe this is an error.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -230,13 +305,7 @@ export default function FormEditor() {
         {/* Main Form Content */}
         <div className="flex-1 min-w-0">
           <div className="px-4 py-8">
-            {/* Main Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Form Editor</h1>
-              <p className="text-sm text-gray-600 mt-1"> 
-                Submission: {activeSubmission?.name} | Form: {activeSubmission?.submission_type} 
-              </p>
-            </div>
+            <FormHeader />
 
             {/* Question Header */}
             <div className="bg-gray-50 rounded-lg p-4 mb-8">
