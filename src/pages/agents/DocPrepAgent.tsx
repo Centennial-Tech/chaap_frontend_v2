@@ -881,12 +881,18 @@ const DocPrepAgent = () => {
       doc.setFontSize(fontSize);
       doc.setTextColor(color[0], color[1], color[2]);
       
+      // First, clean any remaining markdown that wasn't properly parsed
+      let cleanText = text
+        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove any remaining **text**
+        .replace(/\*(.*?)\*/g, '$1')      // Remove any remaining *text*
+        .replace(/`(.*?)`/g, '$1');       // Remove any remaining `text`
+      
       // Handle mixed formatting in the same line
       let currentX = x;
       
       // Split by markdown patterns while preserving the delimiters and content
       const markdownRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
-      const segments = text.split(markdownRegex);
+      const segments = cleanText.split(markdownRegex);
       
       for (const segment of segments) {
         if (!segment) continue;
@@ -918,10 +924,14 @@ const DocPrepAgent = () => {
           doc.setFont("helvetica", "normal");
           doc.setTextColor(color[0], color[1], color[2]);
         } else {
-          // Regular text
+          // Regular text - clean any remaining markdown
+          const finalCleanText = segment
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/`(.*?)`/g, '$1');
           doc.setFont("helvetica", "normal");
-          const textWidth = doc.getTextWidth(segment);
-          doc.text(segment, currentX, y);
+          const textWidth = doc.getTextWidth(finalCleanText);
+          doc.text(finalCleanText, currentX, y);
           currentX += textWidth;
         }
       }
