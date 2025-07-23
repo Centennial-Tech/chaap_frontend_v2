@@ -201,10 +201,6 @@ export function TimelineGenerator({ timelineItems, isLoading }: any) {
               Timeline will be generated based on your submission pathway and
               testing requirements.
             </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Generate Timeline
-            </Button>
           </div>
         )}
       </CardContent>

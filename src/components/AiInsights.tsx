@@ -221,10 +221,6 @@ export function AiInsights({ aiInsights, isLoading }: any) {
               AI insights will be generated based on your submission data and
               regulatory patterns.
             </p>
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate Insights
-            </Button>
           </div>
         )}
       </CardContent>
