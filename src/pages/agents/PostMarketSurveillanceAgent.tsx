@@ -252,14 +252,14 @@ const PostMarketSurveillanceAgent = ({
       const maxWidth = 170;
 
       if (reportType === "capa") {
-        // CAPA Report Format
+        // Corrective and Preventive Action Report Format
         doc.setFontSize(14);
-        doc.text("CAPA Report", 20, yPosition);
+        doc.text("Corrective and Preventive Action Report", 20, yPosition);
         yPosition += lineHeight * 2;
 
         doc.setFontSize(10);
         const capaContent =
-          reportData.generated_report || "No CAPA content available";
+          reportData.generated_report || "No Corrective and Preventive Action content available";
         const capaLines = doc.splitTextToSize(capaContent, maxWidth);
         capaLines.forEach((line: string) => {
           if (yPosition > 270) {
@@ -521,7 +521,7 @@ Generated at: ${new Date().toLocaleString()}
 
       // Set up PDF styling
       doc.setFontSize(20);
-      const title = reportData.is_capa ? "CAPA REPORT" : "ADVERSE EVENT REPORT";
+      const title = reportData.is_capa ? "CORRECTIVE AND PREVENTIVE ACTION REPORT" : "ADVERSE EVENT REPORT";
       doc.text(title, 20, 30);
 
       doc.setFontSize(12);
@@ -536,14 +536,14 @@ Generated at: ${new Date().toLocaleString()}
       const maxWidth = 170;
 
       if (reportData.is_capa) {
-        // CAPA Report Format
+        // Corrective and Preventive Action Report Format
         doc.setFontSize(14);
-        doc.text("CAPA Report", 20, yPosition);
+        doc.text("Corrective and Preventive Action Report", 20, yPosition);
         yPosition += lineHeight * 2;
 
         doc.setFontSize(10);
         const capaContent =
-          reportContent.generated_report || "No CAPA content available";
+          reportContent.generated_report || "No Corrective and Preventive Action content available";
         const capaLines = doc.splitTextToSize(capaContent, maxWidth);
         capaLines.forEach((line: string) => {
           if (yPosition > 270) {
@@ -690,9 +690,9 @@ Generated at: ${new Date().toLocaleString()}
       );
 
       // Save the PDF
-      const fileName = reportData.is_capa
-        ? `CAPA_Report_${reportData.product_name}_${
-            new Date(reportData.timestamp).toISOString().split("T")[0]
+              const fileName = reportData.is_capa
+          ? `Corrective_and_Preventive_Action_Report_${reportData.product_name}_${
+              new Date(reportData.timestamp).toISOString().split("T")[0]
           }.pdf`
         : `${reportContent.predicted_report || "Adverse_Event_Report"}_${
             reportData.product_name
@@ -834,7 +834,7 @@ Generated at: ${new Date().toLocaleString()}
 
       // Success handling
       const successMessage = formData.capaRequired
-        ? "Adverse event report and CAPA analysis generated successfully!"
+        ? "Adverse event report and Corrective and Preventive Action analysis generated successfully!"
         : "Adverse event report generated successfully!";
       toast.success(successMessage);
 
@@ -1098,7 +1098,7 @@ Generated at: ${new Date().toLocaleString()}
     "Automated Report Generation",
     "Regulatory Compliance",
     "Deadline Tracking",
-    "CAPA Integration",
+    "CAPA (Corrective and Preventive Action) Integration",
   ];
   const productTypes = [
     "drug",
@@ -1212,7 +1212,7 @@ Generated at: ${new Date().toLocaleString()}
                           <p>
                             Your {generatedData.predicted_report} report has
                             been generated
-                            {capaData ? " along with CAPA analysis" : ""}. Check
+                            {capaData ? " along with Corrective and Preventive Action analysis" : ""}. Check
                             the "Generated Reports" section to download or view
                             the {capaData ? "reports" : "report"}.
                           </p>
@@ -1682,8 +1682,7 @@ Generated at: ${new Date().toLocaleString()}
                           htmlFor="capa-required"
                           className="text-sm text-gray-700"
                         >
-                          This event requires CAPA (Corrective and Preventive
-                          Action)
+                          This event requires CAPA (Corrective and Preventive Action)
                         </label>
                       </div>
                     </div>
@@ -1897,19 +1896,19 @@ Generated at: ${new Date().toLocaleString()}
 
                       {/* CAPA Report */}
                       {capaData && (
-                        <div className="border-2 border-orange-200 bg-orange-50 rounded-lg p-4">
+                        <div className="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-sm font-semibold text-orange-900">
-                                  CAPA Report - {formData.productName}
+                                  Corrective and Preventive Action Report - {formData.productName}
                                 </span>
                                 <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
                                   Generated
                                 </span>
                               </div>
                               <div className="text-xs text-orange-700 mb-3">
-                                CAPA Analysis •{" "}
+                                Corrective and Preventive Action Analysis •{" "}
                                 {new Date().toLocaleDateString()}
                                 {capaData.due_date &&
                                   ` • Due: ${capaData.due_date}`}
@@ -1922,7 +1921,7 @@ Generated at: ${new Date().toLocaleString()}
                                         300
                                       )}...`
                                     : capaData.generated_report ||
-                                      "No CAPA content available"}
+                                      "No Corrective and Preventive Action content available"}
                                 </p>
                               </div>
                             </div>
@@ -1932,7 +1931,7 @@ Generated at: ${new Date().toLocaleString()}
                               onClick={() =>
                                 downloadReportAsPDF(capaData, "capa")
                               }
-                              className="flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded-lg transition-colors"
+                              className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -1947,7 +1946,7 @@ Generated at: ${new Date().toLocaleString()}
                                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                               </svg>
-                              Download CAPA PDF
+                              Download Corrective and Preventive Action PDF
                             </button>
                             <button
                               onClick={() =>
@@ -1968,7 +1967,7 @@ Generated at: ${new Date().toLocaleString()}
                                   d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 002 2v8a2 2 0 002 2z"
                                 />
                               </svg>
-                              Copy CAPA
+                              Copy Corrective and Preventive Action
                             </button>
                           </div>
                         </div>
@@ -2134,16 +2133,11 @@ Generated at: ${new Date().toLocaleString()}
                               <div className="text-sm font-medium text-gray-900">
                                 {report.product_name}
                               </div>
-                              <span
-                                className={`px-2 py-1 text-xs rounded-full ${
-                                  report.is_capa
-                                    ? "bg-orange-100 text-orange-600"
-                                    : "bg-purple-100 text-purple-600"
-                                }`}
-                              >
-                                {report.is_capa
-                                  ? "CAPA"
-                                  : report.content?.predicted_report ||
+                                                                                              <span
+                                  className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-600">
+                                  {report.is_capa
+                                                                      ? "Corrective and Preventive Action"
+                                    : report.content?.predicted_report ||
                                     "Adverse Report"}
                               </span>
                             </div>
