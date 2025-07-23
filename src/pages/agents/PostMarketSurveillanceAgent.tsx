@@ -119,6 +119,45 @@ const PostMarketSurveillanceAgent = ({
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [showAllReports, setShowAllReports] = useState(false);
+  const [metrics, setMetrics] = useState({
+    dueToday: 0,
+    dueThisWeek: 0,
+    openCapa: 0
+  });
+
+  // Calculate metrics from reports
+  const calculateMetrics = (reports: any[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 7);
+
+    const newMetrics = {
+      dueToday: 0,
+      dueThisWeek: 0,
+      openCapa: 0
+    };
+
+    reports.forEach(report => {
+      if (report.due_date) {
+        const dueDate = new Date(report.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+
+        if (dueDate.getTime() === today.getTime()) {
+          newMetrics.dueToday++;
+        } else if (dueDate > today && dueDate <= endOfWeek) {
+          newMetrics.dueThisWeek++;
+        }
+      }
+
+      if (report.is_capa && report.status !== 'completed') {
+        newMetrics.openCapa++;
+      }
+    });
+
+    setMetrics(newMetrics);
+  };
 
   // Toast notifications
   const toast = useToast();
@@ -206,6 +245,7 @@ const PostMarketSurveillanceAgent = ({
 
         const recentReportsData = res.data?.data?.data || [];
         setRecentReports(recentReportsData);
+        calculateMetrics(recentReportsData);
       } catch (error) {
         console.error("Error fetching recent reports:", error);
         toast.error("Failed to load recent reports");
@@ -838,6 +878,19 @@ Generated at: ${new Date().toLocaleString()}
         : "Adverse event report generated successfully!";
       toast.success(successMessage);
 
+      // Update metrics with the new report
+      const newReport = {
+        ...submissionData,
+        due_date: response.data?.messages[0]?.due_date,
+        status: 'pending',
+        timestamp: new Date().toISOString(),
+        content: response.data?.messages[0]
+      };
+      
+      const updatedReports = [...recentReports, newReport];
+      setRecentReports(updatedReports);
+      calculateMetrics(updatedReports);
+
       // Scroll to the Predicted Report Type section to show generated report
       const predictedReportSection = document.getElementById(
         "predicted-report-section"
@@ -1184,7 +1237,84 @@ Generated at: ${new Date().toLocaleString()}
           </div>
         </div>
 
-        <div className="w-full py-4 md:py-6">
+        <div className="w-full py-4 md:py-6 -mt-12 md:-mt-16">
+          {/* Metric Cards */}
+          <div className="w-full max-w-[1400px] px-[20px] mx-auto mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Due Today Card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+                  <div className="absolute inset-0 bg-red-50 rounded-full"></div>
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Due Today</h3>
+                      <p className="text-sm text-gray-500">Reports requiring immediate attention</p>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-red-600">{metrics.dueToday}</span>
+                    <span className="ml-2 text-sm text-gray-500">reports</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Due This Week Card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+                  <div className="absolute inset-0 bg-yellow-50 rounded-full"></div>
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Due This Week</h3>
+                      <p className="text-sm text-gray-500">Upcoming report deadlines</p>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-yellow-600">{metrics.dueThisWeek}</span>
+                    <span className="ml-2 text-sm text-gray-500">reports</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Open CAPA Card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8">
+                  <div className="absolute inset-0 bg-blue-50 rounded-full"></div>
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Open Corrective and Preventive Action</h3>
+                      <p className="text-sm text-gray-500">Active corrective actions</p>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-blue-600">{metrics.openCapa}</span>
+                    <span className="ml-2 text-sm text-gray-500">reports</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="w-full max-w-[1400px] px-[20px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
@@ -1964,7 +2094,7 @@ Generated at: ${new Date().toLocaleString()}
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 002 2v8a2 2 0 002 2z"
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                                 />
                               </svg>
                               Copy Corrective and Preventive Action
