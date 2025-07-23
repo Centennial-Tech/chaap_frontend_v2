@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import {
   Plus,
@@ -29,6 +30,7 @@ import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "../../provider/authProvider";
 const FdaMeetingPrepAgent = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { activeSubmission, submissions, setActiveSubmission, createNewSubmission } = useSubmission();
   const [currentTab, setCurrentTab] = useState<"main" | "product-info">("main");
@@ -942,8 +944,7 @@ const FdaMeetingPrepAgent = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            createNewSubmission();
-                            setShowSubmissionDropdown(false);
+                            navigate("/dashboard?openNewSubmission=true");
                           }}
                           className="w-full text-left px-3 py-1.5 text-sm text-blue-600 hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-200"
                         >
