@@ -180,8 +180,8 @@ export default function FormEditor() {
       setCurrentQuestionIndex(prev => prev + 1);
       setShowValidationError(false);
     } else {
+      
       setIsSubmitting(true);
-      //TODO: Submit submission endpoint and pdf output
       const response = await api.post(`/pdf_fill/application/${activeSubmission?.id}`)
       const downloadLink = response.data.pdf_url
 
