@@ -9,6 +9,9 @@ import jsPDF from "jspdf";
 import AnimatedBackground from "../../components/AnimatedBackground";
 import { useOverlay } from "../../provider/overleyProvider";
 import { useSubmission } from "../../provider/submissionProvider";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import supersub from "remark-supersub";
 
 //TODO: Remove mock, use components, fix 2nd background behind the animation
 
@@ -651,6 +654,137 @@ const DocPrepAgent = () => {
     }
   };
 
+  // Helper function to convert markdown to HTML for Word documents
+  const markdownToHtml = (markdown: string): string => {
+    const lines = markdown.split('\n');
+    let result = [];
+    let currentList = [];
+    let inList = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (!line) {
+        // Empty line - close any open list
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        result.push('<br>');
+        continue;
+      }
+
+      // Check for headers
+      if (line.startsWith('# ')) {
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        const content = line.substring(2)
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        result.push(`<h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin: 20px 0 10px 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">${content}</h1>`);
+      } else if (line.startsWith('## ')) {
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        const content = line.substring(3)
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        result.push(`<h2 style="font-size: 20px; font-weight: bold; color: #374151; margin: 16px 0 8px 0;">${content}</h2>`);
+      } else if (line.startsWith('### ')) {
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        const content = line.substring(4)
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        result.push(`<h3 style="font-size: 18px; font-weight: bold; color: #4b5563; margin: 14px 0 7px 0;">${content}</h3>`);
+      } else if (line.startsWith('#### ')) {
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        const content = line.substring(5)
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        result.push(`<h4 style="font-size: 16px; font-weight: bold; color: #6b7280; margin: 12px 0 6px 0;">${content}</h4>`);
+      }
+      // Check for bullet points
+      else if (line.startsWith('- ')) {
+        inList = true;
+        const content = line.substring(2)
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        currentList.push(`<li style="margin: 4px 0; color: #4b5563;">${content}</li>`);
+      }
+      // Check for numbered lists
+      else if (line.match(/^\d+\. /)) {
+        inList = true;
+        const match = line.match(/^(\d+)\. (.*)/);
+        if (match) {
+          const number = match[1];
+          const content = match[2]
+            .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+            .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+          currentList.push(`<li style="margin: 4px 0; color: #4b5563;">${number}. ${content}</li>`);
+        }
+      }
+      // Regular text
+      else {
+        if (inList && currentList.length > 0) {
+          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+          currentList = [];
+          inList = false;
+        }
+        const content = line
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
+          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
+        result.push(`<p style="margin: 8px 0; line-height: 1.6; color: #374151;">${content}</p>`);
+      }
+    }
+
+    // Close any remaining list
+    if (inList && currentList.length > 0) {
+      result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
+    }
+
+    return result.join('');
+  };
+
+  // Helper function to strip markdown formatting for plain text
+  const stripMarkdown = (markdown: string): string => {
+    return markdown
+      // Remove headers (keep the text)
+      .replace(/^#{1,4}\s+(.*$)/gim, '$1\n')
+      // Remove bold and italic markers
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      // Remove inline code markers
+      .replace(/`(.*?)`/g, '$1')
+      // Convert bullet points to simple dashes
+      .replace(/^- (.*$)/gim, '- $1')
+      // Keep numbered lists as is
+      .replace(/^(\d+)\. (.*$)/gim, '$1. $2')
+      // Remove extra whitespace and normalize line breaks
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
+  };
+
   const downloadFile = (
     filename: string,
     content: string,
@@ -665,16 +799,34 @@ const DocPrepAgent = () => {
     let blob: Blob;
 
     if (type === "doc") {
+      const htmlContent = markdownToHtml(content);
       const docContent = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' 
             xmlns:w='urn:schemas-microsoft-com:office:word' 
             xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><meta charset='utf-8'><title>${filename}</title></head>
-      <body><pre>${content}</pre></body></html>
+      <head>
+        <meta charset='utf-8'>
+        <title>${filename}</title>
+        <style>
+          body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 12pt; line-height: 1.5; color: #333; margin: 0.25in; }
+          h1, h2, h3, h4 { margin-top: 16px; margin-bottom: 8px; }
+          h1 { margin-top: 12px; }
+          ul, ol { margin: 8px 0; padding-left: 20px; }
+          li { margin: 3px 0; }
+          p { margin: 6px 0; }
+          code { background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        </style>
+      </head>
+      <body>
+        ${htmlContent}
+      </body>
+      </html>
     `;
       blob = new Blob([docContent], { type: "application/msword" });
     } else {
-      blob = new Blob([content], { type: "text/plain" });
+      // For TXT files, strip all markdown formatting
+      const plainText = stripMarkdown(content);
+      blob = new Blob([plainText], { type: "text/plain" });
     }
 
     const url = window.URL.createObjectURL(blob);
@@ -729,12 +881,18 @@ const DocPrepAgent = () => {
       doc.setFontSize(fontSize);
       doc.setTextColor(color[0], color[1], color[2]);
       
+      // First, clean any remaining markdown that wasn't properly parsed
+      let cleanText = text
+        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove any remaining **text**
+        .replace(/\*(.*?)\*/g, '$1')      // Remove any remaining *text*
+        .replace(/`(.*?)`/g, '$1');       // Remove any remaining `text`
+      
       // Handle mixed formatting in the same line
       let currentX = x;
       
       // Split by markdown patterns while preserving the delimiters and content
       const markdownRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
-      const segments = text.split(markdownRegex);
+      const segments = cleanText.split(markdownRegex);
       
       for (const segment of segments) {
         if (!segment) continue;
@@ -766,10 +924,14 @@ const DocPrepAgent = () => {
           doc.setFont("helvetica", "normal");
           doc.setTextColor(color[0], color[1], color[2]);
         } else {
-          // Regular text
+          // Regular text - clean any remaining markdown
+          const finalCleanText = segment
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/`(.*?)`/g, '$1');
           doc.setFont("helvetica", "normal");
-          const textWidth = doc.getTextWidth(segment);
-          doc.text(segment, currentX, y);
+          const textWidth = doc.getTextWidth(finalCleanText);
+          doc.text(finalCleanText, currentX, y);
           currentX += textWidth;
         }
       }
@@ -820,8 +982,8 @@ const DocPrepAgent = () => {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      // Check if we need a new page
-      if (yPosition > pageHeight - margin) {
+      // Check if we need a new page (leave more space for footer)
+      if (yPosition > pageHeight - margin - 20) {
         doc.addPage();
         yPosition = margin;
       }
@@ -856,6 +1018,14 @@ const DocPrepAgent = () => {
         const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
         doc.text(wrappedHeader, margin, yPosition);
         yPosition += wrappedHeader.length * lineHeight + 3;
+      } else if (line.startsWith("#### ")) {
+        const headerText = line.substring(5);
+        doc.setFontSize(13);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont("helvetica", "bold");
+        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
+        doc.text(wrappedHeader, margin, yPosition);
+        yPosition += wrappedHeader.length * lineHeight + 2;
       }
       // Handle bullet points
       else if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -961,12 +1131,12 @@ const DocPrepAgent = () => {
       doc.text(
         `Page ${i} of ${pageCount}`,
         pageWidth - margin - 20,
-        pageHeight - 10
+        pageHeight - 15
       );
 
       // Add timestamp
       const timestamp = new Date().toLocaleDateString();
-      doc.text(`Generated on ${timestamp}`, margin, pageHeight - 10);
+      doc.text(`Generated on ${timestamp}`, margin, pageHeight - 15);
     }
 
     doc.save(`${filename}.pdf`);
@@ -1909,14 +2079,61 @@ const DocPrepAgent = () => {
                     </span>
                   </h4>
                   <div className="bg-white border border-gray-300 rounded p-4 max-h-60 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-xs text-gray-800 font-mono leading-relaxed">
-                      {showFullDocument
-                        ? workflowStatus.final_document
-                        : workflowStatus.final_document.substring(0, 1000) +
-                          (workflowStatus.final_document.length > 1000
-                            ? "..."
-                            : "")}
-                    </pre>
+                    <div className="leading-relaxed text-gray-700 space-y-4">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, supersub]}
+                        children={
+                          showFullDocument
+                            ? workflowStatus.final_document
+                            : workflowStatus.final_document.substring(0, 1000) +
+                              (workflowStatus.final_document.length > 1000
+                                ? "..."
+                                : "")
+                        }
+                        components={{
+                          ul: ({ children, ...props }: any) => (
+                            <ul className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4" {...props}>
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children, ...props }: any) => (
+                            <ol className="list-decimal pl-6 mb-4" {...props}>
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children, ...props }: any) => (
+                            <li className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold" {...props}>
+                              {children}
+                            </li>
+                          ),
+                          p: ({ children, ...props }: any) => (
+                            <p className="mb-4" {...props}>
+                              {children}
+                            </p>
+                          ),
+                          h1: ({ children, ...props }: any) => (
+                            <h1 className="text-2xl font-semibold text-gray-900 mb-3 mt-6" {...props}>
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children, ...props }: any) => (
+                            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5" {...props}>
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children, ...props }: any) => (
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4" {...props}>
+                              {children}
+                            </h3>
+                          ),
+                          h4: ({ children, ...props }: any) => (
+                            <h4 className="text-base font-semibold text-gray-900 mb-2 mt-3" {...props}>
+                              {children}
+                            </h4>
+                          ),
+                        }}
+                      />
+                    </div>
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     {workflowStatus.final_document.length > 1000 && (

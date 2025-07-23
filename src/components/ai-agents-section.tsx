@@ -11,7 +11,7 @@ const agents = [
     iconBg: "bg-gradient-to-br from-sky-300 to-blue-400",
     features: [
       "Identifies optimal submission pathways",
-      "Recommends FDA meeting strategies",
+      "Recommends meeting strategies",
       "Generates timeline and resource plans"
     ],
     buttonText: "Try Pre-submission Agent",
@@ -43,8 +43,8 @@ const agents = [
   },
   {
     id: 3,
-    name: "FDA Meeting Prep Agent",
-    description: "Prepare for successful FDA interactions",
+    name: "Meeting Preparation Agent",
+    description: "Prepare for successful interactions",
     icon: MessageCircle,
     iconBg: "bg-gradient-to-br from-purple-400 to-purple-600",
     features: [
@@ -52,7 +52,7 @@ const agents = [
       "Prepares Q&A scenarios",
       "Analyzes past meeting outcomes"
     ],
-    buttonText: "Try FDA Agent",
+    buttonText: "Try Meeting Preparation Agent",
     buttonColor: "bg-gradient-to-r from-purple-500 to-purple-600",
     shadowColor: "hover:shadow-[0_35px_70px_-5px_rgba(168,85,247,0.7)]",
     satisfaction: 88,
