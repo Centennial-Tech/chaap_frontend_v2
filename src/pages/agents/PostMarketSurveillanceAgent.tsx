@@ -124,6 +124,56 @@ const PostMarketSurveillanceAgent = ({
   const toast = useToast();
   const { user } = useAuth();
 
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    const requiredFields = [
+      "productType",
+      "productName", 
+      "lotNumber",
+      "indication",
+      "eventDescription",
+      "eventDate",
+      "eventOutcome",
+      "reporterLocation",
+    ];
+
+    const fieldsValid = requiredFields.every(
+      (field) => {
+        const value = formData[field as keyof typeof formData];
+        return value && value.toString().trim() !== "";
+      }
+    );
+
+    // Also require file to be uploaded
+    return fieldsValid && fileContent !== null;
+  };
+
+  // Get missing required fields for better user feedback
+  const getMissingFields = () => {
+    const requiredFields = [
+      { key: "productType", label: "Product Type" },
+      { key: "productName", label: "Product Name" },
+      { key: "lotNumber", label: "Lot Number" },
+      { key: "indication", label: "Indication" },
+      { key: "eventDescription", label: "Event Description" },
+      { key: "eventDate", label: "Date of Event" },
+      { key: "eventOutcome", label: "Event Outcome" },
+      { key: "reporterLocation", label: "Reporter Location" },
+    ];
+
+    const missingFields = requiredFields.filter(field => {
+      const value = formData[field.key as keyof typeof formData];
+      return !value || value.toString().trim() === "";
+    });
+
+    // Add file upload requirement
+    if (!fileContent) {
+      missingFields.push({ key: "fileUpload", label: "File Upload (CSV/Excel)" });
+    }
+
+    return missingFields;
+  };
+
   // Form data state
   const [formData, setFormData] = useState({
     productType: "",
@@ -709,7 +759,6 @@ Generated at: ${new Date().toLocaleString()}
         "eventDescription",
         "eventDate",
         "eventOutcome",
-        "reporterType",
         "reporterLocation",
       ];
 
@@ -1262,7 +1311,7 @@ Generated at: ${new Date().toLocaleString()}
                       </div>
                     ) : (
                       <p className="text-gray-600 mb-4">
-                        Upload structured AE logs (CSV/Excel)
+                        Upload structured AE logs (CSV/Excel) <span className="text-red-500">*</span>
                       </p>
                     )}
                     <label className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg inline-flex items-center gap-2 mx-auto transition-colors cursor-pointer">
@@ -1567,7 +1616,7 @@ Generated at: ${new Date().toLocaleString()}
                         </FormField>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField label="Reporter Type" required>
+                        <FormField label="Reporter Type">
                           <div className="space-y-2">
                             {reporterTypes.map((type, index) => (
                               <label
@@ -1639,10 +1688,50 @@ Generated at: ${new Date().toLocaleString()}
                       </div>
                     </div>
 
+                    {!isFormValid() && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <svg
+                            className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-medium text-yellow-800">
+                              Please fill in all required fields
+                            </p>
+                            {getMissingFields().length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-yellow-700 mb-1">
+                                  Missing required fields:
+                                </p>
+                                <ul className="text-xs text-yellow-700 list-disc list-inside space-y-1">
+                                  {getMissingFields().map((field, index) => (
+                                    <li key={index}>{field.label}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            <p className="text-xs text-yellow-700 mt-2">
+                              All fields marked with an asterisk (*) are required to generate the report.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="pt-6">
                       <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !isFormValid()}
                         className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                       >
                         {isSubmitting ? (
