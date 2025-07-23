@@ -141,7 +141,7 @@ export default function FormEditor() {
     }
   };
 
-  const downloadZip = async (downloadLink: string, fileName: string = 'download') => {
+  const downloadZip = async (downloadLink: string) => {
     try {
       // const response = await fetch(downloadLink);
       // if (!response.ok) {
@@ -186,7 +186,7 @@ export default function FormEditor() {
       const response = await api.post(`/pdf_fill/application/${activeSubmission?.id}`)
       const downloadLink = response.data.pdf_url
 
-      await downloadZip(downloadLink, activeSubmission?.name)
+      await downloadZip(downloadLink)
       setIsSubmitting(false);
     }
   };
