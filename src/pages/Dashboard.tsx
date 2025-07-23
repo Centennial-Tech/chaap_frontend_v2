@@ -6,7 +6,7 @@ import StatsCard from "../components/StatsCard";
 import SubmissionModal from "../components/SubmissionModal";
 import SubmissionTable from "../components/SubmissionTable";
 import { useSubmission } from "../provider/submissionProvider";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   createSubmission,
   deleteSubmission,
@@ -45,6 +45,7 @@ const calculateStats = (submissions: Submission[]): Stats => {
 
 const Dashboard = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState("");
   const { submissions, refreshSubmissions } = useSubmission(); //TODO: Why 3 api calls on load?
@@ -58,6 +59,18 @@ const Dashboard = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // Handle openNewSubmission query parameter
+  useEffect(() => {
+    const shouldOpenNewSubmission = searchParams.get('openNewSubmission') === 'true';
+    if (shouldOpenNewSubmission) {
+      setOpen(true);
+      // Remove the query parameter after handling it
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('openNewSubmission');
+      window.history.replaceState({}, '', `${window.location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`);
+    }
+  }, [searchParams]);
 
   // State management
   const [open, setOpen] = useState(false);

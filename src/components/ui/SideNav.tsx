@@ -34,8 +34,8 @@ const sectionItems = [
     icon: Cpu,
   },
   {
-    label: "FDA Meeting Prep Agent",
-    path: "/agents/FDA-Meeting-Prep",
+    label: "Meeting Prep Agent",
+    path: "/agents/meeting-prep",
     icon: Zap,
   },
   {
