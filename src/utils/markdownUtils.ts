@@ -115,13 +115,13 @@ export const markdownToHtml = (markdown: string): string => {
 };
 
 /**
- * Strips all markdown formatting from text for plain text downloads
+ * Strips all markdown formatting from text for plain text downloads and PDF generation
  */
 export const stripMarkdown = (markdown: string): string => {
   return markdown
     // Remove headers (keep the text)
     .replace(/^#{1,4}\s+(.*$)/gim, '$1\n')
-    // Remove bold and italic markers
+    // Remove bold and italic markers (handle nested cases)
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
     // Remove inline code markers
@@ -130,6 +130,11 @@ export const stripMarkdown = (markdown: string): string => {
     .replace(/^- (.*$)/gim, '- $1')
     // Keep numbered lists as is
     .replace(/^(\d+)\. (.*$)/gim, '$1. $2')
+    // Remove any remaining markdown syntax
+    .replace(/~~(.*?)~~/g, '$1')  // Remove strikethrough
+    .replace(/^> (.*$)/gim, '$1') // Remove blockquotes
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Convert images to alt text
     // Remove extra whitespace and normalize line breaks
     .replace(/\n\s*\n/g, '\n\n')
     .trim();

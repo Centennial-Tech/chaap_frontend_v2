@@ -89,25 +89,14 @@ export class DownloadService {
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
       yPosition += 10;
 
-      // Helper function to clean markdown from text
-      const cleanMarkdown = (text: string) => {
-        return text
-          .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
-          .replace(/\*(.*?)\*/g, '$1')     // Remove italic markers  
-          .replace(/`(.*?)`/g, '$1');      // Remove code markers
-      };
-
       // Helper function to render text with inline formatting
       const renderFormattedText = (text: string, x: number, y: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
         doc.setFontSize(fontSize);
         doc.setTextColor(color[0], color[1], color[2]);
         doc.setFont("helvetica", "normal");
         
-        // Clean all markdown formatting from the text
-        const cleanText = text
-          .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold** markers
-          .replace(/\*(.*?)\*/g, '$1')      // Remove *italic* markers
-          .replace(/`(.*?)`/g, '$1');       // Remove `code` markers
+        // Use the shared stripMarkdown function for consistent markdown removal
+        const cleanText = stripMarkdown(text);
         
         // Render the cleaned text
         const textWidth = doc.getTextWidth(cleanText);
@@ -122,11 +111,8 @@ export class DownloadService {
         doc.setTextColor(color[0], color[1], color[2]);
         doc.setFont("helvetica", "normal");
         
-        // Clean all markdown formatting from the text first
-        const cleanText = text
-          .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold** markers
-          .replace(/\*(.*?)\*/g, '$1')      // Remove *italic* markers
-          .replace(/`(.*?)`/g, '$1');       // Remove `code` markers
+        // Use the shared stripMarkdown function for consistent markdown removal
+        const cleanText = stripMarkdown(text);
         
         let currentY = startY;
         const words = cleanText.split(' ');
@@ -176,7 +162,7 @@ export class DownloadService {
 
         // Handle headers
         if (line.startsWith("# ")) {
-          const headerText = line.substring(2);
+          const headerText = stripMarkdown(line.substring(2));
           doc.setFontSize(18);
           doc.setTextColor(50, 50, 50);
           doc.setFont("helvetica", "bold");
@@ -184,7 +170,7 @@ export class DownloadService {
           doc.text(wrappedHeader, margin, yPosition);
           yPosition += wrappedHeader.length * lineHeight + 5;
         } else if (line.startsWith("## ")) {
-          const headerText = line.substring(3);
+          const headerText = stripMarkdown(line.substring(3));
           doc.setFontSize(16);
           doc.setTextColor(60, 60, 60);
           doc.setFont("helvetica", "bold");
@@ -192,7 +178,7 @@ export class DownloadService {
           doc.text(wrappedHeader, margin, yPosition);
           yPosition += wrappedHeader.length * lineHeight + 4;
         } else if (line.startsWith("### ")) {
-          const headerText = line.substring(4);
+          const headerText = stripMarkdown(line.substring(4));
           doc.setFontSize(14);
           doc.setTextColor(70, 70, 70);
           doc.setFont("helvetica", "bold");
@@ -200,7 +186,7 @@ export class DownloadService {
           doc.text(wrappedHeader, margin, yPosition);
           yPosition += wrappedHeader.length * lineHeight + 3;
         } else if (line.startsWith("#### ")) {
-          const headerText = line.substring(5);
+          const headerText = stripMarkdown(line.substring(5));
           doc.setFontSize(13);
           doc.setTextColor(80, 80, 80);
           doc.setFont("helvetica", "bold");
@@ -210,22 +196,16 @@ export class DownloadService {
         }
         // Handle bullet points
         else if (line.startsWith("- ") || line.startsWith("* ")) {
-          const bulletText = line.substring(2);
+          const bulletText = stripMarkdown(line.substring(2));
           doc.setFontSize(12);
           doc.setTextColor(80, 80, 80);
           doc.setFont("helvetica", "normal");
-          
-          // Clean all markdown formatting from the bullet text
-          const cleanBulletText = bulletText
-            .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold** markers
-            .replace(/\*(.*?)\*/g, '$1')      // Remove *italic* markers
-            .replace(/`(.*?)`/g, '$1');       // Remove `code` markers
           
           // Add bullet point
           doc.text("• ", margin + 5, yPosition);
           
           // Simple text wrapping for cleaned text
-          const wrappedBullet = doc.splitTextToSize(cleanBulletText, maxLineWidth - 10);
+          const wrappedBullet = doc.splitTextToSize(bulletText, maxLineWidth - 10);
           doc.text(wrappedBullet, margin + 10, yPosition);
           yPosition += wrappedBullet.length * lineHeight + 2;
         }
@@ -234,24 +214,18 @@ export class DownloadService {
           const match = line.match(/^(\d+\. )(.*)/);
           if (match) {
             const listNumber = match[1];
-            const listText = match[2];
+            const listText = stripMarkdown(match[2]);
             
             doc.setFontSize(12);
             doc.setTextColor(80, 80, 80);
             doc.setFont("helvetica", "normal");
-            
-            // Clean all markdown formatting from the list text
-            const cleanListText = listText
-              .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold** markers
-              .replace(/\*(.*?)\*/g, '$1')      // Remove *italic* markers
-              .replace(/`(.*?)`/g, '$1');       // Remove `code` markers
             
             // Add list number
             doc.text(listNumber, margin + 5, yPosition);
             const numberWidth = doc.getTextWidth(listNumber);
             
             // Simple text wrapping for cleaned text
-            const wrappedText = doc.splitTextToSize(cleanListText, maxLineWidth - 5 - numberWidth);
+            const wrappedText = doc.splitTextToSize(listText, maxLineWidth - 5 - numberWidth);
             doc.text(wrappedText, margin + 5 + numberWidth, yPosition);
             yPosition += wrappedText.length * lineHeight + 2;
           }
@@ -287,11 +261,8 @@ export class DownloadService {
           doc.setTextColor(60, 60, 60);
           doc.setFont("helvetica", "normal");
           
-          // Clean all markdown formatting from the text
-          const cleanText = line
-            .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold** markers
-            .replace(/\*(.*?)\*/g, '$1')      // Remove *italic* markers
-            .replace(/`(.*?)`/g, '$1');       // Remove `code` markers
+          // Use the shared stripMarkdown function for consistent markdown removal
+          const cleanText = stripMarkdown(line);
           
           // Simple text wrapping for cleaned text
           const wrappedText = doc.splitTextToSize(cleanText, maxLineWidth);

@@ -294,6 +294,9 @@ const DocPrepAgent = () => {
 
   const { showOverlay, hideOverlay } = useOverlay();
   const { downloadPDF, downloadDOC, downloadTXT } = useDocumentDownload();
+  const components = getMarkdownComponents();
+
+
 
   useEffect(() => {
     if (
@@ -640,7 +643,7 @@ const DocPrepAgent = () => {
     }
   };
 
-  const handleDownload = async (format: "pdf" | "doc" | "txt" = "pdf") => {
+  const downloadDocument = async (format: "pdf" | "doc" | "txt" = "pdf") => {
     try {
       // If we have the final document content from completed workflow
       if (workflowStatus?.final_document) {
@@ -1304,7 +1307,7 @@ const DocPrepAgent = () => {
               <div className="relative">
                 <div className="flex">
                   <Button
-                    onClick={() => handleDownload("pdf")}
+                    onClick={() => downloadDocument("pdf")}
                     className="bg-green-600 hover:bg-green-700 rounded-r-none"
                   >
                     <Download className="w-4 h-4 mr-2" />
@@ -1337,7 +1340,7 @@ const DocPrepAgent = () => {
                     <div className="py-1">
                       <button
                         onClick={() => {
-                          handleDownload("pdf");
+                          downloadDocument("pdf");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1357,7 +1360,7 @@ const DocPrepAgent = () => {
                       </button>
                       <button
                         onClick={() => {
-                          handleDownload("doc");
+                          downloadDocument("doc");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1377,7 +1380,7 @@ const DocPrepAgent = () => {
                       </button>
                       <button
                         onClick={() => {
-                          handleDownload("txt");
+                          downloadDocument("txt");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1613,7 +1616,7 @@ const DocPrepAgent = () => {
                                 ? "..."
                                 : "")
                         }
-                        components={getMarkdownComponents()}
+                        components={components}
                       />
                     </div>
                   </div>
@@ -1710,7 +1713,7 @@ const DocPrepAgent = () => {
               </div>
               <div className="flex flex-col space-y-2">
                 <Button
-                  onClick={() => handleDownload("pdf")}
+                  onClick={() => downloadDocument("pdf")}
                   className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
                   size="sm"
                 >
@@ -1729,7 +1732,7 @@ const DocPrepAgent = () => {
                 </Button>
                 <div className="flex space-x-2">
                   <Button
-                    onClick={() => handleDownload("doc")}
+                    onClick={() => downloadDocument("doc")}
                     size="sm"
                     className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
                   >
@@ -1747,7 +1750,7 @@ const DocPrepAgent = () => {
                     Word Doc
                   </Button>
                   <Button
-                    onClick={() => handleDownload("txt")}
+                    onClick={() => downloadDocument("txt")}
                     variant="outline"
                     size="sm"
                     className="flex-1"

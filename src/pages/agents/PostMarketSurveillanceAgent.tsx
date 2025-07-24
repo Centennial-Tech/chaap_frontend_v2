@@ -8,8 +8,7 @@ import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
-import SyntaxHighlighter from "react-syntax-highlighter";
-import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 import { getMarkdownComponents } from "../../components/ui/MarkdownComponents";
 import { stripMarkdown } from "../../utils/markdownUtils";
 
