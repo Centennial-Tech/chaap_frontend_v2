@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useToast } from "../../hooks/useToast";
 import { ToastContainer } from "../../components/Toast";
 import { useAuth } from "../../provider/authProvider";
+import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { getMarkdownComponents } from "../../utils/markdownComponents";
 
 interface PredictedReportType {
   type: string;
@@ -111,68 +113,6 @@ const Card = ({
   </div>
 );
 
-// ReactMarkdown components for consistent formatting
-const components: any = {
-  code({ node, ...props }: { node: any; [key: string]: any }) {
-    let language;
-    if (props.className) {
-      const match = props.className.match(/language-(\w+)/);
-      language = match ? match[1] : undefined;
-    }
-    const codeString = node.children[0].value ?? "";
-    return (
-      <SyntaxHighlighter
-        style={nord}
-        language={language}
-        PreTag="div"
-        {...props}
-      >
-        {codeString}
-      </SyntaxHighlighter>
-    );
-  },
-  ul: ({ children, ...props }: any) => (
-    <ul className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4" {...props}>
-      {children}
-    </ul>
-  ),
-  ol: ({ children, ...props }: any) => (
-    <ol className="list-decimal pl-6 mb-4" {...props}>
-      {children}
-    </ol>
-  ),
-  li: ({ children, ...props }: any) => (
-    <li className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold" {...props}>
-      {children}
-    </li>
-  ),
-  p: ({ children, ...props }: any) => (
-    <p className="mb-4" {...props}>
-      {children}
-    </p>
-  ),
-  h1: ({ children, ...props }: any) => (
-    <h1 className="text-2xl font-semibold text-gray-900 mb-3 mt-6" {...props}>
-      {children}
-    </h1>
-  ),
-  h2: ({ children, ...props }: any) => (
-    <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5" {...props}>
-      {children}
-    </h2>
-  ),
-  h3: ({ children, ...props }: any) => (
-    <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4" {...props}>
-      {children}
-    </h3>
-  ),
-  h4: ({ children, ...props }: any) => (
-    <h4 className="text-base font-semibold text-gray-900 mb-2 mt-3" {...props}>
-      {children}
-    </h4>
-  ),
-};
-
 const PostMarketSurveillanceAgent = ({
   generatedReports = [],
 }: Pick<PostMarketSurveillanceAgentProps, "generatedReports">) => {
@@ -231,6 +171,8 @@ const PostMarketSurveillanceAgent = ({
   // Toast notifications
   const toast = useToast();
   const { user } = useAuth();
+  const { downloadReportAsPDF: downloadReportAsPDFHook } = useDocumentDownload();
+  const components = getMarkdownComponents();
 
   // Check if all required fields are filled
   const isFormValid = () => {
@@ -745,7 +687,7 @@ const PostMarketSurveillanceAgent = ({
           const listNumber = match[1];
           const listText = match[2];
           
-          doc.setFontSize(12);
+        doc.setFontSize(12);
           doc.setTextColor(80, 80, 80);
           doc.setFont("helvetica", "normal");
           
@@ -768,7 +710,7 @@ const PostMarketSurveillanceAgent = ({
       }
       // Handle code blocks
       else if (line.startsWith("```")) {
-          doc.setFontSize(10);
+        doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.setFont("courier", "normal");
 
@@ -841,8 +783,7 @@ const PostMarketSurveillanceAgent = ({
     reportType: "adverse" | "capa" = "adverse"
   ) => {
     try {
-      await downloadDocument("pdf", reportData, reportType);
-      toast.success("PDF report downloaded successfully!");
+      await downloadReportAsPDFHook(reportData, reportType);
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error(
