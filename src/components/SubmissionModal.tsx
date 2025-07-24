@@ -5,7 +5,10 @@ import { Button } from "./ui/Button";
 import { productTypes } from "../constants";
 import api from "../api";
 import { useSubmission } from "../provider/submissionProvider";
-import { createSubmission, type Submission } from "../helpers/submissionApiHelper";
+import {
+  createSubmission,
+  type Submission,
+} from "../helpers/submissionApiHelper";
 import { useNavigate } from "react-router-dom";
 
 interface FormData {
@@ -21,10 +24,7 @@ interface SubmissionModalProps {
   onClose: () => void;
 }
 
-const SubmissionModal: React.FC<SubmissionModalProps> = ({
-  open,
-  onClose,
-}) => {
+const SubmissionModal: React.FC<SubmissionModalProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const { refreshSubmissions, setActiveSubmission } = useSubmission();
   const [hideQuestions, setHideQuestions] = React.useState(false);
@@ -35,10 +35,14 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   const [readyToCreate, setReadyToCreate] = useState(false);
   const [allowManualCreate, setAllowManualCreate] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
-  const [questionAnswers, setQuestionAnswers] = useState<{[q: string]: string}>({});
+  const [questionAnswers, setQuestionAnswers] = useState<{
+    [q: string]: string;
+  }>({});
   const questionAnswersRef = useRef<{ [q: string]: string }>({});
-  const [createdSubmission, setCreatedSubmission] = useState<Submission | null>(null);
-  
+  const [createdSubmission, setCreatedSubmission] = useState<Submission | null>(
+    null
+  );
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "",
@@ -85,15 +89,30 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     if (createdSubmission) {
       setActiveSubmission(createdSubmission);
       handleClose();
-      navigate('/form-editor');
+      navigate("/form-editor");
     }
   };
 
-  const handleCreateSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
+  const defaultValueTypes = [
+    { label: "IND", value: "IND" },
+    { label: "NDA", value: "NDA" },
+    { label: "ANDA", value: "ANDA" },
+    { label: "BLA", value: "BLA" },
+    { label: "510(k)", value: "510(k)" },
+    { label: "De Novo", value: "De Novo" },
+    { label: "PMA", value: "PMA" },
+    { label: "HDE", value: "HDE" },
+    {},
+  ];
+
+  const handleCreateSubmission = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const formId = (await api.get(`form/name/${formData.submissionType}`)).data.id;
+      const formId = (await api.get(`form/name/${formData.submissionType}`))
+        .data.id;
 
       const newSubmission: Partial<Submission> = {
         name: formData.name.trim(),
@@ -173,7 +192,9 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     });
   };
 
-  const handleAdditionalQuestionsSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAdditionalQuestionsSubmission = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setLoading(true);
     setSuggestionError("");
@@ -189,7 +210,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
         suggestion = response.data?.suggested_form || "";
         attempts++;
       } while (suggestion.length > 10 && attempts < 2);
-      
+
       if (suggestion.length > 10) {
         setSuggestionError(
           "We are not able to get a suggestion based on your inputs. Please select the submission type manually."
@@ -378,6 +399,11 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 {formSuggestion && !suggestionError && (
                   <option value={formSuggestion}>{formSuggestion}</option>
                 )}
+                {defaultValueTypes.map((type: any) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
                 {suggestionError && (
                   <option value="">Please select manually</option>
                 )}
