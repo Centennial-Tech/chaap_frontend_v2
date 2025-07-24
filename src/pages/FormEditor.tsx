@@ -143,19 +143,11 @@ export default function FormEditor() {
 
   const downloadZip = async (downloadLink: string) => {
     try {
-      // const response = await fetch(downloadLink);
-      // if (!response.ok) {
-      //   throw new Error(`Failed to fetch file: ${response.statusText}`);
-      // }
-  
-      // const blob = await response.blob();
-      // const url = window.URL.createObjectURL(blob);
   
       const a = document.createElement('a');
       a.href = downloadLink;
       a.target = '_blank';
-      // a.download = `${fileName}.zip`;  // Safe fallback name
-      document.body.appendChild(a);    // Required for Firefox
+      document.body.appendChild(a);
       a.click();
       a.remove();
   
@@ -171,7 +163,7 @@ export default function FormEditor() {
       return;
     }
     
-    if (currentQuestionIndex < formQuestions.length - 1) {
+    if (currentQuestionIndex < formQuestions.length - 1) { //TODO: fix this
       // Save current question's data
       await api.put(`/form/answers/${activeSubmission?.id}/${currentQuestion?.id}`, 
         formData);
@@ -181,6 +173,8 @@ export default function FormEditor() {
       setCurrentQuestionIndex(prev => prev + 1);
       setShowValidationError(false);
     } else {
+      await api.put(`/form/answers/${activeSubmission?.id}/${currentQuestion?.id}`, 
+        formData);
       
       setIsSubmitting(true);
       const response = await api.post(`/pdf_fill/application/${activeSubmission?.id}`)
