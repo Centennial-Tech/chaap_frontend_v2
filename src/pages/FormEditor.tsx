@@ -18,6 +18,7 @@ export default function FormEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingSubmission, setIsChangingSubmission] = useState(false);
 
+
   const countFields = useCallback(() => {
     let totalCount = 0;
     let completedCount = 0;
@@ -380,7 +381,12 @@ export default function FormEditor() {
                   {formQuestions.map((question, index) => (
                     <button
                       key={question.id}
-                      onClick={() => setCurrentQuestionIndex(index)}
+                      onClick={async () => {
+                        await api.put(`/form/answers/${activeSubmission?.id}/${currentQuestion?.id}`, 
+                          formData);
+                        await updateSubmissionProgress();
+                        setCurrentQuestionIndex(index);
+                      }}
                       className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors
                         ${currentQuestionIndex === index 
                           ? 'bg-blue-100 text-blue-700' 

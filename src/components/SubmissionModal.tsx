@@ -96,7 +96,7 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
       const formId = (await api.get(`form/name/${formData.submissionType}`)).data.id;
 
       const newSubmission: Partial<Submission> = {
-        name: formData.name,
+        name: formData.name.trim(),
         submission_type: formData.submissionType,
         end_time: formData.end_time,
         intended_use: formData.productDescription,
