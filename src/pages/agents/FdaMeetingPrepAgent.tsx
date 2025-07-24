@@ -29,7 +29,7 @@ import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "../../provider/authProvider";
 import { useDocumentDownload } from "../../hooks/useDocumentDownload";
-import { getMarkdownComponents } from "../../utils/markdownComponents";
+import { getMarkdownComponents } from "../../components/ui/MarkdownComponents";
 
 const FdaMeetingPrepAgent = () => {
   const navigate = useNavigate();

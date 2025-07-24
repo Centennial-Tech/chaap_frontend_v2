@@ -12,7 +12,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
 import { useDocumentDownload } from "../../hooks/useDocumentDownload";
-import { getMarkdownComponents } from "../../utils/markdownComponents";
+import { getMarkdownComponents } from "../../components/ui/MarkdownComponents";
 
 //TODO: Remove mock, use components, fix 2nd background behind the animation
 
