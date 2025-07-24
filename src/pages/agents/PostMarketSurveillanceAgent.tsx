@@ -11,6 +11,7 @@ import supersub from "remark-supersub";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { getMarkdownComponents } from "../../utils/markdownComponents";
+import { stripMarkdown } from "../../utils/markdownUtils";
 
 interface PredictedReportType {
   type: string;
@@ -269,10 +270,11 @@ const PostMarketSurveillanceAgent = ({
     getRecentReports();
   }, [user?.id]);
 
-  // Utility function to copy text to clipboard
+  // Utility function to copy text to clipboard (strips markdown)
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      const plainText = stripMarkdown(text);
+      await navigator.clipboard.writeText(plainText);
       toast.success("Report content copied to clipboard!");
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
