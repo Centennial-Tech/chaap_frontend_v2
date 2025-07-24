@@ -74,11 +74,9 @@ export const sortSubmissionsByDate = (
 };
 
 // API functions
-export const fetchSubmissions = async (
-  userId: string
-): Promise<Submission[]> => {
+export const fetchSubmissions = async (): Promise<Submission[]> => {
   try {
-    const response = await api.get(`/applications/userId?user_id=${userId}`);
+    const response = await api.get(`/applications/me`);
     return response.data;
   } catch (error) {
     console.error("Error fetching submissions:", error);

@@ -40,7 +40,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState("");
-  const { submissions, refreshSubmissions } = useSubmission();
+  const {submissions, refreshSubmissions } = useSubmission();
 
   // Check for redirect message
   useEffect(() => {
@@ -51,6 +51,11 @@ const Dashboard = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // Refresh submissions on dashboard load
+  useEffect(() => {
+    refreshSubmissions();
+  }, []);
 
   // Handle openNewSubmission query parameter
   useEffect(() => {

@@ -51,7 +51,7 @@ export const SubmissionProvider: React.FC<SubmissionProviderProps> = ({ children
     setIsLoading(true);
     
     try {
-      const data = await fetchSubmissions(user.id);
+      const data = await fetchSubmissions();
       setRawSubmissions(data);
       
       if (activeSubmission && !data.find(s => s.id === activeSubmission.id)) {
