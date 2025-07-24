@@ -391,27 +391,5 @@ export class DownloadService {
     window.URL.revokeObjectURL(url);
   }
 
-  /**
-   * Legacy function for backward compatibility with PostMarketSurveillanceAgent
-   */
-  static async downloadReportAsPDF(
-    reportData: ReportData,
-    reportType: "adverse" | "capa" = "adverse"
-  ): Promise<void> {
-    if (!reportData?.generated_report) {
-      throw new Error("No report data provided");
-    }
 
-    const filename = reportType === "capa" 
-      ? `CAPA_Report_${new Date().toISOString().split("T")[0]}`
-      : `${reportData.predicted_report || "Adverse_Event_Report"}_${new Date().toISOString().split("T")[0]}`;
-
-    await this.downloadDocument({
-      format: "pdf",
-      content: reportData.generated_report,
-      filename,
-      reportType,
-      title: this.getDefaultTitle(reportType)
-    });
-  }
 }

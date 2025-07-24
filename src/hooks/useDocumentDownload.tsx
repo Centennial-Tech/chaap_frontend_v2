@@ -61,27 +61,10 @@ export const useDocumentDownload = () => {
     });
   }, [downloadDocument]);
 
-  /**
-   * Legacy function for backward compatibility with PostMarketSurveillanceAgent
-   */
-  const downloadReportAsPDF = useCallback(async (
-    reportData: ReportData,
-    reportType: "adverse" | "capa" = "adverse"
-  ) => {
-    try {
-      await DownloadService.downloadReportAsPDF(reportData, reportType);
-      success(`Report downloaded successfully as PDF`);
-    } catch (downloadError) {
-      console.error('Download error:', downloadError);
-      error(`Failed to download report. Please try again.`);
-    }
-  }, [success, error]);
-
   return {
     downloadDocument,
     downloadPDF,
     downloadDOC,
-    downloadTXT,
-    downloadReportAsPDF
+    downloadTXT
   };
 }; 
