@@ -6,6 +6,7 @@ import Input from "./Input";
 import { Badge } from "./ui";
 import { useSubmission } from "../provider/submissionProvider";
 import { productTypes } from "../constants";
+import { useNavigate } from "react-router-dom";
 // Temporary mock data for demonstration - removed unused variable
 
 export function PathwayRecommendation({
@@ -13,6 +14,7 @@ export function PathwayRecommendation({
   isLoading = false,
   callback = () => {},
 }: any) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     productType: "",
     riskClassification: "Class II",
@@ -98,6 +100,7 @@ export function PathwayRecommendation({
                           onClick={() => {
                             createNewSubmission();
                             setIsDropdownOpen(false);
+                            navigate("/dashboard?openNewSubmission=true");
                           }}
                           className="w-full text-left px-3 py-1.5 text-sm text-blue-600 hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center space-x-2 border-b border-gray-200"
                         >
