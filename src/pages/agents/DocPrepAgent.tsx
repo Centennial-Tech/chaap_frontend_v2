@@ -5,13 +5,14 @@ import { XCircle, Download } from "lucide-react";
 import Modal from "../../components/ui/Modal";
 import api from "../../api";
 import { extractText } from "../../utils";
-import jsPDF from "jspdf";
 import AnimatedBackground from "../../components/AnimatedBackground";
 import { useOverlay } from "../../provider/overleyProvider";
 import { useSubmission } from "../../provider/submissionProvider";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
+import { useDocumentDownload } from "../../hooks/useDocumentDownload";
+import { getMarkdownComponents } from "../../components/ui/MarkdownComponents";
 
 //TODO: Remove mock, use components, fix 2nd background behind the animation
 
@@ -292,6 +293,10 @@ const DocPrepAgent = () => {
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
 
   const { showOverlay, hideOverlay } = useOverlay();
+  const { downloadPDF, downloadDOC, downloadTXT } = useDocumentDownload();
+  const components = getMarkdownComponents();
+
+
 
   useEffect(() => {
     if (
@@ -638,15 +643,19 @@ const DocPrepAgent = () => {
     }
   };
 
-  const handleDownload = async (format: "pdf" | "doc" | "txt" = "pdf") => {
+  const downloadDocument = async (format: "pdf" | "doc" | "txt" = "pdf") => {
     try {
       // If we have the final document content from completed workflow
       if (workflowStatus?.final_document) {
-        downloadFile(
-          activeSubmission?.name || "Document",
-          workflowStatus.final_document,
-          format
-        );
+        const filename = activeSubmission?.name || "Document";
+        
+        if (format === "pdf") {
+          downloadPDF(workflowStatus.final_document, filename, "document", "Document");
+        } else if (format === "doc") {
+          downloadDOC(workflowStatus.final_document, filename, "document", "Document");
+        } else {
+          downloadTXT(workflowStatus.final_document, filename, "document", "Document");
+        }
       }
     } catch (error) {
       console.error("Error downloading document:", error);
@@ -654,493 +663,10 @@ const DocPrepAgent = () => {
     }
   };
 
-  // Helper function to convert markdown to HTML for Word documents
-  const markdownToHtml = (markdown: string): string => {
-    const lines = markdown.split('\n');
-    let result = [];
-    let currentList = [];
-    let inList = false;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (!line) {
-        // Empty line - close any open list
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        result.push('<br>');
-        continue;
-      }
-
-      // Check for headers
-      if (line.startsWith('# ')) {
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        const content = line.substring(2)
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        result.push(`<h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin: 20px 0 10px 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">${content}</h1>`);
-      } else if (line.startsWith('## ')) {
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        const content = line.substring(3)
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        result.push(`<h2 style="font-size: 20px; font-weight: bold; color: #374151; margin: 16px 0 8px 0;">${content}</h2>`);
-      } else if (line.startsWith('### ')) {
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        const content = line.substring(4)
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        result.push(`<h3 style="font-size: 18px; font-weight: bold; color: #4b5563; margin: 14px 0 7px 0;">${content}</h3>`);
-      } else if (line.startsWith('#### ')) {
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        const content = line.substring(5)
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        result.push(`<h4 style="font-size: 16px; font-weight: bold; color: #6b7280; margin: 12px 0 6px 0;">${content}</h4>`);
-      }
-      // Check for bullet points
-      else if (line.startsWith('- ')) {
-        inList = true;
-        const content = line.substring(2)
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        currentList.push(`<li style="margin: 4px 0; color: #4b5563;">${content}</li>`);
-      }
-      // Check for numbered lists
-      else if (line.match(/^\d+\. /)) {
-        inList = true;
-        const match = line.match(/^(\d+)\. (.*)/);
-        if (match) {
-          const number = match[1];
-          const content = match[2]
-            .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-            .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-          currentList.push(`<li style="margin: 4px 0; color: #4b5563;">${number}. ${content}</li>`);
-        }
-      }
-      // Regular text
-      else {
-        if (inList && currentList.length > 0) {
-          result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-          currentList = [];
-          inList = false;
-        }
-        const content = line
-          .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: bold; color: #1f2937;">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em style="font-style: italic; color: #4b5563;">$1</em>')
-          .replace(/`(.*?)`/g, '<code style="background-color: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 14px;">$1</code>');
-        result.push(`<p style="margin: 8px 0; line-height: 1.6; color: #374151;">${content}</p>`);
-      }
-    }
-
-    // Close any remaining list
-    if (inList && currentList.length > 0) {
-      result.push(`<ul style="margin: 10px 0; padding-left: 20px;">${currentList.join('')}</ul>`);
-    }
-
-    return result.join('');
-  };
-
   // Helper function to strip markdown formatting for plain text
-  const stripMarkdown = (markdown: string): string => {
-    return markdown
-      // Remove headers (keep the text)
-      .replace(/^#{1,4}\s+(.*$)/gim, '$1\n')
-      // Remove bold and italic markers
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      // Remove inline code markers
-      .replace(/`(.*?)`/g, '$1')
-      // Convert bullet points to simple dashes
-      .replace(/^- (.*$)/gim, '- $1')
-      // Keep numbered lists as is
-      .replace(/^(\d+)\. (.*$)/gim, '$1. $2')
-      // Remove extra whitespace and normalize line breaks
-      .replace(/\n\s*\n/g, '\n\n')
-      .trim();
-  };
+  // Removed - now using shared utility from src/utils/markdownUtils.ts
 
-  const downloadFile = (
-    filename: string,
-    content: string,
-    type: "txt" | "pdf" | "doc"
-  ) => {
-    if (type === "pdf") {
-      console.log("Generating PDF for download...", content);
-      generateStyledPDF(content, filename);
-      return;
-    }
-
-    let blob: Blob;
-
-    if (type === "doc") {
-      const htmlContent = markdownToHtml(content);
-      const docContent = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-            xmlns:w='urn:schemas-microsoft-com:office:word' 
-            xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>${filename}</title>
-        <style>
-          body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 12pt; line-height: 1.5; color: #333; margin: 0.25in; }
-          h1, h2, h3, h4 { margin-top: 16px; margin-bottom: 8px; }
-          h1 { margin-top: 12px; }
-          ul, ol { margin: 8px 0; padding-left: 20px; }
-          li { margin: 3px 0; }
-          p { margin: 6px 0; }
-          code { background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace; }
-        </style>
-      </head>
-      <body>
-        ${htmlContent}
-      </body>
-      </html>
-    `;
-      blob = new Blob([docContent], { type: "application/msword" });
-    } else {
-      // For TXT files, strip all markdown formatting
-      const plainText = stripMarkdown(content);
-      blob = new Blob([plainText], { type: "text/plain" });
-    }
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${filename}.${type}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
-
-  const generateStyledPDF = (content: string, filename: string) => {
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    // PDF styling constants
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const lineHeight = 6;
-    const maxLineWidth = pageWidth - margin * 2;
-
-    let yPosition = margin;
-
-    // Add header
-    doc.setFontSize(20);
-    doc.setTextColor(40, 40, 40);
-    doc.setFont("helvetica", "bold");
-    doc.text(filename, margin, yPosition);
-    yPosition += 15;
-
-    // Add a line separator
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
-
-    // Helper function to clean markdown from text
-    const cleanMarkdown = (text: string) => {
-      return text
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
-        .replace(/\*(.*?)\*/g, '$1')     // Remove italic markers  
-        .replace(/`(.*?)`/g, '$1');      // Remove code markers
-    };
-
-    // Helper function to render text with inline formatting
-    const renderFormattedText = (text: string, x: number, y: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
-      doc.setFontSize(fontSize);
-      doc.setTextColor(color[0], color[1], color[2]);
-      
-      // First, clean any remaining markdown that wasn't properly parsed
-      let cleanText = text
-        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove any remaining **text**
-        .replace(/\*(.*?)\*/g, '$1')      // Remove any remaining *text*
-        .replace(/`(.*?)`/g, '$1');       // Remove any remaining `text`
-      
-      // Handle mixed formatting in the same line
-      let currentX = x;
-      
-      // Split by markdown patterns while preserving the delimiters and content
-      const markdownRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
-      const segments = cleanText.split(markdownRegex);
-      
-      for (const segment of segments) {
-        if (!segment) continue;
-        
-        if (segment.startsWith("**") && segment.endsWith("**")) {
-          // Bold text
-          const boldText = segment.slice(2, -2);
-          doc.setFont("helvetica", "bold");
-          const textWidth = doc.getTextWidth(boldText);
-          doc.text(boldText, currentX, y);
-          currentX += textWidth;
-          doc.setFont("helvetica", "normal");
-        } else if (segment.startsWith("*") && segment.endsWith("*") && !segment.startsWith("**")) {
-          // Italic text
-          const italicText = segment.slice(1, -1);
-          doc.setFont("helvetica", "italic");
-          const textWidth = doc.getTextWidth(italicText);
-          doc.text(italicText, currentX, y);
-          currentX += textWidth;
-          doc.setFont("helvetica", "normal");
-        } else if (segment.startsWith("`") && segment.endsWith("`")) {
-          // Inline code
-          const codeText = segment.slice(1, -1);
-          doc.setFont("courier", "normal");
-          doc.setTextColor(100, 100, 100);
-          const textWidth = doc.getTextWidth(codeText);
-          doc.text(codeText, currentX, y);
-          currentX += textWidth;
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(color[0], color[1], color[2]);
-        } else {
-          // Regular text - clean any remaining markdown
-          const finalCleanText = segment
-            .replace(/\*\*(.*?)\*\*/g, '$1')
-            .replace(/\*(.*?)\*/g, '$1')
-            .replace(/`(.*?)`/g, '$1');
-          doc.setFont("helvetica", "normal");
-          const textWidth = doc.getTextWidth(finalCleanText);
-          doc.text(finalCleanText, currentX, y);
-          currentX += textWidth;
-        }
-      }
-      
-      return currentX - x; // Return the total width used
-    };
-
-    // Helper function to render multi-line formatted text
-    const renderMultiLineFormattedText = (text: string, x: number, startY: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
-      doc.setFontSize(fontSize);
-      doc.setTextColor(color[0], color[1], color[2]);
-      doc.setFont("helvetica", "normal");
-      
-      let currentY = startY;
-      const words = text.split(' ');
-      let currentLine = '';
-      
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        // Test with cleaned text to check actual width
-        const cleanTestLine = cleanMarkdown(testLine);
-        const testWidth = doc.getTextWidth(cleanTestLine);
-        
-        if (testWidth <= maxLineWidth) {
-          currentLine = testLine;
-        } else {
-          // Render current line if it has content
-          if (currentLine) {
-            renderFormattedText(currentLine, x, currentY, fontSize, color);
-            currentY += lineHeight;
-          }
-          currentLine = word;
-        }
-      }
-      
-      // Render remaining text
-      if (currentLine) {
-        renderFormattedText(currentLine, x, currentY, fontSize, color);
-        currentY += lineHeight;
-      }
-      
-      return currentY; // Return the final Y position
-    };
-
-    // Parse markdown-like content
-    const lines = content.split("\n");
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-
-      // Check if we need a new page (leave more space for footer)
-      if (yPosition > pageHeight - margin - 20) {
-        doc.addPage();
-        yPosition = margin;
-      }
-
-      if (!line) {
-        yPosition += lineHeight / 2; // Small space for empty lines
-        continue;
-      }
-
-      // Handle headers
-      if (line.startsWith("# ")) {
-        const headerText = line.substring(2);
-        doc.setFontSize(18);
-        doc.setTextColor(50, 50, 50);
-        doc.setFont("helvetica", "bold");
-        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
-        doc.text(wrappedHeader, margin, yPosition);
-        yPosition += wrappedHeader.length * lineHeight + 5;
-      } else if (line.startsWith("## ")) {
-        const headerText = line.substring(3);
-        doc.setFontSize(16);
-        doc.setTextColor(60, 60, 60);
-        doc.setFont("helvetica", "bold");
-        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
-        doc.text(wrappedHeader, margin, yPosition);
-        yPosition += wrappedHeader.length * lineHeight + 4;
-      } else if (line.startsWith("### ")) {
-        const headerText = line.substring(4);
-        doc.setFontSize(14);
-        doc.setTextColor(70, 70, 70);
-        doc.setFont("helvetica", "bold");
-        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
-        doc.text(wrappedHeader, margin, yPosition);
-        yPosition += wrappedHeader.length * lineHeight + 3;
-      } else if (line.startsWith("#### ")) {
-        const headerText = line.substring(5);
-        doc.setFontSize(13);
-        doc.setTextColor(80, 80, 80);
-        doc.setFont("helvetica", "bold");
-        const wrappedHeader = doc.splitTextToSize(headerText, maxLineWidth);
-        doc.text(wrappedHeader, margin, yPosition);
-        yPosition += wrappedHeader.length * lineHeight + 2;
-      }
-      // Handle bullet points
-      else if (line.startsWith("- ") || line.startsWith("* ")) {
-        const bulletText = line.substring(2);
-        doc.setFontSize(12);
-        doc.setTextColor(80, 80, 80);
-        doc.setFont("helvetica", "normal");
-        
-        // Add bullet point
-        doc.text("• ", margin + 5, yPosition);
-        
-        // Check if the bullet text contains formatting
-        if (bulletText.includes("**") || bulletText.includes("*") || bulletText.includes("`")) {
-          // Use multi-line formatted text rendering
-          const finalY = renderMultiLineFormattedText(bulletText, margin + 10, yPosition, 12, [80, 80, 80]);
-          yPosition = finalY + 2;
-        } else {
-          // Simple text wrapping for plain text
-          const wrappedBullet = doc.splitTextToSize(bulletText, maxLineWidth - 10);
-          doc.text(wrappedBullet, margin + 10, yPosition);
-          yPosition += wrappedBullet.length * lineHeight + 2;
-        }
-      }
-      // Handle numbered lists
-      else if (line.match(/^\d+\. /)) {
-        const match = line.match(/^(\d+\. )(.*)/);
-        if (match) {
-          const listNumber = match[1];
-          const listText = match[2];
-          
-          doc.setFontSize(12);
-          doc.setTextColor(80, 80, 80);
-          doc.setFont("helvetica", "normal");
-          
-          // Add list number
-          doc.text(listNumber, margin + 5, yPosition);
-          const numberWidth = doc.getTextWidth(listNumber);
-          
-          // Check if the list text contains formatting
-          if (listText.includes("**") || listText.includes("*") || listText.includes("`")) {
-            // Use multi-line formatted text rendering
-            const finalY = renderMultiLineFormattedText(listText, margin + 5 + numberWidth, yPosition, 12, [80, 80, 80]);
-            yPosition = finalY + 2;
-          } else {
-            // Simple text wrapping for plain text
-            const wrappedText = doc.splitTextToSize(listText, maxLineWidth - 5 - numberWidth);
-            doc.text(wrappedText, margin + 5 + numberWidth, yPosition);
-            yPosition += wrappedText.length * lineHeight + 2;
-          }
-        }
-      }
-      // Handle code blocks
-      else if (line.startsWith("```")) {
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont("courier", "normal");
-
-        // Find the end of code block
-        let codeContent = "";
-        let j = i + 1;
-        while (j < lines.length && !lines[j].startsWith("```")) {
-          codeContent += lines[j] + "\n";
-          j++;
-        }
-
-        // Draw code block background
-        const codeHeight = (codeContent.split("\n").length - 1) * lineHeight + 8;
-        doc.setFillColor(245, 245, 245);
-        doc.rect(margin, yPosition - 3, maxLineWidth, codeHeight, "F");
-
-        const wrappedCode = doc.splitTextToSize(codeContent.trim(), maxLineWidth - 10);
-        doc.text(wrappedCode, margin + 5, yPosition + 2);
-        yPosition += wrappedCode.length * lineHeight + 10;
-
-        i = j; // Skip processed lines
-      }
-      // Regular text with potential formatting
-      else {
-        doc.setFontSize(12);
-        doc.setTextColor(60, 60, 60);
-        doc.setFont("helvetica", "normal");
-        
-        // Check if line contains formatting
-        if (line.includes("**") || line.includes("*") || line.includes("`")) {
-          // Use multi-line formatted text rendering
-          const finalY = renderMultiLineFormattedText(line, margin, yPosition, 12, [60, 60, 60]);
-          yPosition = finalY + 3;
-        } else {
-          // Plain text without formatting
-          const wrappedText = doc.splitTextToSize(line, maxLineWidth);
-          doc.text(wrappedText, margin, yPosition);
-          yPosition += wrappedText.length * lineHeight + 3;
-        }
-      }
-    }
-
-    // Add footer with page numbers
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        pageWidth - margin - 20,
-        pageHeight - 15
-      );
-
-      // Add timestamp
-      const timestamp = new Date().toLocaleDateString();
-      doc.text(`Generated on ${timestamp}`, margin, pageHeight - 15);
-    }
-
-    doc.save(`${filename}.pdf`);
-  };
+  // Download file function - removed, now using shared download hook
 
   const handleCloseCreateModal = () => {
     setIsCreateModalOpen(false);
@@ -1781,7 +1307,7 @@ const DocPrepAgent = () => {
               <div className="relative">
                 <div className="flex">
                   <Button
-                    onClick={() => handleDownload("pdf")}
+                    onClick={() => downloadDocument("pdf")}
                     className="bg-green-600 hover:bg-green-700 rounded-r-none"
                   >
                     <Download className="w-4 h-4 mr-2" />
@@ -1814,7 +1340,7 @@ const DocPrepAgent = () => {
                     <div className="py-1">
                       <button
                         onClick={() => {
-                          handleDownload("pdf");
+                          downloadDocument("pdf");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1834,7 +1360,7 @@ const DocPrepAgent = () => {
                       </button>
                       <button
                         onClick={() => {
-                          handleDownload("doc");
+                          downloadDocument("doc");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1854,7 +1380,7 @@ const DocPrepAgent = () => {
                       </button>
                       <button
                         onClick={() => {
-                          handleDownload("txt");
+                          downloadDocument("txt");
                           setShowDownloadDropdown(false);
                         }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -2090,48 +1616,7 @@ const DocPrepAgent = () => {
                                 ? "..."
                                 : "")
                         }
-                        components={{
-                          ul: ({ children, ...props }: any) => (
-                            <ul className="list-disc pl-6 mb-4 [&_ul]:list-none [&_ul]:pl-4 [&_ul_ul]:list-disc [&_ul_ul]:pl-4" {...props}>
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children, ...props }: any) => (
-                            <ol className="list-decimal pl-6 mb-4" {...props}>
-                              {children}
-                            </ol>
-                          ),
-                          li: ({ children, ...props }: any) => (
-                            <li className="mb-2 [ul_ul_&]:before:content-['-_'] [ul_ul_&]:before:mr-2 [ul_ul_&]:before:font-bold" {...props}>
-                              {children}
-                            </li>
-                          ),
-                          p: ({ children, ...props }: any) => (
-                            <p className="mb-4" {...props}>
-                              {children}
-                            </p>
-                          ),
-                          h1: ({ children, ...props }: any) => (
-                            <h1 className="text-2xl font-semibold text-gray-900 mb-3 mt-6" {...props}>
-                              {children}
-                            </h1>
-                          ),
-                          h2: ({ children, ...props }: any) => (
-                            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5" {...props}>
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children, ...props }: any) => (
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4" {...props}>
-                              {children}
-                            </h3>
-                          ),
-                          h4: ({ children, ...props }: any) => (
-                            <h4 className="text-base font-semibold text-gray-900 mb-2 mt-3" {...props}>
-                              {children}
-                            </h4>
-                          ),
-                        }}
+                        components={components}
                       />
                     </div>
                   </div>
@@ -2228,7 +1713,7 @@ const DocPrepAgent = () => {
               </div>
               <div className="flex flex-col space-y-2">
                 <Button
-                  onClick={() => handleDownload("pdf")}
+                  onClick={() => downloadDocument("pdf")}
                   className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
                   size="sm"
                 >
@@ -2247,7 +1732,7 @@ const DocPrepAgent = () => {
                 </Button>
                 <div className="flex space-x-2">
                   <Button
-                    onClick={() => handleDownload("doc")}
+                    onClick={() => downloadDocument("doc")}
                     size="sm"
                     className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
                   >
@@ -2265,7 +1750,7 @@ const DocPrepAgent = () => {
                     Word Doc
                   </Button>
                   <Button
-                    onClick={() => handleDownload("txt")}
+                    onClick={() => downloadDocument("txt")}
                     variant="outline"
                     size="sm"
                     className="flex-1"
