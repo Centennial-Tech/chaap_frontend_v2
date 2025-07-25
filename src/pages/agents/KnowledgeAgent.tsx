@@ -20,7 +20,9 @@ import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Brain } from "lucide-react";
+import { Brain, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useSubmission } from "../../provider/submissionProvider";
 
 interface Response {
   content: string;
@@ -236,6 +238,8 @@ const AI = ({
 };
 
 const KnowledgeAgent = () => {
+  const navigate = useNavigate();
+  const { createNewSubmission } = useSubmission();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [request, setRequest] = useState<string>("");
   const [isMaximized, setIsMaximized] = useState<boolean>(true);
@@ -605,6 +609,19 @@ const KnowledgeAgent = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <Tooltip title="Create New Submission">
+                <div
+                  onClick={() => {
+                    createNewSubmission();
+                    navigate("/dashboard?openNewSubmission=true");
+                  }}
+                  className="cursor-pointer hover:bg-white/10 p-2 rounded-xl transition-all duration-300 flex items-center gap-1"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="text-sm">Create New Submission</span>
+                </div>
+              </Tooltip>
+
               <Tooltip title={isMaximized ? "Minimize" : "Maximize"}>
                 <div
                   onClick={toggleMaximize}

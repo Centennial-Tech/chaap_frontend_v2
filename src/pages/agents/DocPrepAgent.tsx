@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { XCircle, Download } from "lucide-react";
+import { XCircle, Download, Plus } from "lucide-react";
 import Modal from "../../components/ui/Modal";
 import api from "../../api";
 import { extractText } from "../../utils";
@@ -13,6 +13,7 @@ import remarkGfm from "remark-gfm";
 import supersub from "remark-supersub";
 import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 import { getMarkdownComponents } from "../../components/ui/MarkdownComponents";
+import { useNavigate } from "react-router-dom";
 
 //TODO: Remove mock, use components, fix 2nd background behind the animation
 
@@ -247,7 +248,7 @@ const mockFormQuestions = {
 };
 
 const DocPrepAgent = () => {
-  const { submissions, activeSubmission, setActiveSubmission } =
+  const { submissions, activeSubmission, setActiveSubmission, createNewSubmission } =
     useSubmission();
   const [selectedAttachmentType, setSelectedAttachmentType] = useState("");
   const [isValidateModalOpen, setIsValidateModalOpen] = useState(false);
@@ -297,6 +298,10 @@ const DocPrepAgent = () => {
   const components = getMarkdownComponents();
 
 
+
+  const navigate = useNavigate();
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (
@@ -1806,6 +1811,8 @@ const DocPrepAgent = () => {
     </>
   );
 
+
+
   return (
     <div className="relative min-h-screen">
       <AnimatedBackground />
@@ -1842,32 +1849,65 @@ const DocPrepAgent = () => {
                   >
                     1. Submission Name
                   </label>
-                  <select
-                    id="submission-select"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onChange={(e) => {
-                      const submissionId = e.target.value;
-                      const submission = submissions.find(
-                        (s) => s.id === submissionId
-                      );
-                      if (submission) {
-                        setActiveSubmission(submission);
-                      }
-                    }}
-                  >
-                    <option value="" disabled selected>
-                      Select a recent submission
-                    </option>
-                    {submissions.map((submission) => (
-                      <option
-                        key={submission.id}
-                        value={submission.id}
-                        selected={submission.id === activeSubmission?.id}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-left flex justify-between items-center"
+                    >
+                      <span className="text-gray-700">
+                        {activeSubmission?.name || "Select submission"}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 transition-transform ${isDropdownOpen ? "transform rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        {submission.name}
-                      </option>
-                    ))}
-                  </select>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            createNewSubmission();
+                            navigate("/dashboard?openNewSubmission=true");
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-200"
+                        >
+                          <span className="text-xl font-medium">+</span>
+                          <span>Create New</span>
+                        </button>
+                        
+                        {submissions.map((submission) => (
+                          <button
+                            key={submission.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveSubmission(submission);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full px-4 py-2 text-left hover:bg-gray-50 ${
+                              activeSubmission?.id === submission.id
+                                ? "bg-gray-50"
+                                : ""
+                            }`}
+                          >
+                            {submission.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
