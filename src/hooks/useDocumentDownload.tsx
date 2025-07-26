@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { DownloadService } from '../utils/downloadService';
-import type { DownloadOptions, ReportData } from '../utils/downloadService';
+import type { DownloadOptions } from '../utils/downloadService';
 import { useToast } from './useToast';
 
 /**

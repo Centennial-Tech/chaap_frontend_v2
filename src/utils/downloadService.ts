@@ -89,60 +89,6 @@ export class DownloadService {
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
       yPosition += 10;
 
-      // Helper function to render text with inline formatting
-      const renderFormattedText = (text: string, x: number, y: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
-        doc.setFontSize(fontSize);
-        doc.setTextColor(color[0], color[1], color[2]);
-        doc.setFont("helvetica", "normal");
-        
-        // Use the shared stripMarkdown function for consistent markdown removal
-        const cleanText = stripMarkdown(text);
-        
-        // Render the cleaned text
-        const textWidth = doc.getTextWidth(cleanText);
-        doc.text(cleanText, x, y);
-        
-        return textWidth; // Return the width used
-      };
-
-      // Helper function to render multi-line formatted text
-      const renderMultiLineFormattedText = (text: string, x: number, startY: number, fontSize: number = 12, color: [number, number, number] = [60, 60, 60]) => {
-        doc.setFontSize(fontSize);
-        doc.setTextColor(color[0], color[1], color[2]);
-        doc.setFont("helvetica", "normal");
-        
-        // Use the shared stripMarkdown function for consistent markdown removal
-        const cleanText = stripMarkdown(text);
-        
-        let currentY = startY;
-        const words = cleanText.split(' ');
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          const testWidth = doc.getTextWidth(testLine);
-          
-          if (testWidth <= maxLineWidth) {
-            currentLine = testLine;
-          } else {
-            // Render current line if it has content
-            if (currentLine) {
-              doc.text(currentLine, x, currentY);
-              currentY += lineHeight;
-            }
-            currentLine = word;
-          }
-        }
-        
-        // Render remaining text
-        if (currentLine) {
-          doc.text(currentLine, x, currentY);
-          currentY += lineHeight;
-        }
-        
-        return currentY; // Return the final Y position
-      };
-
       // Parse markdown-like content
       const lines = content.split("\n");
 

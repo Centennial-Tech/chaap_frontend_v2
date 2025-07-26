@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { XCircle, Download, Plus } from "lucide-react";
+import { XCircle, Download } from "lucide-react";
 import Modal from "../../components/ui/Modal";
 import api from "../../api";
 import { extractText } from "../../utils";
